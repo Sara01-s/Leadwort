@@ -1,0 +1,11 @@
+{
+  "name": "glengine",
+  "version": "0.1.0",
+  "dependencies": [
+    "glfw3",
+    "opengl",
+    "openal-soft",
+    "assimp",
+    "glm"
+  ]
+}
