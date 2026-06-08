@@ -7,31 +7,29 @@
 #include <imgui.h>
 
 void ShowViewport(
-    const char* name,
-    Engine::Rendering::Bindables::RenderTarget& renderTarget
+	const char* name,
+	Engine::Rendering::Bindables::RenderTarget& renderTarget,
+	const std::function<void(int, int)>& onResize = nullptr
 ) {
-    ImGui::Begin(name);
+	ImGui::Begin(name);
 
-    const ImVec2 size = ImGui::GetContentRegionAvail();
-    const int newWidth  = static_cast<int>(size.x);
-    const int newHeight = static_cast<int>(size.y);
+	const ImVec2 size = ImGui::GetContentRegionAvail();
+	const int newWidth  = static_cast<int>(size.x);
+	const int newHeight = static_cast<int>(size.y);
 
-    if (newWidth > 0 && newHeight > 0) {
-        const bool resized = newWidth  != renderTarget.GetWidth() || newHeight != renderTarget.GetHeight();
+	if (newWidth > 0 && newHeight > 0) {
+		const bool resized = newWidth != renderTarget.GetWidth()
+						  || newHeight != renderTarget.GetHeight();
 
-        if (resized) {
-            renderTarget.Resize(newWidth, newHeight);
-        }
-    	else {
-            ImGui::Image(
-                renderTarget.GetTextureID(),
-                size,
-                { 0.0f, 1.0f }, { 1.0f, 0.0f }
-            );
-        }
-    }
+		if (resized) {
+			if (onResize) onResize(newWidth, newHeight);
+			else          renderTarget.Resize(newWidth, newHeight);
+		}
 
-    ImGui::End();
+		ImGui::Image(renderTarget.GetTextureGpuID(), size, {0,1}, {1,0});
+	}
+
+	ImGui::End();
 }
 
 void ShowStatus() {
@@ -61,14 +59,17 @@ int main() {
     Engine::Editor::EditorLayer editor;
     editor.Init(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-    auto& gameRenderTarget  = game.GetGameRenderTarget();
+	auto& gameRenderTarget = game.GetGameRenderTarget();
+	auto& gamePostProcessRenderTarget = game.GetGamePostProcessRenderTarget();
     auto& sceneRenderTarget = game.GetSceneRenderTarget();
 
     Engine::Systems::RenderSystem::Get().AddOverlay([&] {
         editor.StartFrame();
         editor.SetupDockSpace();
-        ShowViewport("Scene", sceneRenderTarget);
-        ShowViewport("Game",  gameRenderTarget);
+    	ShowViewport("Scene", sceneRenderTarget);
+		ShowViewport("Game",  gamePostProcessRenderTarget, [&](const int w, const int h) {
+			game.ResizeGameView(w, h);
+		});
         ShowStatus();
         editor.EndFrame();
     });

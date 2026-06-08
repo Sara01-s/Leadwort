@@ -22,6 +22,7 @@ public:
 
 	bool Initialize(int width, int height, std::string_view title);
 	void ToggleFullscreen();
+	void SetIcons() const;
 	[[nodiscard]] bool IsOpen() const;
 	static void SetVSync(bool enabled);
 	void SwapBuffers() const;

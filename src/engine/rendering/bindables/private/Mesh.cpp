@@ -91,6 +91,7 @@ void Mesh::Draw() const {
 void Mesh::Bind() const noexcept {
 	glBindVertexArray(m_VAO);
 }
+
 void Mesh::Unbind() const noexcept {
 	glBindVertexArray(0);
 }

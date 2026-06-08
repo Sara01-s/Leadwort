@@ -19,7 +19,7 @@ public:
 
     [[nodiscard]] int GetWidth() const { return m_Width; }
     [[nodiscard]] int GetHeight() const { return m_Height; }
-    [[nodiscard]] unsigned int GetTextureID() const { return m_TextureGpuID; }
+    [[nodiscard]] unsigned int GetTextureGpuID() const { return m_TextureGpuID; }
 
 private:
     void Setup();
@@ -31,6 +31,7 @@ private:
     
     unsigned int m_FramebufferID = 0;
     unsigned int m_TextureGpuID = 0;
+	unsigned int m_DepthRBO = 0;
 };
 
 } // namespace Engine::Rendering::Bindables

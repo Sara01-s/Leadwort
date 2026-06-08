@@ -12,8 +12,8 @@ namespace Engine::Components {
 namespace Engine::Rendering {
 
 enum class RenderQueue : std::uint8_t {
-	Background = 0,
-	Opaque = 1,
+	Background = 0, // Skybox, grid, etc...
+	Opaque = 1, // Geometry
 	AlphaTest = 2, // pixel discards
 	Transparent = 3, // blend
 	Overlay = 4, // ui

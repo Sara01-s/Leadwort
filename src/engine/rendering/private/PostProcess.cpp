@@ -1,4 +1,5 @@
 #include "../public/PostProcess.h"
+#include <glad/glad.h>
 
 #include "engine/core/public/Window.h"
 #include "engine/utils/public/PrimitiveMeshes.h"
@@ -9,8 +10,8 @@ PostProcess::PostProcess(const std::shared_ptr<Bindables::Shader>& shader)
 	: m_Mesh(Utils::PrimitiveMeshes::Get().Quad()), m_Material(shader)
 {}
 
-void PostProcess::Render(const unsigned int sceneTextureID) {
-	glViewport(0, 0, Core::Window::Get().GetWidth(), Core::Window::Get().GetHeight());
+void PostProcess::Render(const unsigned int sceneTextureID, const float width, const float height) {
+	glViewport(0, 0, width, height);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
@@ -24,6 +25,8 @@ void PostProcess::Render(const unsigned int sceneTextureID) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+
+	glViewport(0, 0, Core::Window::Get().GetWidth(), Core::Window::Get().GetHeight());
 }
 
 } // namespace Engine::Rendering

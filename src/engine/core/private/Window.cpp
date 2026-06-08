@@ -1,7 +1,8 @@
 #include "../../utils/public/Logger.h"
 #include <engine/core/public/Window.h>
 
-#include "engine/core/public/Game.h"
+#include "engine/asset-management/public/AssetManager.h"
+#include "stb/stb_image.h"
 
 #include <iostream>
 
@@ -80,6 +81,9 @@ bool Window::Initialize(const int width, const int height, const std::string_vie
 
 	SetVSync(true);
 	glfwShowWindow(m_Handle);
+
+	SetIcons();
+
 	return true;
 }
 
@@ -98,6 +102,44 @@ void Window::ToggleFullscreen() {
 	else {
 		glfwSetWindowMonitor(m_Handle, nullptr, m_WindowedX, m_WindowedY, m_WindowedWidth, m_WindowedHeight, 0);
 		m_IsFullscreen = false;
+	}
+}
+
+void Window::SetIcons() const {
+	const std::array<std::string, 4>& iconPaths = {
+		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_16x16.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_32x32.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_48x48.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_256x256.png"),
+	};
+
+	std::vector<GLFWimage> images;
+	std::vector<unsigned char*> rawData;
+
+	for (const auto& path : iconPaths) {
+		int width, height, channels;
+
+		if (unsigned char* pixels = stbi_load(path.c_str(), &width, &height, &channels, 4)) {
+			GLFWimage image;
+			image.width = width;
+			image.height = height;
+			image.pixels = pixels;
+
+			images.push_back(image);
+			rawData.push_back(pixels);
+		}
+		else {
+			Utils::Log::Warn("Can't load icon: ", path);
+		}
+	}
+
+	if (!images.empty()) {
+		glfwSetWindowIcon(m_Handle, static_cast<int>(images.size()), images.data());
+	}
+
+	// Limpiamos la memoria cargada por STB
+	for (auto* pixels : rawData) {
+		stbi_image_free(pixels);
 	}
 }
 

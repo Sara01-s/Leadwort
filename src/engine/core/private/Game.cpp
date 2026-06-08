@@ -31,8 +31,12 @@ Game::Game() {
     SceneSystem::Get().LoadEmptyScene();
     SceneSystem::Get().LoadPendingScene();
 
-    m_GameRenderTarget  = std::make_unique<RenderTarget>(Window::Get().GetWidth(), Window::Get().GetHeight());
-    m_SceneRenderTarget = std::make_unique<RenderTarget>(Window::Get().GetWidth(), Window::Get().GetHeight());
+	const int windowWidth = Window::Get().GetWidth();
+	const int windowHeight = Window::Get().GetHeight();
+
+    m_GameRenderTarget  = std::make_unique<RenderTarget>(windowWidth, windowHeight);
+	m_GamePostProcessRenderTarget = std::make_unique<RenderTarget>(windowWidth, windowHeight);
+    m_SceneRenderTarget = std::make_unique<RenderTarget>(windowWidth, windowHeight);
 }
 
 void Game::Tick() const {
@@ -55,8 +59,11 @@ void Game::Tick() const {
     BehaviourSystem::Get().Update();
 
     RenderSystem::Get().Render(CameraSystem::Get().GetMain(), m_GameRenderTarget.get());
+	RenderSystem::Get().RenderPostProcess(m_GameRenderTarget.get(), m_GamePostProcessRenderTarget.get());
+
     RenderSystem::Get().Render(CameraSystem::Get().GetSceneCamera(), m_SceneRenderTarget.get());
 
+	RenderSystem::Get().ClearScreen();
     RenderSystem::Get().RenderUI();
 }
 
@@ -68,6 +75,11 @@ void Game::Loop() const {
         Tick();
         Window::Get().SwapBuffers();
     }
+}
+
+void Game::ResizeGameView(const int width, const int height) const {
+	m_GameRenderTarget->Resize(width, height);
+	m_GamePostProcessRenderTarget->Resize(width, height);
 }
 
 } // namespace Engine::Core

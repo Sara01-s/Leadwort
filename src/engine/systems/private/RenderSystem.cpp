@@ -32,6 +32,9 @@ void RenderSystem::Init() {
     );
 
     m_CameraUBO.Init();
+	m_PostProcess = std::make_unique<Rendering::PostProcess>(
+		AssetManagement::EngineAssets::LoadShader("shaders/postprocess/shd_post_process.glsl")
+	);
 
     glGenVertexArrays(1, &m_EmptyVAO);
 }
@@ -107,8 +110,8 @@ void RenderSystem::RenderAlphaTest(const Rendering::RenderQueues& queues, const 
 
 void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transparents, const glm::vec3& camPos) {
     for (int i = 1; i < static_cast<int>(transparents.size()); ++i) {
-        Components::Renderer* key     = transparents[i];
-        const float           keyDist = glm::distance(camPos, key->entity->transform->GetWorldPosition());
+        Components::Renderer* key = transparents[i];
+        const float keyDist = glm::distance(camPos, key->entity->transform->GetWorldPosition());
         int j = i - 1;
 
         while (j >= 0 && glm::distance(camPos, transparents[j]->entity->transform->GetWorldPosition()) < keyDist) {
@@ -174,6 +177,7 @@ void RenderSystem::Render(
     RenderTransparent(queues, camera);
 
     renderTarget->Unbind();
+
     glViewport(0, 0, Core::Window::Get().GetWidth(), Core::Window::Get().GetHeight());
 }
 
@@ -181,18 +185,20 @@ void RenderSystem::Render(
 //  UI / Overlay
 // ─────────────────────────────────────────────
 
-void RenderSystem::RenderPostProcess(const Rendering::Bindables::RenderTarget* renderTarget) const {
-    ApplyPostProcessState();
-    renderTarget->Unbind();
+void RenderSystem::RenderPostProcess(
+	const Rendering::Bindables::RenderTarget* src,
+	const Rendering::Bindables::RenderTarget* dst
+) const {
+	CORE_ASSERT(m_PostProcess, "Post Process has not been initialized.");
 
-    glViewport(0, 0, Core::Window::Get().GetWidth(), Core::Window::Get().GetHeight());
-    glClear(GL_COLOR_BUFFER_BIT);
+	dst->Bind();
+	glViewport(0, 0, dst->GetWidth(), dst->GetHeight());
+	glClear(GL_COLOR_BUFFER_BIT);
 
-    m_PostProcess->Render(renderTarget->GetTextureID());
+	ApplyPostProcessState();
+	m_PostProcess->Render(src->GetTextureGpuID(), src->GetWidth(), src->GetHeight());
 
-    for (auto const& callback : m_OverlayCallbacks) {
-        callback();
-    }
+	dst->Unbind();
 }
 
 void RenderSystem::RenderUI() const {

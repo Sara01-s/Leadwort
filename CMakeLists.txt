@@ -62,3 +62,7 @@ add_custom_command(TARGET GLEngine POST_BUILD
         "${CMAKE_SOURCE_DIR}/src/engine/engine-assets"
         "$<TARGET_FILE_DIR:GLEngine>/engine-assets"
 )
+
+if(WIN32)
+    target_sources(GLEngine PRIVATE resources.rc)
+endif()

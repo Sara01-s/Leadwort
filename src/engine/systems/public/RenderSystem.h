@@ -26,6 +26,8 @@ public:
     void Init();
 
 	void Render(Components::Camera* camera, const Rendering::Bindables::RenderTarget* renderTarget) const;
+	void RenderPostProcess(const Rendering::Bindables::RenderTarget* src,
+						   const Rendering::Bindables::RenderTarget* dst) const;
     void RenderUI() const;
     void AddOverlay(std::function<void()> callback);
 
@@ -46,7 +48,6 @@ private:
 	static void RenderTransparent(Rendering::RenderQueues& queues, const Components::Camera* camera);
 	static void SortTransparents(std::vector<Components::Renderer*>& transparents, const glm::vec3& cameraPosition);
 	void RenderGrid(const Components::Camera* camera, glm::vec2 resolution) const;
-	void RenderPostProcess(const Rendering::Bindables::RenderTarget* renderTarget) const;
 
 	std::shared_ptr<Rendering::Bindables::Shader> m_GridShader = AssetManagement::EngineAssets::LoadShader("shaders/shd_grid.glsl");
 	GLuint m_EmptyVAO;

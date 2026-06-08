@@ -21,6 +21,7 @@ layout(std140, binding = 0) uniform CameraData {
     mat4 _ViewMatrix;
     mat4 _ProjectionMatrix;
     vec4 _CameraPosition;
+    vec4 _Padding;
 };
 
 uniform mat4 _InvViewMatrix;
