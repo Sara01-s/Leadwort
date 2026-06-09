@@ -1,52 +1,21 @@
 #pragma once
 
-#include "engine/components/public/Camera.h"
-#include "engine/components/public/Renderer.h"
-#include "engine/core/public/Scene.h"
+#include "RenderQueue.h"
 
-#include <ranges>
+#include <vector>
+
+namespace Engine::Core       { class Scene; }
+namespace Engine::Components { class Camera; class Renderer; }
 
 namespace Engine::Rendering {
 
 class SceneCollector {
 public:
-	void FindRenderersInScene(const Core::Scene* scene) {
-		for (auto& queue : m_Cached) {
-			queue.clear();
-		}
-
-		for (const auto& entity : scene->GetEntities() | std::views::values) {
-			for (auto* component : entity->GetAllComponents()) {
-				if (auto* renderer = dynamic_cast<Components::Renderer*>(component)) {
-					m_Cached[static_cast<std::uint8_t>(renderer->renderQueue)].push_back(renderer);
-					break;
-				}
-			}
-		}
-	}
-
-	[[nodiscard]] RenderQueues BuildRenderQueues(const Components::Camera* camera) const {
-		RenderQueues result;
-
-		for (std::size_t i = 0; i < m_Cached.size(); ++i) {
-			for (auto* r : m_Cached[i]) {
-				if (r->isVisible && camera->ShouldRender(r->entity)) {
-					result[i].push_back(r);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	void Clear() {
-		for (auto& queue : m_Cached) {
-			queue.clear();
-		}
-	}
+	void FindRenderersInScene(const Core::Scene* scene);
+	[[nodiscard]] RenderQueues BuildRenderQueues(const Components::Camera* camera) const;
 
 private:
-	RenderQueues m_Cached;
+	std::vector<Components::Renderer*> m_Renderers;
 };
 
 } // namespace Engine::Rendering

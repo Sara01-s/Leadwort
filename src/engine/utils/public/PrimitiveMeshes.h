@@ -25,7 +25,7 @@ private:
 	std::unique_ptr<Rendering::Bindables::Mesh> BuildSphere() const;
 	std::unique_ptr<Rendering::Bindables::Mesh> BuildCube()   const;
 
-	Rendering::Bindables::VertexLayout m_Layout {};
+	Rendering::Bindables::VertexLayout m_Layout{};
 	std::shared_ptr<Rendering::Bindables::Material> m_Material;
 
 	std::unique_ptr<Rendering::Bindables::Mesh> m_Empty;

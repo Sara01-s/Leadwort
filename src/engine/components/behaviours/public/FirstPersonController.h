@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/components/behaviours/public/Behaviour.h"
+#include "engine/components/public/Transform.h"
 #include "engine/core/public/Time.h"
 #include "engine/systems/public/Input.h"
 

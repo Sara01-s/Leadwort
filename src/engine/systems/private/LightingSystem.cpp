@@ -2,6 +2,7 @@
 #include "engine/systems/public/LightingSystem.h"
 
 #include "engine/components/behaviours/public/DirectionaLight.h"
+#include "engine/core/public/Entity.h"
 #include "engine/utils/public/Logger.h"
 
 namespace Engine::Systems {

@@ -17,9 +17,9 @@ Entity::~Entity() {
 	m_Components.clear();
 }
 
-Entity* Entity::FindEntityByTag(const std::string& t) const {
+Entity* Entity::FindEntityByTag(const std::string& tag) const {
 	for (const auto& entity: scene->GetEntities() | std::views::values) {
-		if (entity->CompareTag(t)) {
+		if (entity->CompareTag(tag)) {
 		    return entity;
         }
 	}

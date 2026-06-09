@@ -1,39 +1,54 @@
 #pragma once
 
-#include "../../Component.h"
-#include "engine/core/public/Entity.h"
+#include "engine/components/Component.h"
+#include "engine/systems/public/BehaviourSystem.h"
+
+// Forward declarations — Entity is NOT yet complete here.
+namespace Engine::Core       { class Entity; }
+namespace Engine::Components { class Transform; }
 
 namespace Engine::Components::Behaviours {
 
-class Transform;
-
 class Behaviour : public Component {
 public:
-	using Base = Component;
+	// Declarations only — definitions are in Behaviour.inl,
+	// included at the bottom of Entity.h after Entity is complete.
+	[[nodiscard]] Transform* GetTransform() const;
 
-	[[nodiscard]] Components::Transform* GetTransform() const { return entity->transform; }
+	template <typename T>
+	T* GetComponent() const;
 
-	void SetEnabled(bool value);
-	[[nodiscard]] bool IsEnabled() const { return m_Enabled; }
+	template <typename T>
+	bool HasComponent() const;
 
-	virtual void Start()       {}
-	virtual void Update()      {}
+	virtual void OnEnable()  {}
+	virtual void OnDisable() {}
+	virtual void Start() {}
+	virtual void Update() {}
 	virtual void FixedUpdate() {}
-	virtual void OnDestroy()   {}
-	virtual void OnEnable()    {}
-	virtual void OnDisable()   {}
+	virtual void OnInspector() {}
 
-	template <typename T>
-	T* GetComponent() const { return entity->GetComponent<T>(); }
+	void OnAdded() final {
+		Systems::BehaviourSystem::Get().Register(this);
+	}
 
-	template <typename T>
-	bool HasComponent() const { return entity->HasComponent<T>(); }
+	void OnRemoved() final {
+		Systems::BehaviourSystem::Get().Unregister(this);
+	}
 
-	void OnAdded()   final;
-	void OnRemoved() final;
+	bool IsEnabled() const { return m_IsEnabled; }
+
+	void SetEnabled(const bool enabled) {
+		if (m_IsEnabled == enabled) {
+			return;
+		}
+
+		m_IsEnabled = enabled;
+		m_IsEnabled ? OnEnable() : OnDisable();
+	}
 
 private:
-	bool m_Enabled = true;
+	bool m_IsEnabled = true;
 };
 
 } // namespace Engine::Components::Behaviours

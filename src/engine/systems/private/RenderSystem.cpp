@@ -8,6 +8,7 @@
 #include "engine/utils/public/Visit.h"
 
 #include <glad/glad.h>
+#include <variant>
 
 #undef near
 #undef far
@@ -243,7 +244,7 @@ void RenderSystem::SetClearColor(const float r, const float g, const float b, co
 }
 
 void RenderSystem::Clear() {
-    m_SceneCollector.Clear();
+	// TODO: Clear whatever need no be cleared here.
 }
 
 RenderSystem::~RenderSystem() {

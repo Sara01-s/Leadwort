@@ -31,7 +31,7 @@ public:
     void RenderUI() const;
     void AddOverlay(std::function<void()> callback);
 
-    void Clear();
+	static void Clear();
 	static void ClearScreen();
     static void SetClearColor(const Utils::Color& color);
     static void SetClearColor(float r, float g, float b, float a = 1.0f);

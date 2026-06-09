@@ -12,7 +12,7 @@ class PostProcess {
 public:
 	explicit PostProcess(const std::shared_ptr<Bindables::Shader>& shader);
 
-	void Render(unsigned int sceneTextureID, const float width, const float height);
+	void Render(unsigned int sceneTextureID, float width, float height);
 
 private:
 	std::shared_ptr<Bindables::Mesh> m_Mesh;

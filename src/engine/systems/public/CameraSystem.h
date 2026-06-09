@@ -3,6 +3,8 @@
 #include "engine/components/public/Camera.h"
 #include "engine/utils/public/Singleton.h"
 
+#include <string>
+
 namespace Engine::Systems {
 
 class CameraSystem : public Utils::Singleton<CameraSystem> {

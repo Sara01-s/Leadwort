@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Behaviour.h"
-#include <engine/utils/public/Color.h>
 #include "engine/systems/public/LightingSystem.h"
+#include <engine/utils/public/Color.h>
 
 namespace Engine::Components::Behaviours {
 
