@@ -4,8 +4,8 @@
 namespace Engine::Rendering {
 
 Skybox::Skybox() {
-	auto shader = AssetManagement::EngineAssets::LoadShader("shaders/shd_skybox.glsl");
-	m_SkyboxMaterial = std::make_unique<Bindables::Material>(shader);
+	const auto shader = AssetManagement::EngineAssets::GetShader("shaders/shd_skybox.glsl");
+	m_SkyboxMaterial = AssetManagement::EngineAssets::CreateMaterial(shader);
 
 	constexpr float vertices[] = {
 		-1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
@@ -53,7 +53,7 @@ Skybox::Skybox() {
 
 	glBindVertexArray(0);
 
-	const auto cubeMap = AssetManagement::EngineAssets::LoadCubeMap(cubeMapTexturePaths);
+	const auto cubeMap = AssetManagement::EngineAssets::GetCubeMap(cubeMapTexturePaths);
 	m_SkyboxMaterial->SetCubeMap("_SkyboxTexture", cubeMap.get());
 	m_CubeMap = cubeMap;
 }

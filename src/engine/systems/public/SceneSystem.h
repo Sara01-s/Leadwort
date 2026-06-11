@@ -14,7 +14,7 @@ public:
 
 	[[nodiscard]] Core::Scene* GetCurrentScene() const { return m_CurrentScene.get(); }
 
-	void LoadScene(std::unique_ptr<Core::Scene> scene);
+	void LoadScene(Unique<Core::Scene> scene);
 	void LoadEmptyScene();
 	void LoadPendingScene();
 
@@ -22,8 +22,8 @@ private:
 	SceneSystem() = default;
 	~SceneSystem() = default;
 
-	std::unique_ptr<Core::Scene> m_CurrentScene = nullptr;
-	std::unique_ptr<Core::Scene> m_PendingScene = nullptr;
+	Unique<Core::Scene> m_CurrentScene = nullptr;
+	Unique<Core::Scene> m_PendingScene = nullptr;
 };
 
 } // namespace Engine::Systems

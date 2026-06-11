@@ -8,14 +8,15 @@
 
 namespace Engine::AssetManagement {
 
+namespace Bindables = Rendering::Bindables;
+
 class DefaultAssets {
 public:
-	static std::shared_ptr<Rendering::Bindables::Shader> GetUnlitShader();
-	static std::shared_ptr<Rendering::Bindables::Shader> GetLitShader();
-	static std::shared_ptr<Rendering::Bindables::Texture> GetTexture();
-	static std::shared_ptr<Rendering::Bindables::Texture> GetWhiteTexture();
-	static std::shared_ptr<Rendering::Bindables::Material> GetUnlitMaterial();
-	static std::shared_ptr<Rendering::Bindables::Material> GetLitMaterial();
+	static Shared<Bindables::Shader>   GetUnlitShader();
+	static Shared<Bindables::Shader>   GetLitShader();
+	static Shared<Bindables::Texture>  GetTexture();
+	static Shared<Bindables::Material> CreateUnlitMaterial();
+	static Shared<Bindables::Material> CreateLitMaterial();
 };
 
-} // namespace E
+} // namespace Engine::AssetManagement

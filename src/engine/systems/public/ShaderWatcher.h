@@ -13,86 +13,113 @@ namespace fs = std::filesystem;
 
 class ShaderWatcher {
 public:
-	struct ShaderEntry {
-		Rendering::Bindables::Shader* shader;
-		std::string mainPath;
-		std::vector<std::string> dependencies;
-		fs::file_time_type lastCheckTime;
-	};
+    struct ShaderEntry {
+        Rendering::Bindables::Shader* shader;
+        std::string                   mainPath;
+        fs::path                      assetRoot;
+        std::vector<fs::path>         watchedPaths;
+        fs::file_time_type            lastCheckTime;
+    };
 
     static ShaderWatcher& Get() {
-       static ShaderWatcher instance;
-       return instance;
+        static ShaderWatcher instance;
+        return instance;
     }
 
-    ~ShaderWatcher() = default;
-
-    ShaderWatcher(const ShaderWatcher&) = delete;
+    ShaderWatcher(const ShaderWatcher&)            = delete;
     ShaderWatcher& operator=(const ShaderWatcher&) = delete;
 
-    void Update() {
-       for (auto& [shader, mainPath, dependencies, lastCheckTime] : m_ActiveShaders) {
-          bool changed = false;
+    void RegisterShader(Rendering::Bindables::Shader* shader, const fs::path& absolutePath, const fs::path& assetRoot) {
+    	CORE_LOG("ShaderWatcher: REGISTRANDO shader: ", absolutePath.string());
 
-          for (const auto& dependency : dependencies) {
-             if (const fs::path path(dependency); fs::exists(path)) {
-                if (const auto lastWrite = fs::last_write_time(path); lastWrite > lastCheckTime) {
-                   CORE_LOG("Change detected in: ", path.filename().string());
-                   lastCheckTime = lastWrite;
-                   changed = true;
-                }
-             }
-          }
-
-          if (changed) {
-             CORE_LOG("Recompiling shader: ", mainPath);
-             try {
-                shader->Compile();
-             	lastCheckTime = fs::file_time_type::clock::now(); // Avoids recompiling twice.
-                CORE_LOG("Shader recompiled successfully.");
-             }
-             catch (const std::exception& e) {
-                CORE_ERROR("Failed to recompile shader: ", e.what());
-             }
-          }
-       }
-    }
-
-	void RegisterShader(Rendering::Bindables::Shader* shader, const std::string& path) {
-		const fs::path exeDir = fs::current_path();
-		const fs::path projectRoot = exeDir.parent_path();
-		const fs::path fullPath = projectRoot / "src" / "engine" / "engine-assets" / path;
-
-    	if (!fs::exists(fullPath)) {
-    		CORE_ERROR("Shader file not found at: ", fullPath.string());
+    	if (!fs::exists(absolutePath)) {
+    		CORE_ERROR("ShaderWatcher: ERROR. El archivo NO existe en la ruta registrada: ", absolutePath.string());
     		return;
     	}
 
-    	CORE_LOG("Registering shader at: ", fullPath.string());
+        CORE_LOG("ShaderWatcher: Registering shader at: ", absolutePath.string());
 
-    	ShaderEntry entry;
-    	entry.shader = shader;
-    	entry.mainPath = fullPath.string();
-    	entry.dependencies = shader->GetDependencies();
+        ShaderEntry entry;
+        entry.shader    = shader;
+        entry.mainPath  = absolutePath.string();
+        entry.assetRoot = assetRoot;
 
-    	std::vector<std::string> absoluteDeps;
-
-    	for (auto& dep : entry.dependencies) {
-    		fs::path depPath = projectRoot / "engine-assets" / dep;
-    		absoluteDeps.push_back(depPath.string());
-    	}
-
-    	entry.dependencies = absoluteDeps;
-    	entry.dependencies.push_back(fullPath.string());
-
-    	entry.lastCheckTime = fs::last_write_time(fullPath);
-    	m_ActiveShaders.push_back(entry);
+        RefreshWatchedPaths(entry);
+    	entry.lastCheckTime = fs::file_time_type::min();
+        m_ActiveShaders.push_back(std::move(entry));
     }
 
-	std::vector<ShaderEntry> const& GetActiveShaderEntries() const noexcept { return m_ActiveShaders; }
+	void Update() {
+    	for (auto& entry : m_ActiveShaders) {
+    		// AQUÍ ESTÁ EL CAMBIO: Quitamos la fuerza y usamos la detección real
+    		if (HasAnyChanged(entry)) {
+    			CORE_LOG("ShaderWatcher: CAMBIO DETECTADO. Recargando: ", entry.mainPath);
+
+    			try {
+    				// 1. Recompilamos
+    				entry.shader->Compile();
+
+    				// 2. Actualizamos el tiempo para no detectar el mismo cambio infinitamente
+    				entry.lastCheckTime = MaxWriteTime(entry.watchedPaths);
+
+    				CORE_LOG("ShaderWatcher: Recompile exitoso.");
+    			}
+    			catch (const std::exception& e) {
+    				CORE_ERROR("ShaderWatcher: Error al recompilar: ", e.what());
+    			}
+    		}
+    	}
+    }
+
+    const std::vector<ShaderEntry>& GetActiveShaderEntries() const noexcept { return m_ActiveShaders; }
 
 private:
     ShaderWatcher() = default;
+
+    static void RefreshWatchedPaths(ShaderEntry& entry) {
+        entry.watchedPaths.clear();
+        entry.watchedPaths.push_back(fs::path(entry.mainPath));
+
+        for (const auto& dep : entry.shader->GetDependencies()) {
+            const fs::path p = fs::path(dep).is_absolute()
+                ? fs::path(dep).lexically_normal()
+                : (entry.assetRoot / dep).lexically_normal();
+
+            if (fs::exists(p)) {
+                entry.watchedPaths.push_back(p);
+            }
+        	else {
+                CORE_WARN("ShaderWatcher: Dependency not found, skipping: ", p.string());
+            }
+        }
+    }
+
+    static fs::file_time_type MaxWriteTime(const std::vector<fs::path>& paths) {
+        fs::file_time_type latest{};
+        for (const auto& p : paths) {
+            try {
+                if (fs::exists(p))
+                    latest = std::max(latest, fs::last_write_time(p));
+            }
+        	catch (const fs::filesystem_error&) {}
+        }
+
+        return latest;
+    }
+
+	static bool HasAnyChanged(const ShaderEntry& entry) {
+    	for (const auto& path : entry.watchedPaths) {
+    		if (!fs::exists(path)) continue;
+
+    		auto lastWrite = fs::last_write_time(path);
+
+    		if (lastWrite > entry.lastCheckTime) {
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
 
     std::vector<ShaderEntry> m_ActiveShaders;
 };

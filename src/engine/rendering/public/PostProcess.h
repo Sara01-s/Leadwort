@@ -10,13 +10,13 @@ namespace Engine::Rendering {
 
 class PostProcess {
 public:
-	explicit PostProcess(const std::shared_ptr<Bindables::Shader>& shader);
+	explicit PostProcess(const Shared<Bindables::Shader>& shader);
 
-	void Render(unsigned int sceneTextureID, float width, float height);
+	void Render(unsigned int sceneTextureID, float width, float height) const;
 
 private:
-	std::shared_ptr<Bindables::Mesh> m_Mesh;
-	Bindables::Material m_Material;
+	Shared<Bindables::Mesh> m_Mesh;
+	Shared<Bindables::Material> m_Material;
 };
 
 } // namespace Engine::Rendering

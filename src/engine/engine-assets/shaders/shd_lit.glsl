@@ -113,7 +113,8 @@ void main() {
     float metallic = _MetallicIntensity;
 
     #ifdef HAS_DIFFUSE
-        vec4 diffuseSample = texture(_DiffuseTexture, v_uv);
+
+    vec4 diffuseSample = texture(_DiffuseTexture, v_uv);
         albedo *= diffuseSample.rgb;
 
         #if !(defined(HAS_OPACITY))
@@ -170,5 +171,5 @@ void main() {
     vec3 lightColor = _LightColor * _LightIntensity;
     vec3 color = PBR(F0, albedo, N, V, L, H, roughness, metallic, lightColor, emission, ao, AMBIENT_LIGHT);
 
-    fragColor = vec4(color, alpha);
+    fragColor = vec4(1.0, 0.0, 1.0, 1.0);
 }

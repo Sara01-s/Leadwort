@@ -6,10 +6,6 @@
 #include "engine/components/public/Camera.h"
 #include "engine/components/public/MeshRenderer.h"
 #include "engine/core/public/Scene.h"
-#include "engine/rendering/public/Skybox.h"
-#include "engine/utils/public/PrimitiveMeshes.h"
-
-#include <glm/gtc/quaternion.hpp>
 
 namespace Engine::Scenes {
 
@@ -19,16 +15,22 @@ public:
         // Default Cube
 		Core::Entity* cube = CreateEntity("Default Cube");
         {
-            auto* mr = cube->AddComponent<Components::MeshRenderer>();
-            mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
-            mr->SetMaterial(AssetManagement::DefaultAssets::GetLitMaterial());
+            cube->AddComponent<Components::MeshRenderer>();
+			cube->transform->SetLocalPosition(Vec3(0.0f, 0.0f, 5.0f));
         }
+
+		const auto modelParent = CreateEntity("Model");
+		const auto model = AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb");
+		model->Instantiate(*modelParent);
+  		modelParent->transform->SetLocalPosition(Vec3(0.0f, 0.0f, -7.0f));
+  		modelParent->transform->SetLocalScale(Vec3(0.01f, 0.01f, 0.01));
+    	modelParent->transform->SetLocalRotation(Quat::FromEuler(90.0f, 180.0f, 0.0f));
 
         // Main Camera
         {
 			Core::Entity* e = CreateEntity("Main Camera");
             e->tag = Core::Tags::MAIN_CAMERA;
-            e->transform->SetWorldPosition({ 5.0f, 2.5f, -5.0f });
+            e->transform->SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
             e->transform->LookAt(cube->transform);
 
             auto* cam = e->AddComponent<Components::Camera>();
@@ -39,21 +41,18 @@ public:
         {
 			Core::Entity* e = CreateEntity("Scene Camera");
             e->tag = Core::Tags::SCENE_CAMERA;
-            e->transform->SetWorldPosition({ 5.0f, 2.5f, -5.0f });
+            e->transform->SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
             e->transform->LookAt(cube->transform);
 
             e->AddComponent<Components::Behaviours::FirstPersonController>();
-        	e->AddComponent<Components::Camera>();
+			e->AddComponent<Components::Camera>();
         }
 
         // Directional Light
         {
 			Core::Entity* e = CreateEntity("Directional Light");
             e->AddComponent<Components::Behaviours::DirectionalLight>();
-
-            const auto qX = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            const auto qY = glm::angleAxis(glm::radians(-50.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            e->transform->SetLocalRotation(qX * qY);
+			e->transform->SetLocalRotation(Quat::FromEuler(-45.0f, -45.0f, -45.0f));
         }
     }
 };

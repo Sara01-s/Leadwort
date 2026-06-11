@@ -48,8 +48,8 @@ inline ElementTraits GetTraits(const ElementType type) {
         case ElementType::Position3D:
         case ElementType::Normal3D:
         case ElementType::Tangent3D:
-        case ElementType::Bitangent3D: return {3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3)};
-        case ElementType::TexCoord2D:  return {2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2)};
+        case ElementType::Bitangent3D: return {3, GL_FLOAT, GL_FALSE, sizeof(Vec3)};
+        case ElementType::TexCoord2D:  return {2, GL_FLOAT, GL_FALSE, sizeof(Vec2)};
         case ElementType::ColorRGBA:   return {4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(glm::u8vec4)};
         default:                       return {0, 0, GL_FALSE, 0};
     }

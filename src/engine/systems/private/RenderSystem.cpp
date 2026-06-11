@@ -23,6 +23,7 @@ void RenderSystem::Init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+	glFrontFace(GL_CW);
 
     SetClearColor(Utils::Color::Gray20());
 
@@ -33,8 +34,8 @@ void RenderSystem::Init() {
     );
 
     m_CameraUBO.Init();
-	m_PostProcess = std::make_unique<Rendering::PostProcess>(
-		AssetManagement::EngineAssets::LoadShader("shaders/postprocess/shd_post_process.glsl")
+	m_PostProcess = CreateUnique<Rendering::PostProcess>(
+		AssetManagement::EngineAssets::GetShader("shaders/postprocess/shd_post_process.glsl")
 	);
 
     glGenVertexArrays(1, &m_EmptyVAO);
@@ -44,11 +45,16 @@ void RenderSystem::Init() {
 //  Render passes
 // ─────────────────────────────────────────────
 
-void RenderSystem::RenderGrid(const Components::Camera* camera, const glm::vec2 resolution) const {
-    m_GridShader->Bind();
-    m_GridShader->SetUniform("_InvViewMatrix",       glm::inverse(camera->GetViewMatrix()));
-    m_GridShader->SetUniform("_InvProjectionMatrix", glm::inverse(camera->GetProjectionMatrix()));
-    m_GridShader->SetUniform("_Resolution",    resolution);
+void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resolution) const {
+	glDisable(GL_CULL_FACE);
+	m_GridShader->Bind();
+
+	const Mat4 cameraWorld = camera->entity->transform->GetWorldMatrix();
+	const Mat4 cameraProjection  = camera->GetProjectionMatrix();
+
+	m_GridShader->SetUniform("_InvViewMatrix",       cameraWorld);
+	m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(cameraProjection));
+	m_GridShader->SetUniform("_Resolution",          resolution);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -62,9 +68,10 @@ void RenderSystem::RenderGrid(const Components::Camera* camera, const glm::vec2 
     glBindVertexArray(0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
 }
 
-void RenderSystem::RenderBackground(const Components::Camera* camera, const glm::vec2 resolution) {
+void RenderSystem::RenderBackground(const Components::Camera* camera, const Vec2 resolution) {
     std::visit(overloaded {
         [](const Components::Camera::SkyBox& sky) {
             sky.skybox->Render();
@@ -109,13 +116,13 @@ void RenderSystem::RenderAlphaTest(const Rendering::RenderQueues& queues, const 
     }
 }
 
-void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transparents, const glm::vec3& camPos) {
+void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transparents, const Vec3& camPos) {
     for (int i = 1; i < static_cast<int>(transparents.size()); ++i) {
         Components::Renderer* key = transparents[i];
-        const float keyDist = glm::distance(camPos, key->entity->transform->GetWorldPosition());
+        const float keyDist = Distance(camPos, key->entity->transform->GetWorldPosition());
         int j = i - 1;
 
-        while (j >= 0 && glm::distance(camPos, transparents[j]->entity->transform->GetWorldPosition()) < keyDist) {
+        while (j >= 0 && Distance(camPos, transparents[j]->entity->transform->GetWorldPosition()) < keyDist) {
             transparents[j + 1] = transparents[j];
             --j;
         }
@@ -168,7 +175,7 @@ void RenderSystem::Render(
 
     m_CameraUBO.Update(camera);
 
-    const glm::vec2 resolution = { renderTarget->GetWidth(), renderTarget->GetHeight() };
+    const auto resolution = Vec2(renderTarget->GetWidth(), renderTarget->GetHeight());
     RenderBackground(camera, resolution);
 
     auto queues = m_SceneCollector.BuildRenderQueues(camera);

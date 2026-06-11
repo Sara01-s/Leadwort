@@ -46,10 +46,18 @@ float gridLine(float v, float width) {
 void main() {
     vec2 ndc = (gl_FragCoord.xy / _Resolution) * 2.0 - 1.0;
 
-    vec4 nearWorld = _InvViewMatrix * (_InvProjectionMatrix * vec4(ndc, -1.0, 1.0));
-    vec4 farWorld  = _InvViewMatrix * (_InvProjectionMatrix * vec4(ndc,  1.0, 1.0));
-    nearWorld /= nearWorld.w;
-    farWorld  /= farWorld.w;
+    vec4 nearView = _InvProjectionMatrix * vec4(ndc, -1.0, 1.0);
+    vec4 farView  = _InvProjectionMatrix * vec4(ndc,  1.0, 1.0);
+    nearView /= nearView.w;
+    farView  /= farView.w;
+
+    nearView.y = -nearView.y;
+    nearView.z = -nearView.z;
+    farView.y  = -farView.y;
+    farView.z  = -farView.z;
+
+    vec4 nearWorld = _InvViewMatrix * nearView;
+    vec4 farWorld  = _InvViewMatrix * farView;
 
     vec3 rayOrigin = nearWorld.xyz;
     vec3 rayDir    = normalize(farWorld.xyz - nearWorld.xyz);

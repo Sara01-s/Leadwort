@@ -1,41 +1,43 @@
 #pragma once
 
 #include "Bindable.h"
+#include "engine/asset-management/private/AssetKey.h"
 #include "engine/utils/public/Color.h"
+
 #include <glad/glad.h>
-#include <glfw/glfw3.h>
 #include <string>
+
+namespace Engine::AssetManagement {
+	class AssetManager;
+}
 
 namespace Engine::Rendering::Bindables {
 
-class Texture : public Bindable {
+class Texture final : public Bindable {
 public:
+	explicit Texture(AssetManagement::AssetKey<Texture>);
+	Texture() = delete;
 	~Texture() override;
 
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 
-	// Factory methods
-	static Texture* FromPath(const std::string& path);
-	static Texture* FromMemory(const uint8_t* data, size_t size);
-	static Texture* FromRGBA(int width, int height, const uint8_t* rgbaPixels);
-	static Texture* CreateSolid(const Utils::Color& color);
-	static Texture* CreateEmpty();
+	Texture(Texture&&) = delete;
+	Texture& operator=(Texture&&) = delete;
 
 	void Bind(int slot = 0) const;
-	void Bind()   const noexcept override;
+	void Bind() const noexcept override;
 	void Unbind() const noexcept override;
 
-	[[nodiscard]] int GetWidth()    const { return m_Width; }
-	[[nodiscard]] int GetHeight()   const { return m_Height; }
-	[[nodiscard]] int GetChannels() const { return m_Channels; }
+	[[nodiscard]] int GetWidth() const noexcept { return m_Width; }
+	[[nodiscard]] int GetHeight() const noexcept { return m_Height; }
+	[[nodiscard]] int GetChannelCount() const noexcept { return m_Channels; }
 
 private:
-	Texture() = default;
+	friend class AssetManagement::AssetManager;
 
-	void LoadFromPath(const std::string& path);
-	void UploadRGBA(const uint8_t* pixels, int width, int height, bool mips, bool aniso);
-	static void ApplySamplerParams(bool mips, bool aniso);
+	void UploadRGBA(const uint8_t* pixels, int width, int height, bool generateMipmaps, bool anisotropicFiltering);
+	static void ApplySamplerParams(bool generateMipmaps, bool anisotropicFiltering);
 
 	int m_Width    = 1;
 	int m_Height   = 1;

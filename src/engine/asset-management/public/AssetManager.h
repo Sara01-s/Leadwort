@@ -1,134 +1,146 @@
 #pragma once
 
-#include "engine/rendering/bindables/public/CubeMap.h"
-#include "engine/rendering/bindables/public/Shader.h"
-#include "engine/rendering/bindables/public/Texture.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <fstream>
-#include <memory>
+#include "engine/core/public/Core.h"
+#include "engine/rendering/bindables/public/CubeMap.h"
+#include "engine/rendering/bindables/public/Texture.h"
+#include "engine/rendering/bindables/public/Mesh.h"
+#include "engine/rendering/public/Model.h"
+
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+namespace Engine::Rendering::Bindables {
+	class VertexLayout;
+	class Shader;
+}
+
 namespace Engine::AssetManagement {
 
-class AssetManager {
+namespace Bindables = Rendering::Bindables;
+
+// ---------------------------------------------------------------------------
+// ResourceCache
+// ---------------------------------------------------------------------------
+
+template <typename TKey, typename TValue>
+class AssetCache {
 public:
-    explicit AssetManager(std::string rootPath) : m_Root(std::move(rootPath)) {}
-
-	[[nodiscard]] std::string ResolvePath(const std::string& path) const {
-	    return Resolve(path).string();
-    }
-
-    [[nodiscard]] std::string LoadText(const std::string& path) const {
-        const auto fullPath = Resolve(path);
-        std::ifstream file(fullPath, std::ios::in | std::ios::binary);
-
-        if (!file.is_open()) {
-            throw std::runtime_error("File not found: " + fullPath.string());
+    [[nodiscard]] Shared<TValue> Get(const TKey& key) const {
+        const auto it = m_Cache.find(key);
+        if (it == m_Cache.end()) {
+	        return nullptr;
         }
-
-        return { std::istreambuf_iterator(file), std::istreambuf_iterator<char>() };
+        return it->second.lock();
     }
 
-    [[nodiscard]] std::vector<uint8_t> LoadBytes(const std::string& path) const {
-        const auto fullPath = Resolve(path);
-        std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
-        if (!file.is_open()) {
-            throw std::runtime_error("File not found: " + fullPath.string());
-        }
-        const long long size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<uint8_t> buffer(size);
-        file.read(reinterpret_cast<char*>(buffer.data()), size);
-        return buffer;
+    void Set(const TKey& key, const Shared<TValue>& resource) {
+        m_Cache[key] = resource;
     }
 
-    [[nodiscard]] std::shared_ptr<Rendering::Bindables::Shader> LoadShader(const std::string& path) {
-        const std::string key = Resolve(path).string();
-
-        if (auto shared = m_ShaderCache[key].lock()) {
-            return shared;
-        }
-
-        auto shader = std::make_shared<Rendering::Bindables::Shader>(LoadText(path), path);
-        m_ShaderCache[key] = shader;
-        return shader;
-    }
-
-    [[nodiscard]] std::shared_ptr<Rendering::Bindables::Texture> LoadTexture(const std::string& path) {
-        const std::string key = Resolve(path).string();
-
-        if (auto shared = m_TextureCache[key].lock()) {
-            return shared;
-        }
-
-        const auto bytes = LoadBytes(path);
-        auto texture = std::shared_ptr<Rendering::Bindables::Texture>(
-            Rendering::Bindables::Texture::FromMemory(bytes.data(), bytes.size())
-        );
-        m_TextureCache[key] = texture;
-        return texture;
-    }
-
-    [[nodiscard]] std::shared_ptr<Rendering::Bindables::CubeMap> LoadCubeMap(const std::array<std::string, 6>& paths) const {
-        std::array<std::string, 6> resolvedPaths;
-        for (size_t i = 0; i < 6; ++i) {
-            resolvedPaths[i] = Resolve(paths[i]).string();
-        }
-        return std::make_shared<Rendering::Bindables::CubeMap>(resolvedPaths);
-    }
-
-    // Periodically removes expired weak_ptrs from the maps to keep them clean.
     void Cleanup() {
-        for (auto it = m_ShaderCache.begin(); it != m_ShaderCache.end();) {
+        for (auto it = m_Cache.begin(); it != m_Cache.end();) {
             if (it->second.expired()) {
-				it = m_ShaderCache.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
-        for (auto it = m_TextureCache.begin(); it != m_TextureCache.end();) {
-            if (it->second.expired()) {
-				it = m_TextureCache.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
+	            it = m_Cache.erase(it);
+            }
+            else {
+	            ++it;
+            }
+        }
     }
 
 private:
-    [[nodiscard]] std::filesystem::path Resolve(const std::string& path) const {
-        std::string p = path;
-        std::ranges::replace(p, '\\', '/');
+    std::unordered_map<TKey, Weak<TValue>> m_Cache{};
+};
 
-        if (!p.empty() && p[0] == '/') {
-            p.erase(0, 1);
-        }
+// ---------------------------------------------------------------------------
+// AssetManager
+// ---------------------------------------------------------------------------
 
-        return std::filesystem::path(m_Root) / p;
-    }
+class AssetManager {
+public:
+    explicit AssetManager(std::string rootPath);
+
+    [[nodiscard]] std::string          ResolvePath(const std::string& path) const;
+    [[nodiscard]] std::string          LoadText   (const std::string& path) const;
+    [[nodiscard]] std::vector<uint8_t> LoadBytes  (const std::string& path) const;
+
+    [[nodiscard]] Shared<Bindables::Shader>   GetShader                 (const std::string& path);
+    [[nodiscard]] Shared<Bindables::Texture>  GetTexture                (const std::string& path);
+    [[nodiscard]] Shared<Bindables::Texture>  GetTextureFromAbsolutePath(const std::string& absolutePath);
+    [[nodiscard]] Shared<Bindables::Texture>  GetEmbeddedTexture        (int index, const uint8_t* data, size_t size);
+    [[nodiscard]] Shared<Bindables::CubeMap>  GetCubeMap                (const std::array<std::string, 6>& paths);
+    [[nodiscard]] Shared<Core::Model>         GetModel                  (const std::string& path);
+	[[nodiscard]] Shared<Bindables::Mesh>	  GetMesh(const Bindables::MeshData& meshData);
+	[[nodiscard]] static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader);
+
+	void Cleanup();
+
+private:
+    [[nodiscard]] static Shared<Bindables::Texture> CreateTextureFromBytes(const uint8_t* bytes, size_t size);
+    [[nodiscard]] static std::string                MakeCubeMapKey        (const std::array<std::string, 6>& paths);
+    [[nodiscard]] std::filesystem::path             Resolve               (const std::string& path) const;
 
     std::string m_Root;
-    // Caches use weak_ptr to allow automatic destruction of resources.
-    std::unordered_map<std::string, std::weak_ptr<Rendering::Bindables::Shader>>  m_ShaderCache;
-    std::unordered_map<std::string, std::weak_ptr<Rendering::Bindables::Texture>> m_TextureCache;
+    AssetCache<std::string, Bindables::Shader>      m_ShaderCache{};
+    AssetCache<std::string, Bindables::Texture>     m_TextureCache{};
+    AssetCache<std::string, Bindables::CubeMap>     m_CubeMapCache{};
+	AssetCache<Bindables::MeshKey, Bindables::Mesh> m_MeshCache{};
+    AssetCache<std::string, Core::Model>            m_ModelCache{};
 };
+
+// ---------------------------------------------------------------------------
+// AssetWrapper / singletons
+// ---------------------------------------------------------------------------
 
 template <typename, const char* RootPath>
 class AssetWrapper {
 public:
-	static std::string			Resolve   (const std::string& path) { return Get().ResolvePath(path); }
-	static std::string          LoadText  (const std::string& path) { return Get().LoadText(path); }
-    static std::vector<uint8_t> LoadBytes (const std::string& path) { return Get().LoadBytes(path); }
+    [[nodiscard]] static std::string          Resolve   (const std::string& path) { return Get().ResolvePath(path); }
+    [[nodiscard]] static std::string          LoadText  (const std::string& path) { return Get().LoadText(path); }
+    [[nodiscard]] static std::vector<uint8_t> LoadBytes (const std::string& path) { return Get().LoadBytes(path); }
 
-    static std::shared_ptr<Rendering::Bindables::Shader>  LoadShader (const std::string& path)                 { return Get().LoadShader(path); }
-    static std::shared_ptr<Rendering::Bindables::Texture> LoadTexture(const std::string& path)                 { return Get().LoadTexture(path); }
-    static std::shared_ptr<Rendering::Bindables::CubeMap> LoadCubeMap(const std::array<std::string, 6>& paths) { return Get().LoadCubeMap(paths); }
+    [[nodiscard]]
+    static Shared<Bindables::Shader> GetShader(const std::string& path) {
+        return Get().GetShader(path);
+    }
+
+    [[nodiscard]]
+    static Shared<Bindables::Texture> GetTexture(const std::string& path) {
+        return Get().GetTexture(path);
+    }
+
+    [[nodiscard]]
+    static Shared<Bindables::Texture> GetTextureAbsolute(const std::string& path) {
+        return Get().GetTextureFromAbsolutePath(path);
+    }
+
+    [[nodiscard]]
+    static Shared<Bindables::Texture> GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
+        return Get().GetEmbeddedTexture(index, data, size);
+    }
+
+	[[nodiscard]]
+	static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader) {
+	    return Get().CreateMaterial(shader);
+    }
+
+    [[nodiscard]]
+    static Shared<Bindables::CubeMap> GetCubeMap(const std::array<std::string, 6>& paths) {
+        return Get().GetCubeMap(paths);
+    }
+
+    [[nodiscard]]
+    static Shared<Core::Model> GetModel(const std::string& path) {
+        return Get().GetModel(path);
+    }
+
+	[[nodiscard]]
+	static Shared<Bindables::Mesh> GetMesh(const Bindables::MeshData& meshData) {
+    	return Get().GetMesh(meshData);
+    }
 
 private:
     static AssetManager& Get() {
@@ -141,6 +153,6 @@ inline constexpr char EngineRoot[] = ENGINE_ASSET_ROOT;
 inline constexpr char GameRoot[]   = GAME_ASSET_ROOT;
 
 struct EngineAssets : AssetWrapper<EngineAssets, EngineRoot> {};
-struct GameAssets   : AssetWrapper<GameAssets,   GameRoot>   {};
+//struct GameAssets   : AssetWrapper<GameAssets,   GameRoot>   {};
 
 } // namespace Engine::AssetManagement

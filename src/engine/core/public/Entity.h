@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core.h"
 #include "Layers.h"
 #include "Tags.h"
 #include "engine/utils/public/Logger.h"
@@ -48,7 +49,7 @@ public:
 
         CORE_ASSERT(!m_Components.contains(key), std::string("Entity '") + name + "' already has component: " + typeid(T).name());
 
-        auto owner = std::make_unique<T>();
+        auto owner = CreateUnique<T>();
         T* ptr = owner.get();
         ptr->entity = this;
 
@@ -142,7 +143,7 @@ private:
     }
 
     std::unordered_map<std::type_index, Components::Component*> m_Components;
-    std::vector<std::unique_ptr<Components::Component>> m_OwnedComponents;
+    std::vector<Unique<Components::Component>> m_OwnedComponents;
 };
 
 } // namespace Engine::Core

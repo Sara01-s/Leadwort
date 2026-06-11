@@ -8,12 +8,12 @@
 
 namespace Engine::Systems {
 
-void SceneSystem::LoadScene(std::unique_ptr<Core::Scene> scene) {
+void SceneSystem::LoadScene(Unique<Core::Scene> scene) {
 	m_PendingScene = std::move(scene);
 }
 
 void SceneSystem::LoadEmptyScene() {
-	LoadScene(std::make_unique<Scenes::EmptyScene>());
+	LoadScene(CreateUnique<Scenes::EmptyScene>());
 }
 
 void SceneSystem::LoadPendingScene() {

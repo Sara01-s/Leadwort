@@ -2,51 +2,47 @@
 
 #include "engine/components/public/Transform.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <tuple>
 
 namespace Engine::Rendering::MatrixUtils {
 
+struct ProjectionSettings {
+	float fovY;
+	float nearPlane;
+	float farPlane;
+	float aspect;
+};
+
 // LH (Y-up, +Z forward) → RH conversion applied at a single point
-inline constexpr auto LH_TO_RH = glm::mat4(
-	1,  0,  0,  0,
-	0,  1,  0,  0,
-	0,  0, -1,  0,
-	0,  0,  0,  1
+inline constexpr auto LH_TO_RH_CORRECTION = Mat4(
+	1.0f,  0.0f,  0.0f,  0.0f,
+	0.0f, -1.0f,  0.0f,  0.0f, // Invert Y
+	0.0f,  0.0f, -1.0f,  0.0f, // Invert Z
+	0.0f,  0.0f,  0.0f,  1.0f
 );
 
-inline glm::mat4 CalculateModelMatrix(const Components::Transform& transform) {
-	return LH_TO_RH * transform.GetWorldMatrix();
+inline Mat4 CalculateModelMatrix(const Components::Transform& transform) {
+	return transform.GetWorldMatrix();
 }
 
-inline glm::mat4 CalculateViewMatrix(const Components::Transform& cameraTransform) {
-	return LH_TO_RH * glm::inverse(cameraTransform.GetWorldMatrix());
+inline Mat4 CalculateViewMatrix(const Components::Transform& cameraTransform) {
+	const Mat4 world = cameraTransform.GetWorldMatrix();
+	const Mat4 view = Inverse(world);
+	return LH_TO_RH_CORRECTION * view;
 }
 
-inline glm::mat4 CalculateProjectionMatrix(const float fovY, const float nearPlane, const float farPlane, const float aspect) {
-	return glm::perspective(glm::radians(fovY), aspect, nearPlane, farPlane);
+inline Mat4 CalculateProjectionMatrix(const ProjectionSettings& settings) {
+	return Mat4::Perspective(settings.fovY, settings.nearPlane, settings.farPlane, settings.aspect);
 }
 
-inline glm::mat4 CalculateMvpMatrix(
-	const glm::mat4& model,
-	const glm::mat4& view,
-	const glm::mat4& projection
-) {
-	return projection * view * model;
-}
-
-inline std::tuple<glm::mat4, glm::mat4, glm::mat4> CalculateMvpMatrix(
+inline std::tuple<Mat4, Mat4, Mat4> GetMvpMatrices(
 	const Components::Transform& transform,
 	const Components::Transform& cameraTransform,
-	const float fovY,
-	const float nearPlane,
-	const float farPlane,
-	const float aspect
+	const ProjectionSettings& settings
 ) {
 	const auto model = CalculateModelMatrix(transform);
 	const auto view  = CalculateViewMatrix(cameraTransform);
-	const auto proj  = CalculateProjectionMatrix(fovY, nearPlane, farPlane, aspect);
+	const auto proj  = CalculateProjectionMatrix(settings);
 
 	return { model, view, proj };
 }

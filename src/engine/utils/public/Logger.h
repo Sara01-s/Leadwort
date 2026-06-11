@@ -8,10 +8,7 @@
 #include <sstream>
 #include <string>
 
-#ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-#else
+#ifndef _WIN32
 	#include <cstdlib>
 	#include <unistd.h>
 #endif
@@ -222,10 +219,10 @@ private:
 		}
 #else
 		if (SupportsColor()) {
-			std::cout << color << prefix << message << COLOR_CLEAR << EOL;
+			std::cout << color << prefix << message << COLOR_CLEAR << EOL << std::flush;
 		}
 		else {
-			std::cout << prefix << message << EOL;
+			std::cout << prefix << message << EOL << std::flush;
 		}
 #endif
 	}

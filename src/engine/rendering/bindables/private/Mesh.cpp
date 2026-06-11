@@ -4,18 +4,10 @@
 
 namespace Engine::Rendering::Bindables {
 
-Mesh::Mesh(
-	const VertexLayout& layout,
-	const void* vertexData,
-	const size_t vertexDataSize,
-	const uint32_t* indices,
-	const size_t indexCount,
-	const std::shared_ptr<Material>& material,
-	const GLenum topology,
-	const GLenum usage
-)
-	: m_Layout(layout), m_Material(material), m_Topology(topology), m_Usage(usage)
+Mesh::Mesh(const MeshData& meshData, AssetManagement::AssetKey<Mesh>&&) : m_MeshData(meshData)
 {
+	CORE_ASSERT(m_MeshData.material != nullptr, "Mesh constructor: Material is NULL after initialization!");
+
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_VBO);
 	glGenBuffers(1, &m_IBO);
@@ -26,17 +18,19 @@ Mesh::Mesh(
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
 
 	size_t offset = 0;
-	for (const auto& attr: layout.GetAttributes()) {
-		attr.Apply(static_cast<int>(layout.GetStride()), reinterpret_cast<const void*>(offset));
-		offset += attr.sizeInBytes;
+	for (const auto& attribute: m_MeshData.layout.GetAttributes()) {
+		attribute.Apply(static_cast<int>(m_MeshData.layout.GetStride()), reinterpret_cast<const void*>(offset));
+		offset += attribute.sizeInBytes;
 	}
 
 	glBindVertexArray(0);
 
-	SetData(vertexData, vertexDataSize, indices, indexCount);
+	SetData(m_MeshData.vertices, m_MeshData.indices);
 }
 
 Mesh::~Mesh() {
+	CORE_LOG("Destroying Mesh with GPU ID: ", m_GpuID);
+
 	if (m_VBO) {
 		glDeleteBuffers(1, &m_VBO);
 		m_VBO = 0;
@@ -53,13 +47,8 @@ Mesh::~Mesh() {
 	}
 }
 
-void Mesh::SetData(
-	const void* vertexData,
-	const size_t vertexDataSize,
-	const uint32_t* indices,
-	const size_t indexCount
-) {
-	if (indexCount == 0) {
+void Mesh::SetData(const ConstBufferView vertexData, const ConstBufferView indices) {
+	if (indices.empty()) {
 		m_IndexCount = 0;
 		return;
 	}
@@ -67,24 +56,24 @@ void Mesh::SetData(
 	glBindVertexArray(m_VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertexDataSize), vertexData, m_Usage);
+	glBufferData(GL_ARRAY_BUFFER, vertexData.size_bytes(), vertexData.data(), m_MeshData.usage);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexCount * sizeof(uint32_t)), indices, m_Usage);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size_bytes(), indices.data(), m_MeshData.usage);
 
 	glBindVertexArray(0);
 
-	m_IndexCount = static_cast<int>(indexCount);
+	m_IndexCount = static_cast<int>(indices.size());
 }
 
-void Mesh::Draw() const {
+void Mesh::Render() const {
 	if (m_IndexCount <= 0) {
 		CORE_WARN("Trying to render a mesh with IndexCount = 0!");
 		return;
 	}
 
 	glBindVertexArray(m_VAO);
-	glDrawElements(m_Topology, m_IndexCount, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(m_MeshData.topology, m_IndexCount, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 

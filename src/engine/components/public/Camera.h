@@ -20,7 +20,7 @@ public:
 	};
 
 	struct SkyBox {
-		std::unique_ptr<Rendering::Skybox> skybox;
+		Unique<Rendering::Skybox> skybox;
 	};
 
 	std::variant<SolidColor, SkyBox> background = SolidColor(Utils::Color::Gray20());
@@ -30,9 +30,9 @@ public:
 	int   cullingMask = ~0;
 	float aspect	  = 16.0f / 9.0f;
 
-	[[nodiscard]] bool      ShouldRender(const Core::Entity* entity) const;
-	[[nodiscard]] glm::mat4 GetViewMatrix()                          const;
-	[[nodiscard]] glm::mat4 GetProjectionMatrix()                    const;
+	[[nodiscard]] bool ShouldRender(const Core::Entity* entity) const;
+	[[nodiscard]] Mat4 GetViewMatrix()                          const;
+	[[nodiscard]] Mat4 GetProjectionMatrix()                    const;
 };
 
 } // namespace Engine::Components

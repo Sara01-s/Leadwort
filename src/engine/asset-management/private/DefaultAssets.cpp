@@ -2,39 +2,51 @@
 
 namespace Engine::AssetManagement {
 
-using Shader   = Rendering::Bindables::Shader;
-using Texture  = Rendering::Bindables::Texture;
-using Material = Rendering::Bindables::Material;
-using Color    = Utils::Color;
+using namespace Bindables;
 
-std::shared_ptr<Shader> DefaultAssets::GetUnlitShader() {
-	return EngineAssets::LoadShader("shaders/shd_unlit.glsl");
+namespace {
+	Shared<Shader>  s_UnlitShader;
+	Shared<Shader>  s_LitShader;
+	Shared<Texture> s_DefaultTexture;
 }
 
-std::shared_ptr<Shader> DefaultAssets::GetLitShader() {
-	return EngineAssets::LoadShader("shaders/shd_lit.glsl");
+Shared<Shader> DefaultAssets::GetUnlitShader() {
+	if (!s_UnlitShader) {
+		s_UnlitShader = EngineAssets::GetShader("shaders/shd_unlit.glsl");
+	}
+
+	return s_UnlitShader;
 }
 
-std::shared_ptr<Texture> DefaultAssets::GetTexture() {
-	return EngineAssets::LoadTexture("textures/tex_square.png");
+Shared<Shader> DefaultAssets::GetLitShader() {
+	if (!s_LitShader) {
+		 s_LitShader = EngineAssets::GetShader("shaders/shd_lit.glsl");
+	}
+
+	return s_LitShader;
 }
 
-std::shared_ptr<Texture> DefaultAssets::GetWhiteTexture() {
-	static auto s_WhiteTexture = std::shared_ptr<Texture>(Texture::CreateSolid(Color::White()));
-	return s_WhiteTexture;
+Shared<Material> DefaultAssets::CreateUnlitMaterial() {
+	return EngineAssets::CreateMaterial(GetUnlitShader());
 }
 
-std::shared_ptr<Material> DefaultAssets::GetUnlitMaterial() {
-	auto mat = std::make_shared<Material>(GetUnlitShader());
-	mat->SetTexture("_DiffuseTexture", GetTexture().get());
-	mat->SetColor4("_Color", Color::White());
-	return mat;
+Shared<Material> DefaultAssets::CreateLitMaterial() {
+	auto material = EngineAssets::CreateMaterial(GetLitShader());
+
+	material->SetColor4("_Color", Utils::Color::White());
+	material->SetTexture("_DiffuseTexture", GetTexture(), 0);
+	material->SetFloat("_RoughnessIntensity", 1.0f);
+	material->SetFloat("_MetallicIntensity",  1.0f);
+
+	return material;
 }
 
-std::shared_ptr<Material> DefaultAssets::GetLitMaterial() {
-	auto mat = std::make_shared<Material>(GetLitShader());
-	mat->SetTexture("_DiffuseTexture", GetTexture().get());
-	return mat;
+Shared<Texture> DefaultAssets::GetTexture() {
+	if (!s_DefaultTexture) {
+		s_DefaultTexture = EngineAssets::GetTexture("textures/tex_white_1x1.png");
+	}
+
+	return s_DefaultTexture;
 }
 
 } // namespace Engine::AssetManagement

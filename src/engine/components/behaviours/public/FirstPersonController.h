@@ -5,10 +5,6 @@
 #include "engine/core/public/Time.h"
 #include "engine/systems/public/Input.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <numbers>
-
 namespace Engine::Components::Behaviours {
 
 class FirstPersonController final : public Behaviour {
@@ -17,11 +13,8 @@ public:
     float lookSensitivity = 0.15f;
 
     void Start() override {
-        Systems::Input::Mouse::SetCaptured(true);
-
-        const auto fwd = GetTransform()->GetForward();
-        m_Yaw   = glm::degrees(std::atan2(fwd.x, fwd.z));
-        m_Pitch = glm::degrees(std::asin(-fwd.y));
+    	Systems::Input::Mouse::SetCaptured(true);
+    	m_Rotation = GetTransform()->GetLocalRotation();
     }
 
     void Update() override {
@@ -35,40 +28,40 @@ public:
 
         // Mouse rotation
         const auto mouseDelta = Systems::Input::Mouse::GetDelta();
-        m_Yaw   += mouseDelta.x * lookSensitivity;
-        m_Pitch += mouseDelta.y * lookSensitivity;
-        m_Pitch  = glm::clamp(m_Pitch, -89.9f, 89.9f);
+    	const float yawDelta   = -mouseDelta.x * lookSensitivity;
+    	const float pitchDelta = mouseDelta.y * lookSensitivity;
 
-        constexpr float toRad = std::numbers::pi_v<float> / 180.0f;
-        const auto qYaw   = glm::angleAxis(m_Yaw   * toRad, glm::vec3(0.0f, 1.0f, 0.0f));
-        const auto qPitch = glm::angleAxis(m_Pitch * toRad, glm::vec3(1.0f, 0.0f, 0.0f));
-        GetTransform()->SetLocalRotation(qYaw * qPitch);
+    	const Quat qYaw   = Quat::FromAngleAxis(yawDelta,   Vec3::Up());
+    	const Quat qPitch = Quat::FromAngleAxis(pitchDelta, Vec3::Right());
 
-        // Movement
-		auto moveDirection = glm::vec3(0.0f);
+    	m_Rotation = (qYaw * m_Rotation * qPitch).Normalized();
+    	GetTransform()->SetLocalRotation(m_Rotation);
 
-        const float horizontal = Systems::Input::GetAxis(Systems::Player::P1, Systems::Axis::Horizontal);
-        const float vertical   = Systems::Input::GetAxis(Systems::Player::P1, Systems::Axis::Vertical);
+    	// Translation
+    	auto moveDirection = Vec3(0.0f);
+    	const float horizontal = Systems::Input::GetAxis(Systems::Player::P1, Systems::Axis::Horizontal);
+    	const float vertical   = Systems::Input::GetAxis(Systems::Player::P1, Systems::Axis::Vertical);
 
-        const auto fwd         = GetTransform()->GetForward();
-        const auto forwardFlat = glm::normalize(glm::vec3(fwd.x, 0.0f, fwd.z));
-        const auto rightFlat   = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forwardFlat));
+    	const Vec3 fwd   = GetTransform()->GetForward();
+    	const Vec3 right = GetTransform()->GetRight();
 
-        if (horizontal != 0.0f) moveDirection = moveDirection + rightFlat   * horizontal;
-        if (vertical   != 0.0f) moveDirection = moveDirection + forwardFlat * vertical;
+    	const Vec3 forwardFlat = Vec3(fwd.x, 0.0f, fwd.z).Normalized();
+    	const Vec3 rightFlat   = Vec3(right.x, 0.0f, right.z).Normalized();
 
-        if (Systems::Input::Keyboard::IsPressed(Systems::Key::Space))     moveDirection = moveDirection + glm::vec3(0.0f,  1.0f, 0.0f);
-        if (Systems::Input::Keyboard::IsPressed(Systems::Key::LeftShift)) moveDirection = moveDirection + glm::vec3(0.0f, -1.0f, 0.0f);
+    	moveDirection += forwardFlat * -vertical;
+    	moveDirection += rightFlat   * horizontal;
 
-        if (glm::dot(moveDirection, moveDirection) > 0.0001f) {
-            const auto velocity = glm::normalize(moveDirection) * moveSpeed * Core::Time::GetDeltaTime();
-            GetTransform()->SetWorldPosition(GetTransform()->GetWorldPosition() + velocity);
-        }
+    	if (Systems::Input::Keyboard::IsPressed(Systems::Key::Space))     moveDirection.y += 1.0f;
+    	if (Systems::Input::Keyboard::IsPressed(Systems::Key::LeftShift)) moveDirection.y -= 1.0f;
+
+    	if (moveDirection.LengthSq() > 0.0001f) {
+    		const auto velocity = moveDirection.Normalized() * moveSpeed * Core::Time::GetDeltaTime();
+    		GetTransform()->SetWorldPosition(GetTransform()->GetWorldPosition() + velocity);
+    	}
     }
 
 private:
-    float m_Pitch = 0.0f;
-    float m_Yaw   = 0.0f;
+	Quat m_Rotation = Quat::Identity();
 };
 
 } // namespace Engine::Components::Behaviours

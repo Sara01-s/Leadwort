@@ -23,8 +23,8 @@ public:
 private:
 	unsigned int m_Vao = 0, m_Vbo = 0, m_Ibo = 0;
 
-	std::shared_ptr<Bindables::CubeMap> m_CubeMap = nullptr;
-	std::unique_ptr<Bindables::Material> m_SkyboxMaterial = nullptr;
+	Shared<Bindables::CubeMap> m_CubeMap = nullptr;
+	Shared<Bindables::Material> m_SkyboxMaterial = nullptr;
 };
 
 }

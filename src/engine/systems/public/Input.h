@@ -1,8 +1,10 @@
 #pragma once
 
+#include "engine/core/math/public/Vec2.h"
+
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <array>
+#include <glm/glm.hpp>
 
 namespace Engine::Systems {
 
@@ -86,7 +88,7 @@ public:
     static void Clear();
 
     static float     GetAxis(Player player, Axis axis);
-    static glm::vec2 GetAxis(Player player);
+    static Vec2 GetAxis(Player player);
 
     // ── Keyboard ──────────────────────────────────────────────────────────────
 
@@ -101,9 +103,9 @@ public:
     struct Mouse {
         enum class Button { Left = 0, Right = 1 };
 
-        static glm::vec2 GetPosition();
-        static glm::vec2 GetDelta();
-        static glm::vec2 GetScroll();
+        static Vec2 GetPosition();
+        static Vec2 GetDelta();
+        static Vec2 GetScroll();
 
         static bool IsButtonPressed(Button button);
         static bool IsButtonPressed(int button);
@@ -133,14 +135,14 @@ private:
 
     static std::array<bool, GLFW_KEY_LAST + 1> s_CurrentKeys;
     static std::array<bool, GLFW_KEY_LAST + 1> s_PreviousKeys;
-    static std::array<glm::vec2, PlayerCount> s_Axes;
+    static std::array<Vec2, PlayerCount> s_Axes;
     static std::array<KeyMap,    PlayerCount> s_PlayerKeys;
 
     // Mouse state
-    static glm::vec2 s_MousePosition;
-    static glm::vec2 s_MouseDelta;
-    static glm::vec2 s_MouseLastPosition;
-    static glm::vec2 s_MouseScroll;
+    static Vec2 s_MousePosition;
+    static Vec2 s_MouseDelta;
+    static Vec2 s_MouseLastPosition;
+    static Vec2 s_MouseScroll;
     static bool      s_MouseCaptured;
     static bool      s_MouseFirstFrame;
 };

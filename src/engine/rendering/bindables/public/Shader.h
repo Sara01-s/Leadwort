@@ -1,19 +1,26 @@
 #pragma once
 
+#include "Bindable.h"
+#include "engine/asset-management/private/AssetKey.h"
+#include "engine/core/math/public/Mat3.h"
+
+#include <glad/glad.h>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <set>
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "Bindable.h"
 
 namespace Engine::Rendering::Bindables {
 
-class Shader : public Bindable {
+class Shader : public Bindable  {
 public:
-	Shader(std::string source, std::string path);
+	struct SamplerInfo {
+		GLenum type; // GL_SAMPLER_2D, GL_SAMPLER_CUBE, etc.
+		int location;
+	};
+
+	explicit Shader(const std::string& filePath, AssetManagement::AssetKey<Shader>);
+	explicit Shader() = delete;
 	~Shader() override;
 
 	Shader& operator=(const Shader&) = delete;
@@ -28,18 +35,24 @@ public:
 
 	void SetUniform(const std::string& name, int value) const;
 	void SetUniform(const std::string& name, float value) const;
-	void SetUniform(const std::string& name, const glm::vec2& value) const;
-	void SetUniform(const std::string& name, const glm::vec3& value) const;
-	void SetUniform(const std::string& name, const glm::vec4& value) const;
-	void SetUniform(const std::string& name, const glm::mat3& value) const;
-	void SetUniform(const std::string& name, const glm::mat4& value) const;
+	void SetUniform(const std::string& name, const Vec2& value) const;
+	void SetUniform(const std::string& name, const Vec3& value) const;
+	void SetUniform(const std::string& name, const Vec4& value) const;
+	void SetUniform(const std::string& name, const Mat3& value) const;
+	void SetUniform(const std::string& name, const Mat4& value) const;
+	void ExtractSamplers();
 
 	[[nodiscard]] bool HasUniform(const std::string& name) const;
 	[[nodiscard]] std::vector<std::string> GetDependencies() const noexcept;
+	[[nodiscard]] std::unordered_map<std::string, SamplerInfo> GetSamplers() const noexcept;
+	[[nodiscard]] uint32_t GetVersion() const { return m_Version; }
 
 	void Compile();
 
 private:
+	std::unordered_map<std::string, SamplerInfo> m_Samplers;
+	std::uint32_t m_Version = 0;
+
 	std::string m_Source;
 	std::string m_Path;
 	std::set<std::string> m_Defines;

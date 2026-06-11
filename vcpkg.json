@@ -6,6 +6,7 @@
     "opengl",
     "openal-soft",
     "assimp",
-    "glm"
+    "glm",
+    "gtest"
   ]
 }

@@ -34,19 +34,15 @@ Game::Game() {
 	const int windowWidth = Window::Get().GetWidth();
 	const int windowHeight = Window::Get().GetHeight();
 
-    m_GameRenderTarget  = std::make_unique<RenderTarget>(windowWidth, windowHeight);
-	m_GamePostProcessRenderTarget = std::make_unique<RenderTarget>(windowWidth, windowHeight);
-    m_SceneRenderTarget = std::make_unique<RenderTarget>(windowWidth, windowHeight);
+    m_GameRenderTarget  = CreateUnique<RenderTarget>(windowWidth, windowHeight);
+	m_GamePostProcessRenderTarget = CreateUnique<RenderTarget>(windowWidth, windowHeight);
+    m_SceneRenderTarget = CreateUnique<RenderTarget>(windowWidth, windowHeight);
 }
 
 void Game::Tick() const {
-    if (Input::Keyboard::IsJustPressed(Key::F5)) {
-        for (auto const& entry : ShaderWatcher::Get().GetActiveShaderEntries()) {
-            entry.shader->Compile();
-        }
-    }
-
     SceneSystem::Get().LoadPendingScene();
+
+	ShaderWatcher::Get().Update();
 
     Time::Update(glfwGetTime());
     Input::Update(Time::GetDeltaTime());
@@ -68,13 +64,15 @@ void Game::Tick() const {
 }
 
 void Game::Loop() const {
-    CORE_LOG(AssetManagement::EngineAssets::LoadText("test.txt"));
+	Utils::Log::Header("Hello World!");
 
     while (Window::Get().IsOpen()) {
         Window::PollEvents();
         Tick();
         Window::Get().SwapBuffers();
     }
+
+	Utils::Log::Header("Bye bye!");
 }
 
 void Game::ResizeGameView(const int width, const int height) const {

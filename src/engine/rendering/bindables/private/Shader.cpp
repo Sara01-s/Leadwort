@@ -1,24 +1,34 @@
 #include "../public/Shader.h"
 
 #include "engine/asset-management/public/AssetManager.h"
+#include "engine/core/math/public/Mat4.h"
+#include "engine/core/math/public/Vec4.h"
 #include "engine/systems/public/ShaderWatcher.h"
 #include "engine/utils/public/Logger.h"
 
 #include <sstream>
+#include <filesystem>
 
 namespace Engine::Rendering::Bindables {
+
+namespace fs = std::filesystem;
 
 // ─────────────────────────────────────────────
 //  Lifecycle
 // ─────────────────────────────────────────────
-
-Shader::Shader(std::string source, std::string path) : m_Source(std::move(source)), m_Path(std::move(path)) {
-	Systems::ShaderWatcher::Get().RegisterShader(this, m_Path);
+Shader::Shader(const std::string& filePath, AssetManagement::AssetKey<Shader>) : m_Path(filePath) {
+	m_Source = AssetManagement::EngineAssets::LoadText(m_Path);
 	Compile();
+
+	const fs::path sourceRoot = fs::path(PROJECT_SOURCE_DIR) / "src" / "engine" / "engine-assets";
+	const fs::path sourcePath = (sourceRoot / m_Path).lexically_normal();
+
+	Systems::ShaderWatcher::Get().RegisterShader(this, sourcePath, sourceRoot);
 }
 
 Shader::~Shader() {
 	if (m_GpuID != 0) {
+		CORE_LOG("Destroying Shader with path: ", m_Path, " and GPU ID: ", m_GpuID);
 		glDeleteProgram(m_GpuID);
 	}
 }
@@ -108,22 +118,20 @@ void Shader::Compile() {
 			throw std::runtime_error("Shader: CameraData UBO not found in: " + m_Path);
 		}
 
-		const uint32_t oldProgram = m_GpuID;
-		m_GpuID = newProgram;
-
-		if (oldProgram != 0) {
+		if (m_GpuID != 0) {
 			glDeleteProgram(m_GpuID);
 		}
 
 		m_GpuID = newProgram;
-		m_UniformLocationCache.clear();
+		m_Version++;
 
-		glDeleteShader(vs);
-		glDeleteShader(fs);
+		m_UniformLocationCache.clear();
 
 		CORE_LOG("Shader: Successful compilation on: ", m_Path);
 
-	} catch (const std::exception& e) {
+		ExtractSamplers();
+	}
+	catch (const std::exception& e) {
 		CORE_ERROR("Shader: Error while compiling '", m_Path, "':\n", e.what());
 	}
 }
@@ -359,33 +367,51 @@ void Shader::SetUniform(const std::string& name, const float value) const {
 	}
 }
 
-void Shader::SetUniform(const std::string& name, const glm::vec2& value) const {
+void Shader::SetUniform(const std::string& name, const Vec2& value) const {
 	if (const int loc = GetUniformLocation(name); loc != -1) {
 		glUniform2f(loc, value.x, value.y);
 	}
 }
 
-void Shader::SetUniform(const std::string& name, const glm::vec3& value) const {
+void Shader::SetUniform(const std::string& name, const Vec3& value) const {
 	if (const int loc = GetUniformLocation(name); loc != -1) {
 		glUniform3f(loc, value.x, value.y, value.z);
 	}
 }
 
-void Shader::SetUniform(const std::string& name, const glm::vec4& value) const {
+void Shader::SetUniform(const std::string& name, const Vec4& value) const {
 	if (const int loc = GetUniformLocation(name); loc != -1) {
 		glUniform4f(loc, value.x, value.y, value.z, value.w);
 	}
 }
 
-void Shader::SetUniform(const std::string& name, const glm::mat3& value) const {
+void Shader::SetUniform(const std::string& name, const Mat3& value) const {
 	if (const int loc = GetUniformLocation(name); loc != -1) {
-		glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+		glUniformMatrix3fv(loc, 1, GL_FALSE, value.ToPtr());
 	}
 }
 
-void Shader::SetUniform(const std::string& name, const glm::mat4& value) const {
+void Shader::SetUniform(const std::string& name, const Mat4& value) const {
 	if (const int loc = GetUniformLocation(name); loc != -1) {
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value.ToPtr());
+	}
+}
+
+void Shader::ExtractSamplers() {
+	int uniformCount = 0;
+
+	glGetProgramiv(m_GpuID, GL_ACTIVE_UNIFORMS, &uniformCount);
+
+	for (int i = 0; i < uniformCount; i++) {
+		char name[256];
+		int size;
+		GLenum type;
+		glGetActiveUniform(m_GpuID, i, sizeof(name), nullptr, &size, &type, name);
+
+		if (type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE || type == GL_SAMPLER_2D_SHADOW || type == GL_SAMPLER_3D) {
+			const int location = glGetUniformLocation(m_GpuID, name);
+			m_Samplers[std::string(name)] = SamplerInfo { type, location };
+		}
 	}
 }
 
@@ -395,6 +421,10 @@ bool Shader::HasUniform(const std::string& name) const {
 
 std::vector<std::string> Shader::GetDependencies() const noexcept {
 	return std::vector(m_Dependencies.begin(), m_Dependencies.end());
+}
+
+std::unordered_map<std::string, Shader::SamplerInfo> Shader::GetSamplers() const noexcept {
+	return m_Samplers;
 }
 
 } // namespace Engine::Rendering::Bindables

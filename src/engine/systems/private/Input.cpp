@@ -11,17 +11,17 @@ namespace Engine::Systems {
 GLFWwindow* Input::s_Window = nullptr;
 std::array<bool, GLFW_KEY_LAST + 1> Input::s_CurrentKeys = {};
 std::array<bool, GLFW_KEY_LAST + 1> Input::s_PreviousKeys = {};
-std::array<glm::vec2, Input::PlayerCount> Input::s_Axes = {};
+std::array<Vec2, Input::PlayerCount> Input::s_Axes = std::array<Vec2, PlayerCount>();
 
 std::array<Input::KeyMap, Input::PlayerCount> Input::s_PlayerKeys = {{
 	{Key::W, Key::S, Key::A, Key::D},			 // P1
 	{Key::Up, Key::Down, Key::Left, Key::Right}, // P2
 }};
 
-glm::vec2 Input::s_MousePosition = {};
-glm::vec2 Input::s_MouseDelta = {};
-glm::vec2 Input::s_MouseLastPosition = {};
-glm::vec2 Input::s_MouseScroll = {};
+Vec2 Input::s_MousePosition{};
+Vec2 Input::s_MouseDelta{};
+Vec2 Input::s_MouseLastPosition{};
+Vec2 Input::s_MouseScroll{};
 bool Input::s_MouseCaptured = false;
 bool Input::s_MouseFirstFrame = true;
 
@@ -64,7 +64,7 @@ float Input::GetAxis(const Player player, const Axis axis) {
 	return axis == Axis::Horizontal ? a.x : a.y;
 }
 
-glm::vec2 Input::GetAxis(const Player player) {
+Vec2 Input::GetAxis(const Player player) {
 	return s_Axes[static_cast<int>(player)];
 }
 
@@ -84,15 +84,15 @@ bool Input::Keyboard::IsJustReleased(const Key key) {
 
 // ── Mouse ─────────────────────────────────────────────────────────────────────
 
-glm::vec2 Input::Mouse::GetPosition() {
+Vec2 Input::Mouse::GetPosition() {
 	return s_MousePosition;
 }
 
-glm::vec2 Input::Mouse::GetDelta() {
+Vec2 Input::Mouse::GetDelta() {
 	return s_MouseDelta;
 }
 
-glm::vec2 Input::Mouse::GetScroll() {
+Vec2 Input::Mouse::GetScroll() {
 	return s_MouseScroll;
 }
 
@@ -126,7 +126,7 @@ void Input::Mouse::Update() {
 	double x, y;
 	glfwGetCursorPos(s_Window, &x, &y);
 
-	s_MousePosition = { static_cast<float>(x), static_cast<float>(y) };
+	s_MousePosition = Vec2(static_cast<float>(x), static_cast<float>(y));
 
 	if (s_MouseFirstFrame) {
 		s_MouseLastPosition = s_MousePosition;
@@ -138,8 +138,8 @@ void Input::Mouse::Update() {
 }
 
 void Input::Mouse::ClearDeltas() {
-	s_MouseDelta = {};
-	s_MouseScroll = {};
+	s_MouseDelta = Vec2::Zero();
+	s_MouseScroll = Vec2::Zero();
 }
 
 void Input::Mouse::OnScroll(const float xOffset, const float yOffset) {
@@ -149,8 +149,8 @@ void Input::Mouse::OnScroll(const float xOffset, const float yOffset) {
 
 void Input::Mouse::Reset() {
 	SetCaptured(false);
-	s_MouseDelta = {};
-	s_MouseScroll = {};
+	s_MouseDelta = Vec2::Zero();
+	s_MouseScroll = Vec2::Zero();
 	s_MouseFirstFrame = true;
 }
 
@@ -161,7 +161,7 @@ void Input::Clear() {
 	s_PreviousKeys.fill(false);
 
 	for (auto& axis: s_Axes) {
-		axis = {};
+		axis = Vec2::Zero();
 	}
 
 	Mouse::Reset();

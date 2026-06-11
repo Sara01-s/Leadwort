@@ -12,28 +12,30 @@ namespace Engine::Components {
 
 void MeshRenderer::Render(const Camera* camera) {
 	CORE_ASSERT(entity->transform, "MeshRenderer::Render: Entity transform is null.");
+	CORE_ASSERT(mesh, "MeshRenderer::Render: Mesh is null.");
 
-	if (!mesh || !mesh->GetMaterial()) {
-		return;
-	}
+	auto* activeMaterial = m_OverrideMaterial
+		? m_OverrideMaterial.get()
+		: mesh->GetMaterial();
 
-	auto* material = mesh->GetMaterial();
+	CORE_ASSERT(activeMaterial, "MeshRenderer::Render: Material is null.");
 
 	const auto model = Rendering::MatrixUtils::CalculateModelMatrix(*entity->transform);
-	material->SetMat4("_ModelMatrix", model);
+	activeMaterial->SetMat4("_ModelMatrix", model);
 
 	if (const auto* sun = Systems::LightingSystem::Get().GetDirectionalLight()) {
-		CORE_ASSERT(sun->entity,            "MeshRenderer::Render: Sun entity is null.");
-		CORE_ASSERT(sun->entity->transform, "MeshRenderer::Render: Sun transform is missing.");
-
-		material->SetVec3 ("_LightDirection", sun->entity->transform->GetForward());
-		material->SetFloat("_LightIntensity", sun->intensity);
-		material->SetColor3("_LightColor", sun->color);
+		const Vec3 dir = sun->entity->transform->GetForward();
+		activeMaterial->SetVec3("_LightDirection", dir);
+		activeMaterial->SetFloat("_LightIntensity", sun->intensity);
+		activeMaterial->SetColor3("_LightColor", sun->color);
+	}
+	else {
+		CORE_WARN("No directional light found!");
 	}
 
-	material->Bind();
-	mesh->Draw();
-	material->Unbind();
+	activeMaterial->Bind();
+	mesh->Render();
+	activeMaterial->Unbind();
 }
 
 } // namespace Engine::Components

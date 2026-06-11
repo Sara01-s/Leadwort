@@ -1,73 +1,26 @@
 #pragma once
 
 #include "engine/rendering/bindables/public/Bindable.h"
+#include "engine/asset-management/private/AssetKey.h"
 
 #include <array>
-#include <glad/glad.h>
-#include <stb_image.h>
-#include <stdexcept>
 #include <string>
 
 namespace Engine::Rendering::Bindables {
 
 class CubeMap final : public Bindable {
 public:
-    explicit CubeMap(const std::array<std::string, 6>& paths) {
-        m_GpuID = 0;
-        glGenTextures(1, &m_GpuID);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_GpuID);
+	explicit CubeMap(const std::array<std::string, 6>& paths, AssetManagement::AssetKey<CubeMap>);
+	~CubeMap() override;
 
-        stbi_set_flip_vertically_on_load(false);
+	CubeMap(const CubeMap&)            = delete;
+	CubeMap& operator=(const CubeMap&) = delete;
+	CubeMap(CubeMap&&)                 = default;
+	CubeMap& operator=(CubeMap&&)      = default;
 
-        for (int i = 0; i < 6; ++i) {
-            int width, height, channels;
-            unsigned char* data = stbi_load(paths[i].c_str(), &width, &height, &channels, 4);
-
-            if (data == nullptr) {
-                throw std::runtime_error("Error while loading face: " + paths[i] + " - " + stbi_failure_reason());
-            }
-
-            glTexImage2D(
-                /* target         = */ GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                /* level          = */ 0,
-                /* internalformat = */ GL_RGBA,
-                /* width          = */ width,
-                /* height         = */ height,
-                /* border         = */ 0,
-                /* format         = */ GL_RGBA,
-                /* type           = */ GL_UNSIGNED_BYTE,
-                /* pixels         = */ data
-            );
-
-            stbi_image_free(data);
-        }
-
-        stbi_set_flip_vertically_on_load(true);
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    }
-
-    ~CubeMap() override {
-        Unbind();
-        glDeleteTextures(1, &m_GpuID);
-    }
-
-    CubeMap(const CubeMap&)            = delete;
-    CubeMap& operator=(const CubeMap&) = delete;
-    CubeMap(CubeMap&&)                 = default;
-    CubeMap& operator=(CubeMap&&)      = default;
-
-    void Bind(const int slot) const {
-        glActiveTexture(GL_TEXTURE0 + slot);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_GpuID);
-    }
-
-    void Bind()   const noexcept override { Bind(0); }
-    void Unbind() const noexcept override { glBindTexture(GL_TEXTURE_CUBE_MAP, 0); }
+	void Bind(int slot) const;
+	void Bind()   const noexcept override;
+	void Unbind() const noexcept override;
 };
 
 } // namespace Engine::Rendering::Bindables

@@ -14,7 +14,7 @@ void SceneCollector::FindRenderersInScene(const Core::Scene* scene) {
 	for (const auto& entity : scene->GetEntities() | std::views::values) {
 		for (auto* component : entity->GetAllComponents()) {
 			if (auto* renderer = dynamic_cast<Components::Renderer*>(component)) {
-				CORE_LOG("Renderer en: ", renderer->entity->name);
+				CORE_LOG("SceneCollector: Renderer found in current scene: ", renderer->entity->name);
 				m_Renderers.push_back(renderer);
 			}
 		}
