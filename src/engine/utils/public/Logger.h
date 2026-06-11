@@ -8,7 +8,9 @@
 #include <sstream>
 #include <string>
 
-#ifndef _WIN32
+#ifdef _WIN32
+	#include "windows.h"
+#else
 	#include <cstdlib>
 	#include <unistd.h>
 #endif

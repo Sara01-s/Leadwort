@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
-project(GLEngine VERSION 1.0.0 LANGUAGES CXX)
+project(GLEngine VERSION 1.0.0 LANGUAGES CXX C)
 
 # --- 1. Project Configuration ---
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Configurable options
-option(ENABLE_ASAN "Enable AddressSanitizer" ON)
 
 # --- 2. External Dependencies ---
 find_package(glfw3 CONFIG REQUIRED)
@@ -39,23 +36,24 @@ target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
 target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_DOCKING)
 
-# --- 4. Executable Definition ---
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "src/*.h" "src/*.hpp")
+# --- 4. Library Definition (The Engine Logic) ---
+file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS "src/*.h" "src/*.hpp")
 
-add_executable(GLEngine ${SOURCES} ${HEADERS})
+list(REMOVE_ITEM ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 
-# --- 5. GLEngine Configuration ---
-target_include_directories(GLEngine PRIVATE include src thirdparty)
+add_library(GLEngineLib STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
-target_compile_definitions(GLEngine PRIVATE
+target_include_directories(GLEngineLib PUBLIC include src thirdparty)
+
+target_compile_definitions(GLEngineLib PUBLIC
         ENGINE_ASSET_ROOT="engine-assets"
         GAME_ASSET_ROOT="game-assets"
         PROJECT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         GLFW_INCLUDE_NONE
 )
 
-target_link_libraries(GLEngine PRIVATE
+target_link_libraries(GLEngineLib PUBLIC
         glad
         stb
         imgui
@@ -66,21 +64,16 @@ target_link_libraries(GLEngine PRIVATE
         OpenGL::GL
 )
 
-target_precompile_headers(GLEngine PRIVATE pch.h)
+target_precompile_headers(GLEngineLib PRIVATE pch.h)
+
+# --- 5. Executable Definition ---
+add_executable(GLEngine src/main.cpp)
+
+target_link_libraries(GLEngine PRIVATE GLEngineLib)
 
 # --- 6. Platform-Specific Configuration ---
 if(WIN32)
     target_sources(GLEngine PRIVATE resources.rc)
-endif()
-
-# Sanitizers (Toggleable option)
-if(ENABLE_ASAN)
-    if(MSVC)
-        target_compile_options(GLEngine PRIVATE /fsanitize=address)
-    else()
-        target_compile_options(GLEngine PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-        target_link_options(GLEngine PRIVATE -fsanitize=address)
-    endif()
 endif()
 
 # --- 7. Post-Build Tasks ---
@@ -89,3 +82,7 @@ add_custom_command(TARGET GLEngine POST_BUILD
         "${CMAKE_SOURCE_DIR}/src/engine/engine-assets"
         "$<TARGET_FILE_DIR:GLEngine>/engine-assets"
 )
+
+# --- 8. Tests ---
+enable_testing()
+add_subdirectory(tests)

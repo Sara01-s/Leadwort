@@ -171,5 +171,5 @@ void main() {
     vec3 lightColor = _LightColor * _LightIntensity;
     vec3 color = PBR(F0, albedo, N, V, L, H, roughness, metallic, lightColor, emission, ao, AMBIENT_LIGHT);
 
-    fragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    fragColor = vec4(color, alpha);
 }

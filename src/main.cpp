@@ -3,6 +3,18 @@
 #include "engine/core/public/Window.h"
 #include "engine/systems/public/RenderSystem.h"
 
+/* TODO: Cosas para torturarte en el futuro Sara:
+*   --- Must have.
+*	- ¿Por qué me sigue el modelo wtf?
+*	- Arreglar el Shader Hot Reload (ShaderWatcher no hace nada el muy vago).
+*	- Arreglar el PBR (No hay iluminación después de la diffuse).
+*	- Arreglar Transform::LookAt, no mira hacia donde debe!!!!!!!!!.
+*	--- Nice to have.
+*	- Poner las coordenadas en GUI.
+*	- Poner un botón para resetear coordenadas en GUI.
+*	- Añadir tests >:(.
+*/
+
 #include <format>
 #include <imgui.h>
 
@@ -67,14 +79,12 @@ int main() {
         editor.StartFrame();
         editor.SetupDockSpace();
     	ShowViewport("Scene", sceneRenderTarget);
-		ShowViewport("Game",  gamePostProcessRenderTarget, [&](const int w, const int h) {
-			game.ResizeGameView(w, h);
-		});
-        ShowStatus();
-        editor.EndFrame();
-    });
+		ShowViewport("Game",  gamePostProcessRenderTarget, [&](const int w, const int h) { game.ResizeGameView(w, h); });
+		ShowStatus();
+		editor.EndFrame();
+	});
 
-    game.Loop();
+	game.Loop();
 
-    return 0;
+	return 0;
 }
