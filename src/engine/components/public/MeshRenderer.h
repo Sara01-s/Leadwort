@@ -24,6 +24,10 @@ public:
 		m_OverrideMaterial = nullptr;
 	}
 
+	Rendering::Bindables::Material* GetMaterial() const {
+		return m_OverrideMaterial.get();
+	}
+
 	void Render(const Camera* camera) override;
 
 private:

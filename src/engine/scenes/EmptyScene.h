@@ -16,22 +16,25 @@ public:
 		Core::Entity* cube = CreateEntity("Default Cube");
         {
             cube->AddComponent<Components::MeshRenderer>();
-			cube->transform->SetLocalPosition(Vec3(0.0f, 0.0f, 5.0f));
         }
 
 		const auto modelParent = CreateEntity("Model");
 		const auto model = AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb");
 		model->Instantiate(*modelParent);
-  		modelParent->transform->SetLocalPosition(Vec3(0.0f, 0.0f, -7.0f));
-  		modelParent->transform->SetLocalScale(Vec3(0.01f, 0.01f, 0.01));
-    	modelParent->transform->SetLocalRotation(Quat::FromEuler(90.0f, 180.0f, 0.0f));
+    	modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
+    	modelParent->GetTransform().SetLocalScale(Vec3(0.1f, 0.1f, 0.1f));
+    	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
+
+    	CORE_LOG("modelParent world matrix:\n", modelParent->GetTransform().GetWorldMatrix().ToString());
+    	CORE_LOG("Drone.FBX local scale: ", modelParent->GetTransform().GetChildren()[0]->GetLocalScale().ToString());
+    	CORE_LOG("Drone.FBX world matrix:\n", modelParent->GetTransform().GetChildren()[0]->GetWorldMatrix().ToString());
 
         // Main Camera
         {
 			Core::Entity* e = CreateEntity("Main Camera");
             e->tag = Core::Tags::MAIN_CAMERA;
-            e->transform->SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-            e->transform->LookAt(cube->transform);
+            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
+            e->GetTransform().LookAt(cube->GetTransform());
 
             auto* cam = e->AddComponent<Components::Camera>();
             cam->cullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;
@@ -41,18 +44,21 @@ public:
         {
 			Core::Entity* e = CreateEntity("Scene Camera");
             e->tag = Core::Tags::SCENE_CAMERA;
-            e->transform->SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-            e->transform->LookAt(cube->transform);
+            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
+            e->GetTransform().LookAt(cube->GetTransform());
 
             e->AddComponent<Components::Behaviours::FirstPersonController>();
-			e->AddComponent<Components::Camera>();
+			auto* a = e->AddComponent<Components::Camera>();
+			a->background = Components::Camera::SkyBox {
+				.skybox = CreateUnique<Rendering::Skybox>()
+			};
         }
 
         // Directional Light
         {
 			Core::Entity* e = CreateEntity("Directional Light");
             e->AddComponent<Components::Behaviours::DirectionalLight>();
-			e->transform->SetLocalRotation(Quat::FromEuler(-45.0f, -45.0f, -45.0f));
+			e->GetTransform().SetLocalRotation(Quat::FromEuler(-45.0f, -45.0f, -45.0f));
         }
     }
 };

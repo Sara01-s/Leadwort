@@ -5,10 +5,8 @@
 
 /* TODO: Cosas para torturarte en el futuro Sara:
 *   --- Must have.
-*	- ¿Por qué me sigue el modelo wtf?
 *	- Arreglar el Shader Hot Reload (ShaderWatcher no hace nada el muy vago).
 *	- Arreglar el PBR (No hay iluminación después de la diffuse).
-*	- Arreglar Transform::LookAt, no mira hacia donde debe!!!!!!!!!.
 *	--- Nice to have.
 *	- Poner las coordenadas en GUI.
 *	- Poner un botón para resetear coordenadas en GUI.
@@ -38,7 +36,7 @@ void ShowViewport(
 			else          renderTarget.Resize(newWidth, newHeight);
 		}
 
-		ImGui::Image(renderTarget.GetTextureGpuID(), size, {0,1}, {1,0});
+		ImGui::Image(renderTarget.GetTextureGpuID(), size, {0,0}, {1,1});
 	}
 
 	ImGui::End();

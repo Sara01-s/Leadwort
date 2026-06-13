@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <sstream>
+#include <string>
 
 namespace Engine {
 
@@ -39,7 +41,7 @@ struct Vec3 {
 
 	// Math
 	[[nodiscard]] float    Length()              const { return glm::length(glm::vec3(*this)); }
-	[[nodiscard]] float    LengthSq()            const { return x*x + y*y + z*z; }
+	[[nodiscard]] float    LengthSquared()       const { return x*x + y*y + z*z; }
 	[[nodiscard]] Vec3     Normalized()          const { return Vec3(glm::normalize(glm::vec3(*this))); }
 	[[nodiscard]] float    Dot(const Vec3& o)    const { return glm::dot(glm::vec3(*this), glm::vec3(o)); }
 	[[nodiscard]] Vec3     Cross(const Vec3& o)  const { return Vec3(glm::cross(glm::vec3(*this), glm::vec3(o))); }
@@ -72,6 +74,12 @@ struct Vec3 {
 	static constexpr Vec3 Left()    { return Vec3(-1,  0,  0); }
 	static constexpr Vec3 Forward() { return Vec3( 0,  0,  1); }
 	static constexpr Vec3 Back()    { return Vec3( 0,  0, -1); }
+
+	[[nodiscard]] std::string ToString() const {
+		std::ostringstream oss;
+		oss << "Vec3(" << x << ", " << y << ", " << z << ")";
+		return oss.str();
+	}
 };
 
 inline Vec3 operator*(const float s, const Vec3& v) { return v * s; }

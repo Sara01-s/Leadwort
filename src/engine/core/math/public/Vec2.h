@@ -1,6 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <iosfwd>
+#include <sstream>
+#include <string>
 
 namespace Engine {
 
@@ -54,6 +57,12 @@ struct Vec2 {
 	static constexpr Vec2 Down()  { return Vec2(0,-1); }
 	static constexpr Vec2 Right() { return Vec2(1, 0); }
 	static constexpr Vec2 Left()  { return Vec2(1, 0); }
+
+	[[nodiscard]] std::string ToString() const {
+		std::ostringstream oss;
+		oss << "Vec2(" << x << ", " << y << ")";
+		return oss.str();
+	}
 };
 
 inline Vec2 operator*(const float s, const Vec2& v) { return v * s; }

@@ -23,7 +23,6 @@ void RenderSystem::Init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-	glFrontFace(GL_CW);
 
     SetClearColor(Utils::Color::Gray20());
 
@@ -49,7 +48,7 @@ void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resol
 	glDisable(GL_CULL_FACE);
 	m_GridShader->Bind();
 
-	const Mat4 cameraWorld = camera->entity->transform->GetWorldMatrix();
+	const Mat4 cameraWorld = camera->GetEntity().GetTransform().GetWorldMatrix();
 	const Mat4 cameraProjection  = camera->GetProjectionMatrix();
 
 	m_GridShader->SetUniform("_InvViewMatrix",       cameraWorld);
@@ -119,10 +118,10 @@ void RenderSystem::RenderAlphaTest(const Rendering::RenderQueues& queues, const 
 void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transparents, const Vec3& camPos) {
     for (int i = 1; i < static_cast<int>(transparents.size()); ++i) {
         Components::Renderer* key = transparents[i];
-        const float keyDist = Distance(camPos, key->entity->transform->GetWorldPosition());
+        const float keyDist = Distance(camPos, key->GetEntity().GetTransform().GetWorldPosition());
         int j = i - 1;
 
-        while (j >= 0 && Distance(camPos, transparents[j]->entity->transform->GetWorldPosition()) < keyDist) {
+        while (j >= 0 && Distance(camPos, transparents[j]->GetEntity().GetTransform().GetWorldPosition()) < keyDist) {
             transparents[j + 1] = transparents[j];
             --j;
         }
@@ -137,7 +136,7 @@ void RenderSystem::RenderTransparent(Rendering::RenderQueues& queues, const Comp
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
 
-    SortTransparents(transparents, camera->entity->transform->GetWorldPosition());
+    SortTransparents(transparents, camera->GetEntity().GetTransform().GetWorldPosition());
 
     for (auto* renderer : transparents) {
         renderer->Render(camera);

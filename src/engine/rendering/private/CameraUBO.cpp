@@ -27,7 +27,7 @@ CameraUBO::~CameraUBO() {
 void CameraUBO::Update(const Components::Camera* camera) const {
 	const Mat4 view = camera->GetViewMatrix();
 	const Mat4 proj = camera->GetProjectionMatrix();
-	const auto cameraPosition = camera->entity->transform->GetWorldPosition().ToVec4();
+	const auto cameraPosition = camera->GetEntity().GetTransform().GetWorldPosition().ToVec4();
 
 	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 	glBufferSubData(GL_UNIFORM_BUFFER,   0, sizeof(Mat4), view.ToPtr());

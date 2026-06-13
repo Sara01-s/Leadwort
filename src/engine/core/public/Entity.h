@@ -25,10 +25,7 @@ class Entity {
 public:
     static constexpr auto DEFAULT_NAME = "New Entity";
 
-    const int id;
     const std::string name;
-
-    Components::Transform* transform = nullptr;
 
     uint32_t layerMask = Utils::Layers::EVERYTHING;
     std::string tag = Tags::DEFAULT;
@@ -38,63 +35,66 @@ public:
     explicit Entity(int id, std::string name = DEFAULT_NAME);
     ~Entity();
 
-    Entity(const Entity&)            = delete;
+    Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
 
-    template <typename T>
-    T* AddComponent() {
-        static_assert(std::is_base_of_v<Components::Component, T>, "T must derive from Component");
+	Components::Transform& GetTransform() const {
+		return *m_Transform;
+	}
 
-        const std::type_index key = typeid(T);
+    template <Components::IsComponent TComponent>
+    TComponent* AddComponent() {
+        static_assert(std::is_base_of_v<Components::Component, TComponent>, "T must derive from Component");
 
-        CORE_ASSERT(!m_Components.contains(key), std::string("Entity '") + name + "' already has component: " + typeid(T).name());
+        const std::type_index key = typeid(TComponent);
 
-        auto owner = CreateUnique<T>();
-        T* ptr = owner.get();
-        ptr->entity = this;
+        CORE_ASSERT(!m_Components.contains(key), std::string("Entity '") + name + "' already has component: " + typeid(TComponent).name());
+
+        auto owner = CreateUnique<TComponent>();
+        TComponent* ownerBorrowedPtr = owner.get();
+        ownerBorrowedPtr->SetEntity(*this);
 
         m_OwnedComponents.push_back(std::move(owner));
-        m_Components[key] = ptr;
+        m_Components[key] = ownerBorrowedPtr;
 
-        RegisterParents<T>(ptr);
+        RegisterParents<TComponent>(ownerBorrowedPtr);
 
-        ptr->OnAdded();
+        ownerBorrowedPtr->OnAdded();
 
-        return ptr;
+        return ownerBorrowedPtr;
     }
 
-    template <typename T>
+    template <Components::IsComponent TComponent>
     void RemoveComponent() {
-        const std::type_index key = typeid(T);
+        const std::type_index key = typeid(TComponent);
         const auto it = m_Components.find(key);
 
-        CORE_ASSERT(it != m_Components.end(), std::string("Entity '") + name + "' removing non-existent component: " + typeid(T).name());
+        CORE_ASSERT(it != m_Components.end(), std::string("Entity '") + name + "' removing non-existent component: " + typeid(TComponent).name());
 
         Components::Component* raw = it->second;
         raw->OnRemoved();
 
-        UnregisterParents<T>(raw);
+        UnregisterParents<TComponent>(raw);
         m_Components.erase(key);
 
         const auto ownedIt = std::ranges::find_if(m_OwnedComponents, [raw](const auto& owned) {
             return owned.get() == raw;
         });
 
-        CORE_ASSERT(ownedIt != m_OwnedComponents.end(), std::string("Entity '") + name + "' component not found in owned list: " + typeid(T).name());
+        CORE_ASSERT(ownedIt != m_OwnedComponents.end(), std::string("Entity '") + name + "' component not found in owned list: " + typeid(TComponent).name());
 
         m_OwnedComponents.erase(ownedIt);
     }
 
-    template <typename T>
-    T* GetComponent() const {
-        const auto it = m_Components.find(std::type_index(typeid(T)));
-        if (it == m_Components.end()) { return nullptr; }
-        return static_cast<T*>(it->second);
-    }
+    template <Components::IsComponent TComponent>
+    TComponent* GetComponent() const {
+        const auto it = m_Components.find(std::type_index(typeid(TComponent)));
+        return it == m_Components.end() ? nullptr : static_cast<TComponent*>(it->second);
+	}
 
-    template <typename T>
+    template <Components::IsComponent TComponent>
     [[nodiscard]] bool HasComponent() const {
-        return m_Components.contains(std::type_index(typeid(T)));
+        return m_Components.contains(std::type_index(typeid(TComponent)));
     }
 
     [[nodiscard]] std::vector<Components::Component*> GetAllComponents() const {
@@ -109,20 +109,21 @@ public:
     }
 
     [[nodiscard]] bool CompareTag(const std::string& t) const { return tag == t; }
-    [[nodiscard]] Entity* FindEntityByTag(const std::string& tag) const;
+    [[nodiscard]] Entity* FindEntityByTag(const std::string& t) const;
     Entity* CreateChild(const std::string& childName) const;
 
     template <typename TFunc>
     Entity* CreateChild(const std::string& childName, TFunc&& init) const {
         Entity* child = CreateChild(childName);
         std::forward<TFunc>(init)(*child);
+
         return child;
     }
 
 private:
-    template <Components::IsComponent T>
+    template <Components::IsComponent TComponent>
     void RegisterParents(Components::Component* component) {
-        using Base = Components::BaseOf_t<T>;
+        using Base = Components::BaseOf_t<TComponent>;
 
         if constexpr (!std::is_same_v<Base, void> && !std::is_same_v<Base, Components::Component>) {
             CORE_ASSERT(!m_Components.contains(typeid(Base)), std::string("Entity '") + name + "' base type already registered: " + typeid(Base).name());
@@ -132,9 +133,9 @@ private:
         }
     }
 
-    template <typename T>
+    template <Components::IsComponent TComponent>
     void UnregisterParents(Components::Component* component) {
-        using Base = T::Base;
+        using Base = TComponent::Base;
 
         if constexpr (!std::is_same_v<Base, Components::Component>) {
             m_Components.erase(typeid(Base));
@@ -142,8 +143,10 @@ private:
         }
     }
 
-    std::unordered_map<std::type_index, Components::Component*> m_Components;
-    std::vector<Unique<Components::Component>> m_OwnedComponents;
+    std::unordered_map<std::type_index, Components::Component*> m_Components{};
+    std::vector<Unique<Components::Component>> m_OwnedComponents{};
+	Components::Transform* m_Transform;
+    const int m_ID { 0 };
 };
 
 } // namespace Engine::Core

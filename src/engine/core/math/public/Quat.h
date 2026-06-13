@@ -2,9 +2,10 @@
 
 #include "Vec2.h"
 #include "Vec3.h"
+
 #include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace Engine {
 
@@ -59,12 +60,10 @@ struct Quat {
 	[[nodiscard]] Quat  Slerp(const Quat& o, const float t) const { return Quat(glm::slerp(glm::quat(*this), glm::quat(o), t)); }
 	[[nodiscard]] Vec3 operator*(const Vec3& v) const { return Rotate(v); }
 	[[nodiscard]] Vec2 operator*(const Vec2& v) const { const Vec3 v3(v.x, v.y, 0.0f); return Vec2(Rotate(v3).x, Rotate(v3).y); }
-	[[nodiscard]] static Quat LookAt(const Vec3& forward, const Vec3& up = Vec3::Up()) {
-		return Quat(glm::quatLookAtLH(glm::vec3(forward), glm::vec3(up)));
-	}
 
-	// Conversions.
-	[[nodiscard]] struct Mat4 ToMat4() const;
+
+	[[nodiscard]] static Quat LookRotation(const Vec3& forward, const Vec3& up = Vec3::Up());
+	[[nodiscard]] static Quat FromMatrix(const Mat4& matrix);
 
 	// Rotate a vector
 	[[nodiscard]] Vec3 Rotate(const Vec3& v) const { return Vec3(glm::rotate(glm::quat(*this), glm::vec3(v))); }
@@ -76,6 +75,12 @@ struct Quat {
 
 	// Constants
 	static constexpr Quat Identity() { return { 0, 0, 0, 1 }; }
+
+	[[nodiscard]] std::string ToString() const {
+		std::ostringstream oss;
+		oss << "Quat(" << w << ", " << y << ", " << z << ", " << x << ")";
+		return oss.str();
+	}
 };
 
 }

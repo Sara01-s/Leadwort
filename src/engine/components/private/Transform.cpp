@@ -1,5 +1,7 @@
 #include "../public/Transform.h"
 
+#include "engine/core/public/Entity.h"
+
 namespace Engine::Components {
 
 // ─────────────────────────────────────────────
@@ -18,8 +20,8 @@ void Transform::SetLocalScale(const Vec3& scale) {
 	MarkDirty();
 }
 
-void Transform::SetLocalRotation(const Quat& q) {
-	m_LocalRotation = q;
+void Transform::SetLocalRotation(const Quat& rotation) {
+	m_LocalRotation = rotation;
 	MarkDirty();
 }
 
@@ -58,7 +60,6 @@ void Transform::SetWorldPosition(const Vec3& worldPosition) {
 			const Mat4 invParent = Inverse(parentWorld);
 			const Vec4 localPos = invParent * Vec4(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
 
-			// 3. Obtener el resultado
 			m_LocalPosition = localPos.XYZ();
 		}
 	}
@@ -93,32 +94,39 @@ void Transform::SetWorldScale(const Vec3& worldScale) {
 // ─────────────────────────────────────────────
 
 bool Transform::IsDirty() const {
-    return m_Dirty || (m_Parent && m_Parent->IsDirty());
+	return m_Dirty;
 }
 
 void Transform::MarkDirty() const {
-    if (!m_Dirty) {
-        m_Dirty = true;
-        for (const Transform* child : m_Children) {
-            child->MarkDirty();
-        }
-    }
+	if (m_Dirty) {
+		return;
+	}
+
+	m_Dirty = true;
+
+	for (const Transform* child : m_Children) {
+		child->MarkDirty();
+	}
 }
 
 void Transform::RebuildLocalMatrix() const {
-    m_LocalMatrix = Mat4::Translate(m_LocalPosition)
-                  * m_LocalRotation.ToMat4()
-                  * Mat4::Scale(m_LocalScale);
-
+	m_LocalMatrix = Mat4::TRS(m_LocalPosition, m_LocalRotation, m_LocalScale);
     m_Dirty = false;
 }
 
 void Transform::RebuildWorldMatrices() const {
-    if (m_Dirty) {
-        RebuildLocalMatrix();
-    }
+	if (m_Dirty) {
+		RebuildLocalMatrix();
+	}
 
-    m_WorldMatrix = m_Parent ? m_Parent->GetWorldMatrix() * m_LocalMatrix : m_LocalMatrix;
+	if (m_Parent) {
+		m_WorldMatrix = m_Parent->GetWorldMatrix() * m_LocalMatrix;
+	}
+	else {
+		m_WorldMatrix = m_LocalMatrix;
+	}
+
+	m_Dirty = false;
 }
 
 const Mat4& Transform::GetLocalMatrix() const {
@@ -141,60 +149,86 @@ const Mat4& Transform::GetWorldMatrix() const {
 //  Hierarchy
 // ─────────────────────────────────────────────
 
-void Transform::AddChild(Transform* child) {
-    if (!child || child == this || child->IsAncestorOf(this)) {
+void Transform::AddChild(Transform& child) {
+	if (&child == this || child.IsAncestorOf(*this)) {
 		return;
 	}
 
-	if (child->m_Parent) {
-        child->m_Parent->RemoveChild(child);
-    }
+	if (child.m_Parent) {
+		child.m_Parent->RemoveChild(child);
+	}
 
-    const Vec3 worldPos = child->GetWorldPosition();
-    const Quat worldRot = child->GetWorldRotation();
-    const Vec3 worldScl = child->GetWorldScale();
+	const Vec3 worldPos = child.GetWorldPosition();
+	const Quat worldRot = child.GetWorldRotation();
+	const Vec3 worldScl = child.GetWorldScale();
 
-    child->m_Parent = this;
-    m_Children.push_back(child);
+	child.m_Parent = this;
+	m_Children.push_back(&child);
 
-    child->SetWorldTransform(worldPos, worldRot, worldScl);
+	child.SetWorldTransform(worldPos, worldRot, worldScl);
 }
 
-void Transform::RemoveChild(Transform* child) {
-	const auto it = std::ranges::find(m_Children, child);
+void Transform::RemoveChild(Transform& child) {
+	const auto it = std::ranges::find(m_Children, &child);
 
-    if (it == m_Children.end()) {
+	if (it == m_Children.end()) {
 		return;
 	}
 
 	m_Children.erase(it);
 
-    const Vec3 worldPos = child->GetWorldPosition();
-    const Quat worldRot = child->GetWorldRotation();
-    const Vec3 worldScl = child->GetWorldScale();
+	const Vec3 worldPos = child.GetWorldPosition();
+	const Quat worldRot = child.GetWorldRotation();
+	const Vec3 worldScl = child.GetWorldScale();
 
-    child->m_Parent = nullptr;
-    child->SetWorldTransform(worldPos, worldRot, worldScl);
+	child.m_Parent = nullptr;
+	child.SetWorldTransform(worldPos, worldRot, worldScl);
 }
 
 void Transform::SetParent(Transform* newParent) {
-    if (newParent) {
-        newParent->AddChild(this);
-    }
-	else if (m_Parent) {
-        m_Parent->RemoveChild(this);
-    }
+	if (newParent == this || (newParent && newParent->IsAncestorOf(*this))) {
+		return;
+	}
+
+	if (m_Parent == newParent) {
+		return;
+	}
+
+	const Vec3 worldPos = GetWorldPosition();
+	const Quat worldRot = GetWorldRotation();
+	const Vec3 worldScl = GetWorldScale();
+
+	if (m_Parent) {
+		auto& children = m_Parent->m_Children;
+		const auto it = std::ranges::find(children, this);
+
+		if (it != children.end()) {
+			children.erase(it);
+		}
+	}
+
+	m_Parent = newParent;
+
+	if (m_Parent) {
+		m_Parent->m_Children.push_back(this);
+	}
+
+	SetWorldTransform(worldPos, worldRot, worldScl);
+	MarkDirty();
 }
 
-bool Transform::IsAncestorOf(const Transform* other) const {
-    const Transform* current = other->m_Parent;
+bool Transform::IsAncestorOf(const Transform& other) const {
+	const Transform* current = other.m_Parent;
 
-    while (current) {
-        if (current == this) return true;
-        current = current->m_Parent;
-    }
+	while (current) {
+		if (current == this) {
+			return true;
+		}
 
-    return false;
+		current = current->m_Parent;
+	}
+
+	return false;
 }
 
 void Transform::SetWorldTransform(const Vec3& pos, const Quat& rot, const Vec3& scl) {
@@ -227,16 +261,19 @@ void Transform::Rotate(const Vec3& euler) {
     Rotate(euler.x, euler.y, euler.z);
 }
 
-void Transform::LookAt(const Transform* target, const Vec3& worldUp) {
-    LookAt(target->GetWorldPosition(), worldUp);
+void Transform::LookAt(const Vec3& targetPosition, const Vec3& worldUp) {
+	const Vec3 forward = targetPosition - GetWorldPosition().Normalized();
+
+	if (Abs(Dot(forward, worldUp)) > 0.999f) {
+		SetWorldRotation(Quat::LookRotation(forward, Vec3::Right()));
+	}
+	else {
+		SetWorldRotation(Quat::LookRotation(forward, worldUp));
+	}
 }
 
-void Transform::LookAt(const Vec3& targetPosition, const Vec3& worldUp) {
-	const Vec3 dirToTarget = targetPosition - GetWorldPosition();
-	const float len = dirToTarget.Length();
-	CORE_ASSERT(len > 1e-6f, "Transform::LookAt: Target is too close.");
-
-	SetLocalRotation(Quat::LookAt(dirToTarget.Normalized(), worldUp));
+void Transform::LookAt(const Transform& target, const Vec3& worldUp) {
+	LookAt(target.GetWorldPosition(), worldUp);
 }
 
 } // namespace Engine::Components

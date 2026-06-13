@@ -66,6 +66,12 @@ struct Vec4 {
 	static constexpr Vec4 Zero()     { return Vec4(0, 0, 0, 0); }
 	static constexpr Vec4 One()      { return Vec4(1, 1, 1, 1); }
 	static constexpr Vec4 Identity() { return Vec4(0, 0, 0, 1); }
+
+	[[nodiscard]] std::string ToString() const {
+		std::ostringstream oss;
+		oss << "Vec4(" << x << ", " << y << ", " << z << ", " << w << ")";
+		return oss.str();
+	}
 };
 
 inline Vec4 operator*(const float s, const Vec4& v) { return v * s; }

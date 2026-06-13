@@ -8,19 +8,17 @@
 namespace Engine::Core {
 
 Entity::Entity(const int id, std::string name)
-	: id(id), name(std::move(name))
-{
-	transform = AddComponent<Components::Transform>();
-}
+	: name(std::move(name)), m_Transform(AddComponent<Components::Transform>()), m_ID(id)
+{}
 
 Entity::~Entity() {
 	m_Components.clear();
 }
 
-Entity* Entity::FindEntityByTag(const std::string& tag) const {
+Entity* Entity::FindEntityByTag(const std::string& t) const {
 	for (const auto& entity: scene->GetEntities() | std::views::values) {
-		if (entity->CompareTag(tag)) {
-		    return entity;
+		if (entity->CompareTag(t)) {
+		    return entity.get();
         }
 	}
 
@@ -29,7 +27,7 @@ Entity* Entity::FindEntityByTag(const std::string& tag) const {
 
 Entity* Entity::CreateChild(const std::string& childName) const {
 	Entity* child = scene->CreateEntity(childName);
-	transform->AddChild(child->transform);
+	GetTransform().AddChild(child->GetTransform());
 
 	return child;
 }

@@ -114,6 +114,8 @@ void Material::Bind() const noexcept {
 		m_Shader->SetUniform(name, slot);
 		slot++;
 	}
+
+	glActiveTexture(GL_TEXTURE0);
 }
 
 // ─────────────────────────────────────────────

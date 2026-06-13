@@ -5,12 +5,12 @@
 
 namespace Engine::Components {
 
-bool Camera::ShouldRender(const Core::Entity* entity) const {
-	return (entity->layerMask & cullingMask) != 0;
+bool Camera::ShouldRender(const Core::Entity& entity) const {
+	return (entity.layerMask & cullingMask) != 0;
 }
 
 Mat4 Camera::GetViewMatrix() const {
-	return Rendering::MatrixUtils::CalculateViewMatrix(*entity->transform);
+	return Rendering::MatrixUtils::CalculateViewMatrix(GetEntity().GetTransform());
 }
 
 Mat4 Camera::GetProjectionMatrix() const {

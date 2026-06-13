@@ -32,7 +32,7 @@ inline Mat4 CalculateViewMatrix(const Components::Transform& cameraTransform) {
 }
 
 inline Mat4 CalculateProjectionMatrix(const ProjectionSettings& settings) {
-	return Mat4::Perspective(settings.fovY, settings.nearPlane, settings.farPlane, settings.aspect);
+	return Mat4::PerspectiveRH(settings.fovY, settings.nearPlane, settings.farPlane, settings.aspect);
 }
 
 inline std::tuple<Mat4, Mat4, Mat4> GetMvpMatrices(

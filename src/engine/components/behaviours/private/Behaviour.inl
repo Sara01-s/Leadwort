@@ -8,18 +8,18 @@
 
 namespace Engine::Components::Behaviours {
 
-inline Transform* Behaviour::GetTransform() const {
-	return entity->transform;
+inline Transform& Behaviour::GetTransform() const {
+	return GetEntity().GetTransform();
 }
 
 template <typename T>
 T* Behaviour::GetComponent() const {
-	return entity->GetComponent<T>();
+	return GetEntity().GetComponent<T>();
 }
 
 template <typename T>
 bool Behaviour::HasComponent() const {
-	return entity->HasComponent<T>();
+	return GetEntity().HasComponent<T>();
 }
 
 } // namespace Engine::Components::Behaviours

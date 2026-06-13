@@ -7,14 +7,15 @@
 namespace Engine::Systems {
 
 void BehaviourSystem::Register(Components::Behaviours::Behaviour* behaviour) {
-    if (m_IsIterating) {
-        m_PendingAdd.push_back(behaviour);
-    }
-    else {
-        m_Behaviours.push_back(behaviour);
-        m_ActiveBehaviours.push_back(behaviour);
-        behaviour->OnEnable();
-    }
+	if (m_IsIterating) {
+		m_PendingAdd.push_back(behaviour);
+	}
+	else {
+		m_Behaviours.push_back(behaviour);
+		m_ActiveBehaviours.push_back(behaviour);
+		behaviour->Start();
+		behaviour->OnEnable();
+	}
 }
 
 void BehaviourSystem::Unregister(Components::Behaviours::Behaviour* behaviour) {
@@ -86,11 +87,12 @@ void BehaviourSystem::Clear() {
 }
 
 void BehaviourSystem::FlushPending() {
-    for (auto* behaviour : m_PendingAdd) {
-        m_Behaviours.push_back(behaviour);
-        m_ActiveBehaviours.push_back(behaviour);
-        behaviour->OnEnable();
-    }
+	for (auto* behaviour : m_PendingAdd) {
+		m_Behaviours.push_back(behaviour);
+		m_ActiveBehaviours.push_back(behaviour);
+		behaviour->Start();
+		behaviour->OnEnable();
+	}
     m_PendingAdd.clear();
 
     for (auto* behaviour : m_PendingActivate) {

@@ -7,15 +7,13 @@ namespace Engine::Core {
 int Scene::s_IdSequence = 0;
 
 Scene::Scene() {
-	m_RootEntity = new Entity(GenerateNextId(), "Root");
+	m_RootEntity = CreateUnique<Entity>(GenerateNextEntityID(), "Root");
 	m_RootEntity->scene = this;
-	m_EntityMap[m_RootEntity->id] = m_RootEntity;
 }
 
 Scene::~Scene() {
 	m_EntityMap.clear();
 	m_NamedRefs.clear();
-	delete m_RootEntity;
 	ResetSequence();
 }
 
@@ -23,7 +21,7 @@ Scene::~Scene() {
 //  Entity creation
 // ─────────────────────────────────────────────
 
-int Scene::GenerateNextId() {
+int Scene::GenerateNextEntityID() {
 	return s_IdSequence++;
 }
 
@@ -32,18 +30,21 @@ void Scene::ResetSequence() {
 }
 
 Entity* Scene::CreateEntity(const std::string& name) {
-	const int id = GenerateNextId();
-	auto* entity = new Entity(id, name);
-	entity->scene = this;
+	const int entityID = GenerateNextEntityID();
+	auto entity = CreateUnique<Entity>(entityID, name);
 
-	m_RootEntity->transform->AddChild(entity->transform);
-	m_EntityMap[id] = entity;
+	Entity* rawPtr = entity.get();
+	rawPtr->scene = this;
+
+	m_RootEntity->GetTransform().AddChild(rawPtr->GetTransform());
+	m_EntityMap[entityID] = std::move(entity);
 
 	if (name != Entity::DEFAULT_NAME) {
-		m_NamedRefs[name] = entity;
+		m_NamedRefs[name] = rawPtr;
 	}
 
-	return entity;
+	// ReSharper disable once CppDFALocalValueEscapesFunction
+	return rawPtr;
 }
 
 Entity* Scene::AddEntity(
@@ -56,6 +57,7 @@ Entity* Scene::AddEntity(
 		configure(entity);
 	}
 
+	// ReSharper disable once CppDFALocalValueEscapesFunction
 	return entity;
 }
 
@@ -66,7 +68,7 @@ Entity* Scene::GetEntity(const int id) const {
 		throw std::runtime_error("Entity with id " + std::to_string(id) + " not found");
 	}
 
-	return it->second;
+	return it->second.get();
 }
 
 } // namespace Engine::Core

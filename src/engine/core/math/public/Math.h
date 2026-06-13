@@ -20,7 +20,7 @@ namespace Engine {
 // ─────────────────────────────────────────────────────────────────────────────
 
 inline constexpr float Pi        = std::numbers::pi_v<float>;
-inline constexpr float TwoPi     = Pi * 2.0f;
+inline constexpr float Tau       = Pi * 2.0f;
 inline constexpr float HalfPi    = Pi * 0.5f;
 inline constexpr float InvPi     = 1.0f / Pi;
 inline constexpr float Sqrt2     = std::numbers::sqrt2_v<float>;
@@ -137,9 +137,9 @@ template<typename... Args>
 [[nodiscard]] inline bool IsApproximately(const float a, const float b, const float eps = Epsilon) { return Abs(a - b) <= eps; }
 // Wraps an angle to the [-Pi, Pi] range to prevent infinite accumulation
 [[nodiscard]] inline float WrapAngle(float angle) {
-	angle = Mod(angle + Pi, TwoPi);
+	angle = Mod(angle + Pi, Tau);
 	if (angle < 0.0f) {
-		angle += TwoPi;
+		angle += Tau;
 	}
 	return angle - Pi;
 }
@@ -150,7 +150,7 @@ template<typename... Args>
 
 [[nodiscard]] inline float Dot(const Vec2& a, const Vec2& b)           { return a.Dot(b); }
 [[nodiscard]] inline float Length(const Vec2& v)                       { return v.Length(); }
-[[nodiscard]] inline float LengthSq(const Vec2& v)                     { return v.LengthSq(); }
+[[nodiscard]] inline float LengthSquared(const Vec2& v)                     { return v.LengthSq(); }
 [[nodiscard]] inline Vec2  Normalize(const Vec2& v)                    { return v.Normalized(); }
 [[nodiscard]] inline Vec2  Lerp(const Vec2& a, const Vec2& b, float t) { return a.Lerp(b, t); }
 [[nodiscard]] inline float Distance(const Vec2& a, const Vec2& b)      { return (b - a).Length(); }
@@ -180,11 +180,11 @@ template<typename... Args>
 [[nodiscard]] inline float Dot(const Vec3& a, const Vec3& b)           { return a.Dot(b); }
 [[nodiscard]] inline Vec3  Cross(const Vec3& a, const Vec3& b)         { return a.Cross(b); }
 [[nodiscard]] inline float Length(const Vec3& v)                       { return v.Length(); }
-[[nodiscard]] inline float LengthSq(const Vec3& v)                     { return v.LengthSq(); }
+[[nodiscard]] inline float LengthSquared(const Vec3& v)                     { return v.LengthSquared(); }
 [[nodiscard]] inline Vec3  Normalize(const Vec3& v)                    { return v.Normalized(); }
 [[nodiscard]] inline Vec3  Lerp(const Vec3& a, const Vec3& b, float t) { return a.Lerp(b, t); }
 [[nodiscard]] inline float Distance(const Vec3& a, const Vec3& b)      { return (b - a).Length(); }
-[[nodiscard]] inline float DistanceSq(const Vec3& a, const Vec3& b)    { return (b - a).LengthSq(); }
+[[nodiscard]] inline float DistanceSq(const Vec3& a, const Vec3& b)    { return (b - a).LengthSquared(); }
 [[nodiscard]] inline Vec3  Abs(const Vec3& v)                          { return Vec3(Abs(v.x), Abs(v.y), Abs(v.z)); }
 [[nodiscard]] inline Vec3  Min(const Vec3& a, const Vec3& b)           { return Vec3(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z)); }
 [[nodiscard]] inline Vec3  Max(const Vec3& a, const Vec3& b)           { return Vec3(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z)); }
@@ -201,7 +201,7 @@ template<typename... Args>
 }
 
 [[nodiscard]] inline Vec3 Project(const Vec3& v, const Vec3& onto) {
-    return onto * (Dot(v, onto) / onto.LengthSq());
+    return onto * (Dot(v, onto) / onto.LengthSquared());
 }
 
 [[nodiscard]] inline Vec3 Reject(const Vec3& v, const Vec3& onto) {
@@ -244,20 +244,6 @@ template<typename... Args>
 [[nodiscard]] inline Quat  Slerp(const Quat& a, const Quat& b, const float t) { return a.Slerp(b, t); }
 [[nodiscard]] inline float Dot(const Quat& a, const Quat& b)            { return a.Dot(b); }
 
-[[nodiscard]] inline Quat LookRotation(const Vec3& forward, const Vec3& up = Vec3::Up()) {
-    return Quat(glm::quatLookAt(glm::vec3(forward), glm::vec3(up)));
-}
-
-[[nodiscard]] inline Quat RotateTowards(const Quat& from, const Quat& to, const float maxDegrees) {
-    const float angle = ToDegrees(2.0f * Acos(Clamp(Abs(Dot(from, to)), 0.0f, 1.0f)));
-    if (angle < Epsilon) return to;
-    return Slerp(from, to, Min(1.0f, maxDegrees / angle));
-}
-
-[[nodiscard]] inline Quat FromToRotation(const Vec3& from, const Vec3& to) {
-    return Quat(glm::rotation(glm::vec3(from), glm::vec3(to)));
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 //  Matrix
 // ─────────────────────────────────────────────────────────────────────────────
@@ -275,7 +261,7 @@ template<typename... Args>
 // Closest point on a line segment to a point
 [[nodiscard]] inline Vec3 ClosestPointOnSegment(const Vec3& p, const Vec3& a, const Vec3& b) {
     const Vec3 ab = b - a;
-    const float t = Clamp01(Dot(p - a, ab) / ab.LengthSq());
+    const float t = Clamp01(Dot(p - a, ab) / ab.LengthSquared());
     return a + ab * t;
 }
 
@@ -371,13 +357,13 @@ template<typename... Args>
 [[nodiscard]] inline float EaseInElastic(const float t) {
     if (t < Epsilon) return 0.0f;
     if (IsApproximately(t, 1.0f)) return 1.0f;
-    return -Pow(2.0f, 10.0f * t - 10.0f) * Sin((t * 10.0f - 10.75f) * (TwoPi / 3.0f));
+    return -Pow(2.0f, 10.0f * t - 10.0f) * Sin((t * 10.0f - 10.75f) * (Tau / 3.0f));
 }
 
 [[nodiscard]] inline float EaseOutElastic(const float t) {
     if (t < Epsilon) return 0.0f;
     if (IsApproximately(t, 1.0f)) return 1.0f;
-    return Pow(2.0f, -10.0f * t) * Sin((t * 10.0f - 0.75f) * (TwoPi / 3.0f)) + 1.0f;
+    return Pow(2.0f, -10.0f * t) * Sin((t * 10.0f - 0.75f) * (Tau / 3.0f)) + 1.0f;
 }
 
 [[nodiscard]] inline float EaseOutBounce(float t) {

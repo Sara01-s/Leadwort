@@ -8,7 +8,7 @@
 namespace Engine::Systems {
 
 void LightingSystem::Register(Components::Behaviours::DirectionalLight* light) {
-	CORE_LOG("[LightingSystem] Light registered: ", light->entity->name);
+	CORE_LOG("[LightingSystem] Light registered: ", light->GetEntity().name);
 	m_DirectionalLight = light;
 }
 

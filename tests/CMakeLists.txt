@@ -1,12 +1,14 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(unit_tests main_test.cpp)
+file(GLOB TEST_SOURCES "*.cpp")
 
-target_link_libraries(unit_tests
+add_executable(UnitTests ${TEST_SOURCES})
+
+target_link_libraries(UnitTests
         PRIVATE
         GLEngineLib
         GTest::gtest_main
 )
 
-gtest_discover_tests(unit_tests)
+gtest_discover_tests(UnitTests)

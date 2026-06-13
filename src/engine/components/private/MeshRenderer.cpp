@@ -11,7 +11,7 @@
 namespace Engine::Components {
 
 void MeshRenderer::Render(const Camera* camera) {
-	CORE_ASSERT(entity->transform, "MeshRenderer::Render: Entity transform is null.");
+	CORE_ASSERT(&GetEntity().GetTransform(), "MeshRenderer::Render: Entity transform is null.");
 	CORE_ASSERT(mesh, "MeshRenderer::Render: Mesh is null.");
 
 	auto* activeMaterial = m_OverrideMaterial
@@ -20,11 +20,12 @@ void MeshRenderer::Render(const Camera* camera) {
 
 	CORE_ASSERT(activeMaterial, "MeshRenderer::Render: Material is null.");
 
-	const auto model = Rendering::MatrixUtils::CalculateModelMatrix(*entity->transform);
-	activeMaterial->SetMat4("_ModelMatrix", model);
+	const auto model = Rendering::MatrixUtils::CalculateModelMatrix(GetEntity().GetTransform());
+	activeMaterial->GetShader().Bind();
+	activeMaterial->GetShader().SetUniform("_ModelMatrix", model);
 
 	if (const auto* sun = Systems::LightingSystem::Get().GetDirectionalLight()) {
-		const Vec3 dir = sun->entity->transform->GetForward();
+		const Vec3 dir = sun->GetEntity().GetTransform().GetForward();
 		activeMaterial->SetVec3("_LightDirection", dir);
 		activeMaterial->SetFloat("_LightIntensity", sun->intensity);
 		activeMaterial->SetColor3("_LightColor", sun->color);

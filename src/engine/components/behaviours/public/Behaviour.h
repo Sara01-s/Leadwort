@@ -13,7 +13,7 @@ class Behaviour : public Component {
 public:
 	// Declarations only — definitions are in Behaviour.inl,
 	// included at the bottom of Entity.h after Entity is complete.
-	[[nodiscard]] Transform* GetTransform() const;
+	[[nodiscard]] Transform& GetTransform() const;
 
 	template <typename T>
 	T* GetComponent() const;
