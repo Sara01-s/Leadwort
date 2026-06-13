@@ -38,8 +38,6 @@ private:
 	RenderSystem() = default;
     ~RenderSystem();
 
-	static void ApplySceneState();
-	static void ApplyPostProcessState();
 	static void RenderBackground(const Components::Camera* camera, Vec2 resolution);
 	static void RenderOpaque(const Rendering::RenderQueues& queues, const Components::Camera* camera);
 	static void RenderAlphaTest(const Rendering::RenderQueues& queues, const Components::Camera* camera);

@@ -25,10 +25,6 @@ public:
     	modelParent->GetTransform().SetLocalScale(Vec3(0.1f, 0.1f, 0.1f));
     	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
 
-    	CORE_LOG("modelParent world matrix:\n", modelParent->GetTransform().GetWorldMatrix().ToString());
-    	CORE_LOG("Drone.FBX local scale: ", modelParent->GetTransform().GetChildren()[0]->GetLocalScale().ToString());
-    	CORE_LOG("Drone.FBX world matrix:\n", modelParent->GetTransform().GetChildren()[0]->GetWorldMatrix().ToString());
-
         // Main Camera
         {
 			Core::Entity* e = CreateEntity("Main Camera");

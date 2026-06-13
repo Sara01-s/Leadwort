@@ -77,15 +77,11 @@ void Model::AttachNodeToEntity(const aiNode* node, Entity& entity) {
 		const aiNode* childNode = node->mChildren[i];
 
 		entity.CreateChild(childNode->mName.C_Str(), [&](Entity& child) {
-			const Mat4 childMat4 = AssimpToMat4(childNode->mTransformation);
+			const Mat4 childMatrix = AssimpToMat4(childNode->mTransformation);
 
-			const Vec3 scale = childMat4.GetScale();
-			CORE_LOG("Node '", childNode->mName.C_Str(), "' local scale = (",
-					 scale.x, ", ", scale.y, ", ", scale.z, ")");
-
-			child.GetTransform().SetLocalPosition(childMat4.GetTranslation());
-			child.GetTransform().SetLocalRotation(childMat4.GetRotation());
-			child.GetTransform().SetLocalScale(scale);
+			child.GetTransform().SetLocalPosition(childMatrix.GetTranslation());
+			child.GetTransform().SetLocalRotation(childMatrix.GetRotation());
+			child.GetTransform().SetLocalScale(childMatrix.GetScale());
 
 			AttachNodeToEntity(childNode, child);
 		});

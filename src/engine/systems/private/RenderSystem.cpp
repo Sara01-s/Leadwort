@@ -6,6 +6,7 @@
 #include "engine/systems/public/SceneSystem.h"
 #include "engine/utils/public/Color.h"
 #include "engine/utils/public/Visit.h"
+#include "engine/rendering/public/GLStateCache.h"
 
 #include <glad/glad.h>
 #include <variant>
@@ -15,13 +16,9 @@
 
 namespace Engine::Systems {
 
-// ─────────────────────────────────────────────
-//  Init
-// ─────────────────────────────────────────────
+using namespace Rendering;
 
 void RenderSystem::Init() {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_MULTISAMPLE);
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
     SetClearColor(Utils::Color::Gray20());
@@ -33,7 +30,7 @@ void RenderSystem::Init() {
     );
 
     m_CameraUBO.Init();
-	m_PostProcess = CreateUnique<Rendering::PostProcess>(
+	m_PostProcess = CreateUnique<PostProcess>(
 		AssetManagement::EngineAssets::GetShader("shaders/postprocess/shd_post_process.glsl")
 	);
 
@@ -45,29 +42,22 @@ void RenderSystem::Init() {
 // ─────────────────────────────────────────────
 
 void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resolution) const {
-	glDisable(GL_CULL_FACE);
+	GLStateCache::Get().ApplyState(RenderPipelineState::Grid());
+
 	m_GridShader->Bind();
 
-	const Mat4 cameraWorld = camera->GetEntity().GetTransform().GetWorldMatrix();
-	const Mat4 cameraProjection  = camera->GetProjectionMatrix();
+	const Mat4 cameraWorld      = camera->GetEntity().GetTransform().GetWorldMatrix();
+	const Mat4 cameraProjection = camera->GetProjectionMatrix();
 
 	m_GridShader->SetUniform("_InvViewMatrix",       cameraWorld);
 	m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(cameraProjection));
 	m_GridShader->SetUniform("_Resolution",          resolution);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_LEQUAL);
+	glBindVertexArray(m_EmptyVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glBindVertexArray(m_EmptyVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    m_GridShader->Unbind();
-    glBindVertexArray(0);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
-	glEnable(GL_CULL_FACE);
+	m_GridShader->Unbind();
+	glBindVertexArray(0);
 }
 
 void RenderSystem::RenderBackground(const Components::Camera* camera, const Vec2 resolution) {
@@ -87,33 +77,27 @@ void RenderSystem::RenderBackground(const Components::Camera* camera, const Vec2
 	}
 }
 
-void RenderSystem::RenderOpaque(const Rendering::RenderQueues& queues, const Components::Camera* camera) {
-    const auto& opaqueQueue = queues[static_cast<std::uint8_t>(Rendering::RenderQueue::Opaque)];
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+void RenderSystem::RenderOpaque(const RenderQueues& queues, const Components::Camera* camera) {
+	const auto& opaqueQueue = queues[static_cast<std::uint8_t>(RenderQueue::Opaque)];
 
-    for (auto* renderer : opaqueQueue) {
-        renderer->Render(camera);
-    }
+	GLStateCache::Get().ApplyState(RenderPipelineState::Opaque());
+
+	for (auto* renderer : opaqueQueue) {
+		renderer->Render(camera);
+	}
 }
 
-void RenderSystem::RenderAlphaTest(const Rendering::RenderQueues& queues, const Components::Camera* camera) {
-    const auto& alphaTestQueue = queues[static_cast<std::uint8_t>(Rendering::RenderQueue::AlphaTest)];
+void RenderSystem::RenderAlphaTest(const RenderQueues& queues, const Components::Camera* camera) {
+	const auto& alphaTestQueue = queues[static_cast<std::uint8_t>(RenderQueue::AlphaTest)];
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
+	GLStateCache::Get().ApplyState(RenderPipelineState::AlphaTest());
 
-    for (auto* renderer : alphaTestQueue) {
-        renderer->Render(camera);
-    }
+	for (auto* renderer : alphaTestQueue) {
+		renderer->Render(camera);
+	}
 }
+
 
 void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transparents, const Vec3& camPos) {
     for (int i = 1; i < static_cast<int>(transparents.size()); ++i) {
@@ -130,41 +114,28 @@ void RenderSystem::SortTransparents(std::vector<Components::Renderer*>& transpar
     }
 }
 
-void RenderSystem::RenderTransparent(Rendering::RenderQueues& queues, const Components::Camera* camera) {
-    auto& transparents = queues[static_cast<std::uint8_t>(Rendering::RenderQueue::Transparent)];
+void RenderSystem::RenderTransparent(RenderQueues& queues, const Components::Camera* camera) {
+	auto& transparents = queues[static_cast<std::uint8_t>(RenderQueue::Transparent)];
 
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
+	GLStateCache::Get().ApplyState(RenderPipelineState::Transparent());
 
-    SortTransparents(transparents, camera->GetEntity().GetTransform().GetWorldPosition());
+	SortTransparents(transparents, camera->GetEntity().GetTransform().GetWorldPosition());
 
-    for (auto* renderer : transparents) {
-        renderer->Render(camera);
-    }
-
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+	for (auto* renderer : transparents) {
+		renderer->Render(camera);
+	}
 }
 
 // ─────────────────────────────────────────────
 //  Main render
 // ─────────────────────────────────────────────
 
-static void ResetGLState() {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glDisable(GL_BLEND);
-    glEnable(GL_MULTISAMPLE);
-}
-
 void RenderSystem::Render(
     Components::Camera* camera,
-    const Rendering::Bindables::RenderTarget* renderTarget
+    const Bindables::RenderTarget* renderTarget
 ) const {
-    ResetGLState();
+    GLStateCache::Get().Invalidate();
+	GLStateCache::Get().ApplyState(RenderPipelineState::Opaque());
 
 	camera->aspect = static_cast<float>(renderTarget->GetWidth()) / static_cast<float>(renderTarget->GetHeight());
 
@@ -192,17 +163,14 @@ void RenderSystem::Render(
 //  UI / Overlay
 // ─────────────────────────────────────────────
 
-void RenderSystem::RenderPostProcess(
-	const Rendering::Bindables::RenderTarget* src,
-	const Rendering::Bindables::RenderTarget* dst
-) const {
+void RenderSystem::RenderPostProcess(const Bindables::RenderTarget* src, const Bindables::RenderTarget* dst) const {
 	CORE_ASSERT(m_PostProcess, "Post Process has not been initialized.");
 
 	dst->Bind();
 	glViewport(0, 0, dst->GetWidth(), dst->GetHeight());
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	ApplyPostProcessState();
+	GLStateCache::Get().ApplyState(RenderPipelineState::PostProcess());
 	m_PostProcess->Render(src->GetTextureGpuID(), src->GetWidth(), src->GetHeight());
 
 	dst->Unbind();
@@ -218,23 +186,9 @@ void RenderSystem::AddOverlay(std::function<void()> callback) {
     m_OverlayCallbacks.push_back(std::move(callback));
 }
 
-// ─────────────────────────────────────────────
-//  GL State
-// ─────────────────────────────────────────────
-
 void RenderSystem::ClearScreen() {
     glViewport(0, 0, Core::Window::Get().GetWidth(), Core::Window::Get().GetHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void RenderSystem::ApplySceneState() {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-}
-
-void RenderSystem::ApplyPostProcessState() {
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
 }
 
 // ─────────────────────────────────────────────
