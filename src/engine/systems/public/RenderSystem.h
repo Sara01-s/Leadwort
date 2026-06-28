@@ -4,6 +4,7 @@
 #include "engine/components/public/Transform.h"
 #include "engine/rendering/bindables/public/RenderTarget.h"
 #include "engine/rendering/public/CameraUBO.h"
+#include "engine/rendering/public/LightingUBO.h"
 #include "engine/rendering/public/PostProcess.h"
 #include "engine/rendering/public/RenderPass.h"
 #include "engine/rendering/public/SceneCollector.h"
@@ -37,11 +38,11 @@ private:
 
 private:
 	Rendering::CameraUBO m_CameraUBO{};
+	Rendering::LightingUBO m_LightingUBO{};
 	Rendering::SceneCollector m_SceneCollector{};
 
 	std::vector<Unique<Rendering::RenderPass>> m_RenderPasses{};
     std::vector<std::function<void()>> m_OverlayCallbacks{};
-    Unique<Rendering::PostProcess> m_PostProcess{};
 };
 
 } // namespace Engine::Systems

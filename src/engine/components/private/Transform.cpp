@@ -1,6 +1,7 @@
 #include "../public/Transform.h"
 
 #include "engine/core/public/Entity.h"
+#include "engine/core/math/public/Math.h"
 
 namespace Engine::Components {
 
@@ -83,7 +84,7 @@ void Transform::SetWorldScale(const Vec3& worldScale) {
 	const Vec3 parentScale = m_Parent ? m_Parent->GetWorldScale() : Vec3(1.0f);
 
 	CORE_ASSERT(parentScale.x != 0.0f && parentScale.y != 0.0f && parentScale.z != 0.0f,
-				"Transform::SetWorldScale: Parent has 0 scale, cannot divide.");
+				"Transform::SetWorldScale: Parent has zero scale, cannot divide.");
 
 	m_LocalScale = worldScale / parentScale;
 	MarkDirty();

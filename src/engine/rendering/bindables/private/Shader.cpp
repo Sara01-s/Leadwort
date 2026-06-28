@@ -120,15 +120,15 @@ void Shader::Compile() {
         const uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
 
         const uint32_t newProgram = LinkProgram(vs, fs);
-        CORE_ASSERT(newProgram != 0, "Shader: Failed to create program during compilation.");
+        CORE_ASSERT(newProgram != 0, "Shader: Failed to create a program during compilation.");
 
-        if (const uint32_t cameraBlock = glGetUniformBlockIndex(newProgram, "CameraData"); cameraBlock != GL_INVALID_INDEX) {
-            glUniformBlockBinding(newProgram, cameraBlock, 0);
-        }
-        else {
-        	glDeleteProgram(newProgram);
-            throw std::runtime_error("Shader: CameraData UBO not found in: " + m_Path);
-        }
+    	if (const uint32_t cameraBlock = glGetUniformBlockIndex(newProgram, "CameraData"); cameraBlock != GL_INVALID_INDEX) {
+    		glUniformBlockBinding(newProgram, cameraBlock, 0);
+		}
+
+    	if (const uint32_t lightBlock = glGetUniformBlockIndex(newProgram, "LightingData"); lightBlock != GL_INVALID_INDEX) {
+    		glUniformBlockBinding(newProgram, lightBlock, 1);
+		}
 
         if (m_GpuID != 0) {
 			glDeleteProgram(m_GpuID);

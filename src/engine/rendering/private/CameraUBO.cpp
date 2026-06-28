@@ -9,7 +9,7 @@ namespace Engine::Rendering {
 static constexpr GLuint CAMERA_UBO_BINDING = 0;
 static constexpr GLuint CAMERA_UBO_SIZE_BYTES = 144; // view + proj + cameraPos = 2 * mat4 + vec4 = 144 bytes.
 
-void CameraUBO::Init() {
+void CameraUBO::Initialize() {
 	glGenBuffers(1, &m_UBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 	glBufferData(GL_UNIFORM_BUFFER, CAMERA_UBO_SIZE_BYTES, nullptr, GL_DYNAMIC_DRAW);

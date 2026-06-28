@@ -1,13 +1,6 @@
 #type vertex
 #version 430 core
 
-layout(std140, binding = 0) uniform CameraData {
-    mat4 _ViewMatrix;
-    mat4 _ProjectionMatrix;
-    vec4 _CameraPosition;
-    vec4 _Padding;
-};
-
 layout (location = 0) in vec3 a_position;
 layout (location = 2) in vec2 a_uv;
 

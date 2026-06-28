@@ -16,22 +16,8 @@ class MeshRenderer : public Renderer {
 public:
 	Shared<Rendering::Bindables::Mesh> mesh = Utils::PrimitiveMeshes::Get().Cube();
 
-	void SetMaterial(const Shared<Rendering::Bindables::Material>& material) {
-		m_OverrideMaterial = material;
-	}
-
-	void ClearMaterial() {
-		m_OverrideMaterial = nullptr;
-	}
-
-	Rendering::Bindables::Material* GetMaterial() const {
-		return m_OverrideMaterial.get(); 
-	}
-
-	void Render(const Camera* camera) override;
-
-private:
-	Shared<Rendering::Bindables::Material> m_OverrideMaterial = nullptr;
+public:
+	void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const override;
 };
 
 } // namespace Engine::Components

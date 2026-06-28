@@ -11,7 +11,7 @@ public:
 	CameraUBO() = default;
     ~CameraUBO();
 
-    void Init();
+    void Initialize();
     CameraUBO(const CameraUBO&) = delete;
     CameraUBO& operator=(const CameraUBO&) = delete;
 

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 namespace Engine::Rendering {
+
 enum class DepthFunc : std::uint8_t {
 	Never, Less, Equal, LEqual, Greater, NotEqual, GEqual, Always
 };
@@ -19,73 +20,73 @@ enum class BlendMode : std::uint8_t {
 };
 
 struct RenderPipelineState {
-    bool      depthTest   = true;
-    bool      depthWrite  = true;
-    bool      multisample = true;
-    DepthFunc depthFunc  = DepthFunc::Less;
-    CullMode  cullMode   = CullMode::Back;
-    BlendMode blendMode  = BlendMode::Disabled;
+    bool      depthTest   { true };
+    bool      depthWrite  { true };
+    bool      multisample { true };
+    DepthFunc depthFunc { DepthFunc::Less };
+    CullMode  cullMode  { CullMode::Back };
+    BlendMode blendMode { BlendMode::Disabled };
 
     // Presets
     static constexpr RenderPipelineState Opaque() {
-        RenderPipelineState state;
-        state.depthTest  = true;
-        state.depthWrite = true;
-        state.depthFunc  = DepthFunc::Less;
-        state.cullMode   = CullMode::Back;
-        state.blendMode  = BlendMode::Disabled;
-        return state;
+        return RenderPipelineState {
+            .depthTest  = true,
+            .depthWrite = true,
+            .depthFunc  = DepthFunc::Less,
+            .cullMode   = CullMode::Back,
+            .blendMode  = BlendMode::Disabled,
+        };
     }
 
     static constexpr RenderPipelineState AlphaTest() {
-        RenderPipelineState state;
-        state.depthTest  = true;
-        state.depthWrite = true;
-        state.depthFunc  = DepthFunc::Less;
-        state.cullMode   = CullMode::None;
-        state.blendMode  = BlendMode::AlphaBlend;
-        return state;
+        return RenderPipelineState {
+            .depthTest  = true,
+            .depthWrite = true,
+            .depthFunc  = DepthFunc::Less,
+            .cullMode   = CullMode::None,
+            .blendMode  = BlendMode::AlphaBlend,
+        };
     }
 
     static constexpr RenderPipelineState Transparent() {
-        RenderPipelineState state;
-        state.depthTest  = true;
-        state.depthWrite = false;
-        state.depthFunc  = DepthFunc::Less;
-        state.cullMode   = CullMode::Back;
-        state.blendMode  = BlendMode::AlphaBlend;
-        return state;
+        return RenderPipelineState {
+            .depthTest  = true,
+            .depthWrite = false,
+            .depthFunc  = DepthFunc::Less,
+            .cullMode   = CullMode::Back,
+            .blendMode  = BlendMode::AlphaBlend,
+        };
     }
 
     static constexpr RenderPipelineState Grid() {
-        RenderPipelineState state;
-        state.depthTest  = true;
-        state.depthWrite = true;
-        state.depthFunc  = DepthFunc::LEqual;
-        state.cullMode   = CullMode::None;
-        state.blendMode  = BlendMode::AlphaBlend;
-    	state.multisample = true;
-        return state;
+        return RenderPipelineState {
+            .depthTest   = true,
+            .depthWrite  = true,
+            .multisample = true,
+            .depthFunc   = DepthFunc::LEqual,
+            .cullMode    = CullMode::None,
+            .blendMode   = BlendMode::AlphaBlend,
+        };
     }
 
     static constexpr RenderPipelineState PostProcess() {
-        RenderPipelineState state;
-        state.depthTest  = false;
-        state.depthWrite = false;
-        state.cullMode   = CullMode::None;
-        state.blendMode  = BlendMode::Disabled;
-        state.multisample = false;
-        return state;
+        return RenderPipelineState {
+            .depthTest   = false,
+            .depthWrite  = false,
+            .multisample = false,
+            .cullMode    = CullMode::None,
+            .blendMode   = BlendMode::Disabled,
+        };
     }
 
     static constexpr RenderPipelineState Overlay() {
-        RenderPipelineState state;
-        state.depthTest  = false;
-        state.depthWrite = false;
-        state.cullMode   = CullMode::None;
-        state.blendMode  = BlendMode::AlphaBlend;
-        state.multisample = true;
-        return state;
+        return RenderPipelineState {
+            .depthTest   = false,
+            .depthWrite  = false,
+            .multisample = true,
+            .cullMode    = CullMode::None,
+            .blendMode   = BlendMode::AlphaBlend,
+        };
     }
 
     bool operator==(const RenderPipelineState& other) const = default;

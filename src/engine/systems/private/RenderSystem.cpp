@@ -6,6 +6,7 @@
 #include "engine/rendering/public/DefaultRenderPasses.h"
 #include "engine/rendering/public/GLStateCache.h"
 #include "engine/rendering/public/RenderPass.h"
+#include "engine/systems/public/LightingSystem.h"
 #include "engine/systems/public/SceneSystem.h"
 #include "engine/utils/public/Color.h"
 #include "engine/utils/public/Visit.h"
@@ -36,10 +37,8 @@ void RenderSystem::Initialize() {
         }, this
     );
 
-    m_CameraUBO.Init();
-	m_PostProcess = CreateUnique<PostProcess>(
-		AssetManagement::EngineAssets::GetShader("shaders/postprocess/shd_post_process.glsl")
-	);
+    m_CameraUBO.Initialize();
+	m_LightingUBO.Initialize();
 
 	m_RenderPasses.emplace_back(CreateUnique<BackgroundPass>());
 	m_RenderPasses.emplace_back(CreateUnique<OpaquePass>());
@@ -64,6 +63,9 @@ void RenderSystem::Render(Camera& camera, const RenderTarget& renderTarget) cons
 
     auto queues = m_SceneCollector.BuildRenderQueues(camera);
     m_CameraUBO.Update(camera);
+
+	const auto* directionalLight = LightingSystem::Get().GetDirectionalLight();
+	m_LightingUBO.Update(directionalLight);
 
 	const RenderContext renderContext {
 		.camera = &camera,

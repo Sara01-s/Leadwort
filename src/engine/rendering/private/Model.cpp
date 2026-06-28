@@ -40,7 +40,7 @@ Model::Model(const std::string& path, AssetKey<Model>) {
         throw std::runtime_error("Assimp Error: " + std::string(m_Importer.GetErrorString()));
     }
 
-    for (unsigned int i = 0; i < m_AiScene->mNumMeshes; ++i) {
+    for (unsigned int i = 0; i < m_AiScene->mNumMeshes; i++) {
         m_Meshes.push_back(ParseMesh(m_AiScene->mMeshes[i], m_AiScene, m_ResourceBaseDir));
     }
 }

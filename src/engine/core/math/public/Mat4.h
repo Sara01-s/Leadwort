@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Mat3.h"
+#include "Quat.h"
 #include "Vec3.h"
 #include "Vec4.h"
-#include "Quat.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

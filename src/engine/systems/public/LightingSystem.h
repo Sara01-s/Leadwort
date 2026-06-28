@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "engine/utils/public/Singleton.h"

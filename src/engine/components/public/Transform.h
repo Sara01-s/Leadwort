@@ -1,6 +1,5 @@
 #pragma once
 #include "engine/components/Component.h"
-#include "engine/core/math/public/Math.h"
 #include "engine/core/math/public/Mat4.h"
 #include "engine/core/math/public/Quat.h"
 #include "engine/core/math/public/Vec3.h"

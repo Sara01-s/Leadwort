@@ -2,12 +2,8 @@
 
 #include "engine/components/behaviours/public/Behaviour.h"
 #include "engine/components/public/Transform.h"
-
-#include "engine/core/math/public/Quat.h"
-#include "engine/core/math/public/Vec3.h"
-#include "engine/core/public/Time.h"
-#include "engine/utils/public/Color.h"
 #include "engine/systems/public/LightingSystem.h"
+#include "engine/utils/public/Color.h"
 
 namespace Engine::Components::Behaviours {
 
