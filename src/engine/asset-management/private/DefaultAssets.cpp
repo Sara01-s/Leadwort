@@ -35,8 +35,8 @@ Shared<Material> DefaultAssets::CreateLitMaterial() {
 
 	material->SetColor4("_Color", Utils::Color::White());
 	material->SetTexture("_DiffuseTexture", GetTexture(), 0);
-	material->SetFloat("_RoughnessIntensity", 1.0f);
-	material->SetFloat("_MetallicIntensity",  1.0f);
+	material->SetFloat("_RoughnessIntensity", 0.5f);
+	material->SetFloat("_MetallicIntensity",  0.0f);
 
 	return material;
 }

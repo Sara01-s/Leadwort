@@ -51,16 +51,9 @@ void main() {
     nearView /= nearView.w;
     farView  /= farView.w;
 
-    nearView.y = -nearView.y;
-    nearView.z = -nearView.z;
-    farView.y  = -farView.y;
-    farView.z  = -farView.z;
-
-    vec4 nearWorld = _InvViewMatrix * nearView;
-    vec4 farWorld  = _InvViewMatrix * farView;
-
-    vec3 rayOrigin = nearWorld.xyz;
-    vec3 rayDir    = normalize(farWorld.xyz - nearWorld.xyz);
+    vec3 viewDir = normalize(farView.xyz - nearView.xyz);
+    vec3 rayDir  = normalize(transpose(mat3(_ViewMatrix)) * viewDir);
+    vec3 rayOrigin = _CameraPosition.xyz;
 
     if (abs(rayDir.y) < 1e-5) {
         discard;

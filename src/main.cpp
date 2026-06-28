@@ -36,7 +36,12 @@ void ShowViewport(
 			else          renderTarget.Resize(newWidth, newHeight);
 		}
 
-		ImGui::Image(renderTarget.GetTextureGpuID(), size, {0,0}, {1,1});
+		ImGui::Image(
+			renderTarget.GetTextureGpuID(),
+			size,
+			ImVec2(0.0f, 1.0f), // UV superior izquierda ahora apunta al "fondo" de la textura
+			ImVec2(1.0f, 0.0f)  // UV inferior derecha ahora apunta al "tope" de la textura
+		);
 	}
 
 	ImGui::End();
@@ -45,7 +50,7 @@ void ShowViewport(
 void ShowStatus() {
     ImGui::Begin("Status");
 
-    ImGui::Text("GLEngine");
+    ImGui::Text("Leadwort");
     ImGui::Separator();
 
     const float framerate = ImGui::GetIO().Framerate;
@@ -69,7 +74,6 @@ int main() {
     Engine::Editor::EditorLayer editor;
     editor.Init(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-	auto& gameRenderTarget = game.GetGameRenderTarget();
 	auto& gamePostProcessRenderTarget = game.GetGamePostProcessRenderTarget();
     auto& sceneRenderTarget = game.GetSceneRenderTarget();
 

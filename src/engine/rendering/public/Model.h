@@ -14,21 +14,26 @@ namespace Engine::Rendering::Bindables {
 }
 
 namespace Engine::Core {
+enum class PBRWorkflow {
+	MetallicRoughness,
+	SpecularGlossiness
+};
 
 struct MaterialFeatures {
-    bool hasDiffuse   = false;
-    bool hasNormals   = false;
-    bool hasSpecular  = false;
-    bool hasOpacity   = false;
-    bool hasEmissive  = false;
-    bool hasRoughness = false;
-    bool hasMetallic  = false;
-    bool hasAO        = false;
+    bool hasDiffuse   { false };
+    bool hasNormals   { false };
+    bool hasSpecular  { false };
+    bool hasOpacity   { false };
+    bool hasEmissive  { false };
+    bool hasRoughness { false };
+    bool hasMetallic  { false };
+    bool hasAO        { false };
+	PBRWorkflow pbrWorkflow = PBRWorkflow::MetallicRoughness;
 
-    float specularIntensity  = 1.0f;
-    float specularPower      = 1.0f;
-	float roughnessIntensity = 0.5f;
-	float metallicIntensity  = 0.0f;
+    float specularIntensity  { 1.0f };
+    float specularPower      { 1.0f };
+	float roughnessIntensity { 0.5f };
+	float metallicIntensity  { 0.0f };
 
     Utils::Color color = Utils::Color::White();
 };
@@ -37,7 +42,7 @@ class Model {
 public:
     explicit Model(const std::string& path, AssetManagement::AssetKey<Model>);
 
-    Model(const Model&)            = delete;
+    Model(const Model&) = delete;
     Model& operator=(const Model&) = delete;
 
     void Instantiate(Entity& parentEntity);
@@ -47,14 +52,14 @@ private:
 
     Shared<Rendering::Bindables::Mesh> ParseMesh(const aiMesh* mesh, const aiScene* scene, const std::string& path) const;
 
-    static MaterialFeatures ParseMaterialFeatures(const aiMaterial* material);
+	static MaterialFeatures ParseMaterialFeatures(const aiMaterial* material);
     void BindTextures(Rendering::Bindables::Material& material, const aiMaterial* aiMat, const MaterialFeatures& features) const;
-	static Mat4 AssimpToMat4(const aiMatrix4x4& m);
+	static Mat4 AssimpToMat4(const aiMatrix4x4& matrix);
 
-    Assimp::Importer m_Importer;
-    const aiScene* m_AiScene = nullptr;
-    std::string m_ResourceBaseDir;
-    std::vector<Shared<Rendering::Bindables::Mesh>> m_Meshes;
+    Assimp::Importer m_Importer{};
+    const aiScene* m_AiScene { nullptr };
+    std::string m_ResourceBaseDir{};
+    std::vector<Shared<Rendering::Bindables::Mesh>> m_Meshes{};
 };
 
 } // namespace Engine::Game

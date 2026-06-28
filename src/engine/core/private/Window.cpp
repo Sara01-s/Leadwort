@@ -107,10 +107,10 @@ void Window::ToggleFullscreen() {
 
 void Window::SetIcons() const {
 	const std::array<std::string, 4>& iconPaths = {
-		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_16x16.png"),
-		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_32x32.png"),
-		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_48x48.png"),
-		AssetManagement::EngineAssets::Resolve("textures/icons/icon_logo_gl_256x256.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/tex_icon_16.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/tex_icon_32.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/tex_icon_48.png"),
+		AssetManagement::EngineAssets::Resolve("textures/icons/tex_icon_256.png"),
 	};
 
 	std::vector<GLFWimage> images;
@@ -137,7 +137,6 @@ void Window::SetIcons() const {
 		glfwSetWindowIcon(m_Handle, static_cast<int>(images.size()), images.data());
 	}
 
-	// Limpiamos la memoria cargada por STB
 	for (auto* pixels : rawData) {
 		stbi_image_free(pixels);
 	}

@@ -112,7 +112,7 @@ struct Mat4 {
     }
 
 	[[nodiscard]] static Mat4 PerspectiveLH(const float fovDeg, const float zNear, const float zFar, const float aspect) {
-    	return Mat4(glm::perspective(glm::radians(fovDeg), aspect, zNear, zFar));
+    	return Mat4(glm::perspectiveLH(glm::radians(fovDeg), aspect, zNear, zFar));
     }
 
     [[nodiscard]] static Mat4 Orthographic(

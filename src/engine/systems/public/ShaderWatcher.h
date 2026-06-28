@@ -1,11 +1,13 @@
 #pragma once
 
 #include "engine/rendering/bindables/public/Shader.h"
+#include "engine/systems/public/FileWatcherSystem.h"
 #include "engine/utils/public/Logger.h"
 
 #include <filesystem>
-#include <vector>
-#include <string>
+#include <list>
+#include <mutex>
+#include <unordered_set>
 
 namespace Engine::Systems {
 
@@ -14,11 +16,11 @@ namespace fs = std::filesystem;
 class ShaderWatcher {
 public:
     struct ShaderEntry {
-        Rendering::Bindables::Shader* shader;
-        std::string                   mainPath;
-        fs::path                      assetRoot;
-        std::vector<fs::path>         watchedPaths;
-        fs::file_time_type            lastCheckTime;
+        Rendering::Bindables::Shader* shader { nullptr };
+        std::string mainPath{};
+        fs::path assetRoot{};
+        std::vector<fs::path> watchedPaths{};
+        int subscriptionId { -1 };
     };
 
     static ShaderWatcher& Get() {
@@ -26,59 +28,113 @@ public:
         return instance;
     }
 
-    ShaderWatcher(const ShaderWatcher&)            = delete;
+    ShaderWatcher(const ShaderWatcher&) = delete;
     ShaderWatcher& operator=(const ShaderWatcher&) = delete;
 
     void RegisterShader(Rendering::Bindables::Shader* shader, const fs::path& absolutePath, const fs::path& assetRoot) {
-    	CORE_LOG("ShaderWatcher: REGISTRANDO shader: ", absolutePath.string());
+        CORE_LOG("ShaderWatcher [Register]: absolutePath='", absolutePath.string(), "'");
+        CORE_LOG("ShaderWatcher [Register]: assetRoot='", assetRoot.string(), "'");
 
-    	if (!fs::exists(absolutePath)) {
-    		CORE_ERROR("ShaderWatcher: ERROR. El archivo NO existe en la ruta registrada: ", absolutePath.string());
-    		return;
-    	}
-
-        CORE_LOG("ShaderWatcher: Registering shader at: ", absolutePath.string());
+        if (!fs::exists(absolutePath)) {
+            CORE_ERROR("ShaderWatcher [Register]: FAILED. File does not exist at: ", absolutePath.string());
+            return;
+        }
 
         ShaderEntry entry;
-        entry.shader    = shader;
-        entry.mainPath  = absolutePath.string();
+        entry.shader = shader;
+        entry.mainPath = absolutePath.string();
         entry.assetRoot = assetRoot;
-
         RefreshWatchedPaths(entry);
-    	entry.lastCheckTime = fs::file_time_type::min();
+
+        CORE_LOG("ShaderWatcher [Register]: watched paths after RefreshWatchedPaths (",
+                 entry.watchedPaths.size(), "):");
+        for (const auto& wp : entry.watchedPaths) {
+            CORE_LOG("  -> '", wp.string(), "'");
+        }
+
         m_ActiveShaders.push_back(std::move(entry));
+        ShaderEntry& stored = m_ActiveShaders.back();
+
+        const int subId = FileWatcherSystem::Get().Watch(assetRoot, [this, &stored](const FileChangeEvent& ev) {
+            OnFileChanged(stored, ev);
+        });
+
+        stored.subscriptionId = subId;
+        CORE_LOG("ShaderWatcher [Register]: done. subId=", subId,
+                 " total registered shaders=", m_ActiveShaders.size());
     }
 
-	void Update() {
-    	for (auto& entry : m_ActiveShaders) {
-    		// AQUÍ ESTÁ EL CAMBIO: Quitamos la fuerza y usamos la detección real
-    		if (HasAnyChanged(entry)) {
-    			CORE_LOG("ShaderWatcher: CAMBIO DETECTADO. Recargando: ", entry.mainPath);
+    void UnregisterShader(Rendering::Bindables::Shader* shader) {
+        const auto it = std::ranges::find_if(m_ActiveShaders, [shader](const ShaderEntry& entry) {
+            return entry.shader == shader;
+        });
 
-    			try {
-    				// 1. Recompilamos
-    				entry.shader->Compile();
+        if (it == m_ActiveShaders.end()) {
+            CORE_WARN("ShaderWatcher [Unregister]: shader not found, ignoring.");
+            return;
+        }
 
-    				// 2. Actualizamos el tiempo para no detectar el mismo cambio infinitamente
-    				entry.lastCheckTime = MaxWriteTime(entry.watchedPaths);
+        CORE_LOG("ShaderWatcher [Unregister]: removing '", it->mainPath, "'");
 
-    				CORE_LOG("ShaderWatcher: Recompile exitoso.");
-    			}
-    			catch (const std::exception& e) {
-    				CORE_ERROR("ShaderWatcher: Error al recompilar: ", e.what());
-    			}
-    		}
-    	}
+        if (it->subscriptionId >= 0) {
+            FileWatcherSystem::Get().Unwatch(it->subscriptionId);
+        }
+
+        m_ActiveShaders.erase(it);
     }
 
-    const std::vector<ShaderEntry>& GetActiveShaderEntries() const noexcept { return m_ActiveShaders; }
+    void ProcessPendingRecompiles() {
+        std::unordered_set<Rendering::Bindables::Shader*> pending;
+
+        {
+            std::lock_guard lock(m_PendingMutex);
+            std::swap(pending, m_PendingRecompiles);
+        }
+
+        if (pending.empty()) {
+            return;
+        }
+
+        CORE_LOG("ShaderWatcher [Main]: processing ", pending.size(), " pending recompile(s).");
+
+        for (auto* shader : pending) {
+            auto it = std::ranges::find_if(m_ActiveShaders, [shader](const ShaderEntry& e) {
+                return e.shader == shader;
+            });
+
+            if (it == m_ActiveShaders.end()) {
+                CORE_WARN("ShaderWatcher [Main]: shader ptr=",
+                          reinterpret_cast<uintptr_t>(shader),
+                          " not found in active list, skipping.");
+                continue;
+            }
+
+            CORE_LOG("ShaderWatcher [Main]: recompiling '", it->mainPath, "'");
+            try {
+                shader->Compile();
+                RefreshWatchedPaths(*it);
+                CORE_LOG("ShaderWatcher [Main]: recompile OK. ptr=",
+                         reinterpret_cast<uintptr_t>(shader),
+                         " version=", shader->GetVersion());
+                CORE_LOG("ShaderWatcher [Main]: updated watched paths (",
+                         it->watchedPaths.size(), "):");
+                for (const auto& wp : it->watchedPaths) {
+                    CORE_LOG("  -> '", wp.string(), "'");
+                }
+            }
+            catch (const std::exception& e) {
+                CORE_ERROR("ShaderWatcher [Main]: recompile FAILED for '",
+                           it->mainPath, "': ", e.what());
+            }
+        }
+    }
 
 private:
     ShaderWatcher() = default;
 
     static void RefreshWatchedPaths(ShaderEntry& entry) {
         entry.watchedPaths.clear();
-        entry.watchedPaths.push_back(fs::path(entry.mainPath));
+        entry.watchedPaths.push_back(fs::path(entry.mainPath).lexically_normal());
 
         for (const auto& dep : entry.shader->GetDependencies()) {
             const fs::path p = fs::path(dep).is_absolute()
@@ -88,40 +144,59 @@ private:
             if (fs::exists(p)) {
                 entry.watchedPaths.push_back(p);
             }
-        	else {
-                CORE_WARN("ShaderWatcher: Dependency not found, skipping: ", p.string());
+            else {
+                CORE_WARN("ShaderWatcher [RefreshWatchedPaths]: dependency does not exist: '", p.string(), "'");
             }
         }
     }
 
-    static fs::file_time_type MaxWriteTime(const std::vector<fs::path>& paths) {
-        fs::file_time_type latest{};
-        for (const auto& p : paths) {
-            try {
-                if (fs::exists(p))
-                    latest = std::max(latest, fs::last_write_time(p));
+    static bool IsWatchedPath(const ShaderEntry& entry, const fs::path& changedPath) {
+        const fs::path normalized = changedPath.lexically_normal();
+
+        for (const auto& watched : entry.watchedPaths) {
+            if (watched == normalized) {
+                return true;
             }
-        	catch (const fs::filesystem_error&) {}
         }
 
-        return latest;
+        return false;
     }
 
-	static bool HasAnyChanged(const ShaderEntry& entry) {
-    	for (const auto& path : entry.watchedPaths) {
-    		if (!fs::exists(path)) continue;
+    void OnFileChanged(ShaderEntry& entry, const FileChangeEvent& ev) {
+        CORE_LOG("ShaderWatcher [OnFileChanged]: entry='",
+                 fs::path(entry.mainPath).filename().string(),
+                 "' ev.path='", ev.path.string(),
+                 "' type=", static_cast<int>(ev.type));
 
-    		auto lastWrite = fs::last_write_time(path);
+        if (ev.type != FileChangeType::Modified && ev.type != FileChangeType::Added) {
+            CORE_LOG("ShaderWatcher [OnFileChanged]: skipped (type=",
+                     static_cast<int>(ev.type), " is not Modified/Added).");
+            return;
+        }
 
-    		if (lastWrite > entry.lastCheckTime) {
-    			return true;
-    		}
-    	}
+        CORE_LOG("ShaderWatcher [OnFileChanged]: watched paths for this entry (",
+                 entry.watchedPaths.size(), "):");
+        for (const auto& wp : entry.watchedPaths) {
+            CORE_LOG("  -> '", wp.string(), "'");
+        }
 
-    	return false;
+        if (!IsWatchedPath(entry, ev.path)) {
+            CORE_LOG("ShaderWatcher [OnFileChanged]: '", ev.path.string(),
+                     "' not in watch list, skipping.");
+            return;
+        }
+
+        CORE_LOG("ShaderWatcher [Worker]: change detected on '",
+                 ev.path.filename().string(),
+                 "'. Queuing recompile for: ", entry.mainPath);
+
+        std::lock_guard lock(m_PendingMutex);
+        m_PendingRecompiles.insert(entry.shader);
     }
 
-    std::vector<ShaderEntry> m_ActiveShaders;
+    std::list<ShaderEntry>                             m_ActiveShaders;
+    std::mutex                                         m_PendingMutex;
+    std::unordered_set<Rendering::Bindables::Shader*>  m_PendingRecompiles;
 };
 
 } // namespace Engine::Systems

@@ -115,9 +115,7 @@ void Transform::RebuildLocalMatrix() const {
 }
 
 void Transform::RebuildWorldMatrices() const {
-	if (m_Dirty) {
-		RebuildLocalMatrix();
-	}
+	RebuildLocalMatrix();
 
 	if (m_Parent) {
 		m_WorldMatrix = m_Parent->GetWorldMatrix() * m_LocalMatrix;
@@ -125,8 +123,6 @@ void Transform::RebuildWorldMatrices() const {
 	else {
 		m_WorldMatrix = m_LocalMatrix;
 	}
-
-	m_Dirty = false;
 }
 
 const Mat4& Transform::GetLocalMatrix() const {
@@ -262,7 +258,7 @@ void Transform::Rotate(const Vec3& euler) {
 }
 
 void Transform::LookAt(const Vec3& targetPosition, const Vec3& worldUp) {
-	const Vec3 forward = targetPosition - GetWorldPosition().Normalized();
+	const Vec3 forward = (targetPosition - GetWorldPosition()).Normalized();
 
 	if (Abs(Dot(forward, worldUp)) > 0.999f) {
 		SetWorldRotation(Quat::LookRotation(forward, Vec3::Right()));

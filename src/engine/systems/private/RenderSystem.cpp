@@ -18,8 +18,9 @@ namespace Engine::Systems {
 
 using namespace Rendering;
 
-void RenderSystem::Init() {
+void RenderSystem::Initialize() {
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+	glFrontFace(GL_CW);
 
     SetClearColor(Utils::Color::Gray20());
 
@@ -46,10 +47,8 @@ void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resol
 
 	m_GridShader->Bind();
 
-	const Mat4 cameraWorld      = camera->GetEntity().GetTransform().GetWorldMatrix();
 	const Mat4 cameraProjection = camera->GetProjectionMatrix();
 
-	m_GridShader->SetUniform("_InvViewMatrix",       cameraWorld);
 	m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(cameraProjection));
 	m_GridShader->SetUniform("_Resolution",          resolution);
 
@@ -60,7 +59,7 @@ void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resol
 	glBindVertexArray(0);
 }
 
-void RenderSystem::RenderBackground(const Components::Camera* camera, const Vec2 resolution) {
+void RenderSystem::RenderBackground(const Components::Camera* camera) {
     std::visit(overloaded {
         [](const Components::Camera::SkyBox& sky) {
             sky.skybox->Render();
@@ -71,10 +70,6 @@ void RenderSystem::RenderBackground(const Components::Camera* camera, const Vec2
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }, camera->background);
-
-	if ((camera->cullingMask & Utils::Layers::SCENE) != 0) {
-		Get().RenderGrid(camera, resolution);
-	}
 }
 
 
@@ -126,6 +121,14 @@ void RenderSystem::RenderTransparent(RenderQueues& queues, const Components::Cam
 	}
 }
 
+void RenderSystem::RenderGrid(const Components::Camera* camera, const Vec2 resolution) {
+	GLStateCache::Get().ApplyState(RenderPipelineState::Grid());
+
+	if ((camera->cullingMask & Utils::Layers::SCENE) != 0) {
+		Get().RenderGrid(camera, resolution);
+	}
+}
+
 // ─────────────────────────────────────────────
 //  Main render
 // ─────────────────────────────────────────────
@@ -145,13 +148,13 @@ void RenderSystem::Render(
 
     m_CameraUBO.Update(camera);
 
-    const auto resolution = Vec2(renderTarget->GetWidth(), renderTarget->GetHeight());
-    RenderBackground(camera, resolution);
+    RenderBackground(camera);
 
     auto queues = m_SceneCollector.BuildRenderQueues(camera);
 
     RenderOpaque(queues, camera);
     RenderAlphaTest(queues, camera);
+	RenderGrid(camera, Vec2(renderTarget->GetWidth(), renderTarget->GetHeight()));
     RenderTransparent(queues, camera);
 
     renderTarget->Unbind();

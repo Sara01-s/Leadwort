@@ -20,14 +20,17 @@ public:
 	Window& operator=(const Window&) = delete;
 	~Window();
 
+	[[nodiscard]]
 	bool Initialize(int width, int height, std::string_view title);
 	void ToggleFullscreen();
 	void SetIcons() const;
-	[[nodiscard]] bool IsOpen() const;
+	[[nodiscard]]
+	bool IsOpen() const;
 	static void SetVSync(bool enabled);
 	void SwapBuffers() const;
 	static void PollEvents();
-	[[nodiscard]] float GetAspectRatio() const;
+	[[nodiscard]]
+	float GetAspectRatio() const;
 
 	int GetWidth() const noexcept { return m_Width; }
 	int GetHeight() const noexcept { return m_Height; }
@@ -37,14 +40,14 @@ private:
 	void SetupGLState() const;
 
 	GLFWwindow* m_Handle{nullptr};
-	int m_Width{1280};
-	int m_Height{720};
-	int m_WindowedX{100};
-	int m_WindowedY{100};
-	int m_WindowedWidth{1280};
-	int m_WindowedHeight{720};
-	bool m_IsFullscreen{false};
-	std::string m_Title{"GLEngine"};
+	int m_Width { 1280 };
+	int m_Height { 720 };
+	int m_WindowedX { 100 };
+	int m_WindowedY { 100 };
+	int m_WindowedWidth { 1280 };
+	int m_WindowedHeight { 720 };
+	bool m_IsFullscreen { false };
+	std::string m_Title{};
 };
 
 } // namespace Core

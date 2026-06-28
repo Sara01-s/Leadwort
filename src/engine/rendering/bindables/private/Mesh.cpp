@@ -63,7 +63,7 @@ void Mesh::SetData(const ConstBufferView vertexData, const ConstBufferView indic
 
 	glBindVertexArray(0);
 
-	m_IndexCount = static_cast<int>(indices.size());
+	m_IndexCount = static_cast<int>(indices.size_bytes() / sizeof(Index));
 }
 
 void Mesh::Render() const {

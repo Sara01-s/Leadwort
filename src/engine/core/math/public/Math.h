@@ -31,6 +31,7 @@ inline constexpr float NegInfinity = -std::numeric_limits<float>::infinity();
 inline constexpr float Deg2Rad   = Pi / 180.0f;
 inline constexpr float Rad2Deg   = 180.0f / Pi;
 inline constexpr float GoldenRatio = std::numbers::phi_v<float>;
+inline constexpr int IntInfinity = std::numeric_limits<int>::infinity();
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Scalar

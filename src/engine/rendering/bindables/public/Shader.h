@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 namespace Engine::Rendering::Bindables {
 
@@ -19,7 +20,7 @@ public:
 		int location;
 	};
 
-	explicit Shader(const std::string& filePath, AssetManagement::AssetKey<Shader>);
+	Shader(const std::string& filePath, const std::set<std::string>& defines, AssetManagement::AssetKey<Shader>);
 	explicit Shader() = delete;
 	~Shader() override;
 
@@ -30,6 +31,7 @@ public:
 
 	void EnableDefine(const std::string& define);
 	void DisableDefine(const std::string& define);
+	void SetDefines(const std::set<std::string>& defines);
 
 	void SetUniformBlock(const std::string& blockName, int bindingPoint);
 
@@ -58,6 +60,7 @@ private:
 	std::set<std::string> m_Defines;
 	std::vector<std::string> m_Dependencies;
 	mutable std::unordered_map<std::string, int> m_UniformLocationCache;
+	mutable std::mutex m_CompileMutex;
 
 	int GetUniformLocation(const std::string& name) const;
 	static std::string LoadSource(const std::string& path);

@@ -61,6 +61,7 @@ public:
 
     VertexLayout& Append(const ElementType type) {
         const auto traits = GetTraits(type);
+
         const VertexAttribute attribute {
             m_NextLocation++,
             traits.count,

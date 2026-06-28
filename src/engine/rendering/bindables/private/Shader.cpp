@@ -6,8 +6,8 @@
 #include "engine/systems/public/ShaderWatcher.h"
 #include "engine/utils/public/Logger.h"
 
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 
 namespace Engine::Rendering::Bindables {
 
@@ -16,7 +16,9 @@ namespace fs = std::filesystem;
 // ─────────────────────────────────────────────
 //  Lifecycle
 // ─────────────────────────────────────────────
-Shader::Shader(const std::string& filePath, AssetManagement::AssetKey<Shader>) : m_Path(filePath) {
+Shader::Shader(const std::string& filePath, const std::set<std::string>& defines, AssetManagement::AssetKey<Shader>)
+	: m_Path(filePath), m_Defines(defines)
+{
 	m_Source = AssetManagement::EngineAssets::LoadText(m_Path);
 	Compile();
 
@@ -58,6 +60,15 @@ void Shader::DisableDefine(const std::string& define) {
 	}
 }
 
+void Shader::SetDefines(const std::set<std::string>& defines) {
+	if (m_Defines == defines) {
+		return;
+	}
+
+	m_Defines = defines;
+	Compile();
+}
+
 // ─────────────────────────────────────────────
 //  UBO
 // ─────────────────────────────────────────────
@@ -67,7 +78,8 @@ void Shader::SetUniformBlock(const std::string& blockName, int bindingPoint) {
 		return;
 	}
 
-	if (const uint32_t blockIndex = glGetUniformBlockIndex(m_GpuID, blockName.c_str()); blockIndex != GL_INVALID_INDEX) {
+	if (const uint32_t blockIndex = glGetUniformBlockIndex(m_GpuID, blockName.c_str());
+		blockIndex != GL_INVALID_INDEX) {
 		glUniformBlockBinding(m_GpuID, blockIndex, bindingPoint);
 	}
 	else {
@@ -78,62 +90,63 @@ void Shader::SetUniformBlock(const std::string& blockName, int bindingPoint) {
 // ─────────────────────────────────────────────
 //  Compilation pipeline
 // ─────────────────────────────────────────────
-
 void Shader::Compile() {
-	try {
-		m_Dependencies.clear();
+    std::lock_guard lock(m_CompileMutex);
+    std::vector<std::string> backupDependencies = m_Dependencies;
 
-		if (!m_Path.empty()) {
+    try {
+        m_Dependencies.clear();
+
+        if (!m_Path.empty()) {
 			m_Source = LoadSource(m_Path);
 		}
 
 		const auto shaderSources = ParseShader(m_Source);
-		const std::string baseDir = m_Path.empty() ? "" : m_Path.substr(0, m_Path.find_last_of('/'));
+        const std::string baseDir = m_Path.empty() ? "" : m_Path.substr(0, m_Path.find_last_of('/'));
 
-		auto resolveAndInject = [&](const std::string& key) -> std::string {
-			const auto it = shaderSources.find(key);
-			if (it == shaderSources.end()) {
-				throw std::runtime_error("Missing " + key + " shader in: " + m_Path);
-			}
+        auto resolveAndInject = [&](const std::string& key) -> std::string {
+            const auto it = shaderSources.find(key);
+            if (it == shaderSources.end())
+                throw std::runtime_error("Missing " + key + " shader in: " + m_Path);
 
-			std::set<std::string> visited;
+            std::set<std::string> visited;
+            return InjectDefines(ResolveIncludes(it->second, baseDir, visited));
+        };
 
-			return InjectDefines(ResolveIncludes(it->second, baseDir, visited));
-		};
+        const std::string vertexSrc   = resolveAndInject("vertex");
+        const std::string fragmentSrc = resolveAndInject("fragment");
 
-		const std::string vertexSrc = resolveAndInject("vertex");
-		const std::string fragmentSrc = resolveAndInject("fragment");
+        const uint32_t vs = CompileShader(GL_VERTEX_SHADER,   vertexSrc);
+        const uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
 
-		const uint32_t vs = CompileShader(GL_VERTEX_SHADER, vertexSrc);
-		const uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+        const uint32_t newProgram = LinkProgram(vs, fs);
+        CORE_ASSERT(newProgram != 0, "Shader: Failed to create program during compilation.");
 
-		const uint32_t newProgram = LinkProgram(vs, fs);
-		CORE_ASSERT(newProgram != 0, "Shader: Failed to create program during compilation.");
+        if (const uint32_t cameraBlock = glGetUniformBlockIndex(newProgram, "CameraData"); cameraBlock != GL_INVALID_INDEX) {
+            glUniformBlockBinding(newProgram, cameraBlock, 0);
+        }
+        else {
+        	glDeleteProgram(newProgram);
+            throw std::runtime_error("Shader: CameraData UBO not found in: " + m_Path);
+        }
 
-		// Bind the CameraData UBO to binding point 0
-		if (const uint32_t cameraBlock = glGetUniformBlockIndex(newProgram, "CameraData"); cameraBlock != GL_INVALID_INDEX) {
-			glUniformBlockBinding(newProgram, cameraBlock, 0);
-		}
-		else {
-			throw std::runtime_error("Shader: CameraData UBO not found in: " + m_Path);
-		}
-
-		if (m_GpuID != 0) {
+        if (m_GpuID != 0) {
 			glDeleteProgram(m_GpuID);
 		}
 
 		m_GpuID = newProgram;
-		m_Version++;
+        m_Version++;
+        m_UniformLocationCache.clear();
+    	m_Samplers.clear();
 
-		m_UniformLocationCache.clear();
+        CORE_LOG("Shader: Compiled '", m_Path, "' new version=", m_Version, " gpuID=", m_GpuID);
 
-		CORE_LOG("Shader: Successful compilation on: ", m_Path);
-
-		ExtractSamplers();
-	}
-	catch (const std::exception& e) {
-		CORE_ERROR("Shader: Error while compiling '", m_Path, "':\n", e.what());
-	}
+        ExtractSamplers();
+    }
+    catch (const std::exception& e) {
+        CORE_ERROR("Shader: Error while compiling '", m_Path, "':\n", e.what());
+        m_Dependencies = std::move(backupDependencies);
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -143,9 +156,11 @@ void Shader::Compile() {
 static std::string NormalizePath(const std::string& path) {
 	std::string p = path;
 	std::ranges::replace(p, '\\', '/');
+
 	if (!p.empty() && p[0] == '/') {
 		p.erase(0, 1);
 	}
+
 	// Collapse redundant segments (e.g. "shaders/../common/foo" → "common/foo")
 	return std::filesystem::path(p).lexically_normal().generic_string();
 }
@@ -170,12 +185,14 @@ std::unordered_map<std::string, std::string> Shader::ParseShader(const std::stri
 	std::ostringstream builder;
 
 	while (std::getline(stream, line)) {
-		if (!line.empty() && line.back() == '\r') line.pop_back();
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
 
 		if (line.rfind("#type", 0) == 0) {
 			if (!currentType.empty()) {
 				shaders[currentType] = builder.str();
-				builder.str(""); builder.clear();
+				builder.str("");
+				builder.clear();
 			}
 
 			currentType = line.substr(5);
@@ -410,7 +427,7 @@ void Shader::ExtractSamplers() {
 
 		if (type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE || type == GL_SAMPLER_2D_SHADOW || type == GL_SAMPLER_3D) {
 			const int location = glGetUniformLocation(m_GpuID, name);
-			m_Samplers[std::string(name)] = SamplerInfo { type, location };
+			m_Samplers[std::string(name)] = SamplerInfo{type, location};
 		}
 	}
 }

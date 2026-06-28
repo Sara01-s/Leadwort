@@ -60,7 +60,7 @@ struct Vec4 {
 	// Conversions
 	[[nodiscard]] Vec2 ToVec2() const;
 	[[nodiscard]] Vec3 ToVec3() const;
-	[[nodiscard]] const float* ToPtr() const { return glm::value_ptr(glm::vec4(*this)); }
+	[[nodiscard]] const float* ToPtr() const { return &x; }
 
 	// Constants
 	static constexpr Vec4 Zero()     { return Vec4(0, 0, 0, 0); }

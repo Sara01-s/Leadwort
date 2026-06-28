@@ -21,7 +21,7 @@ class RenderSystem : public Utils::Singleton<RenderSystem> {
     friend class Singleton;
 
 public:
-    void Init();
+    void Initialize();
 
 	void Render(Components::Camera* camera, const Rendering::Bindables::RenderTarget* renderTarget) const;
 	void RenderPostProcess(const Rendering::Bindables::RenderTarget* src,
@@ -38,10 +38,11 @@ private:
 	RenderSystem() = default;
     ~RenderSystem();
 
-	static void RenderBackground(const Components::Camera* camera, Vec2 resolution);
+	static void RenderBackground(const Components::Camera* camera);
 	static void RenderOpaque(const Rendering::RenderQueues& queues, const Components::Camera* camera);
 	static void RenderAlphaTest(const Rendering::RenderQueues& queues, const Components::Camera* camera);
 	static void RenderTransparent(Rendering::RenderQueues& queues, const Components::Camera* camera);
+	void RenderGrid(const Components::Camera* camera, Vec2 resolution);
 	static void SortTransparents(std::vector<Components::Renderer*>& transparents, const Vec3& cameraPosition);
 	void RenderGrid(const Components::Camera* camera, Vec2 resolution) const;
 

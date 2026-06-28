@@ -39,10 +39,10 @@ static Shared<Mesh> RegisterMesh(
     const std::span<const Index> indices,
     const char* key
 ) {
-    return EngineAssets::GetMesh(MeshData {
+    return EngineAssets::GetMesh(MeshData { 
         .layout   = layout,
-        .vertices = std::as_bytes(vertices),
-        .indices  = std::as_bytes(indices),
+        .vertices = std::as_bytes(std::span(vertices)),
+        .indices  = std::as_bytes(std::span(indices)),
         .material = DefaultAssets::CreateLitMaterial(),
         .key      = MeshKey::CreateAtRuntime(key)
     });
@@ -53,32 +53,30 @@ static Shared<Mesh> RegisterMesh(
 // ─────────────────────────────────────────────
 
 Shared<Mesh> PrimitiveMeshes::BuildQuad() const {
-    // pos(3) normal(3) uv(2) per vertex
-    constexpr std::array<float, 4 * 8> vertices = {
-        -1,-1, 0,  0,0,1,  0,0, // LD
-         1,-1, 0,  0,0,1,  1,0, // RD
-         1, 1, 0,  0,0,1,  1,1, // RU
-        -1, 1, 0,  0,0,1,  0,1, // LU
-    };
+	constexpr std::array<float, 4 * 8> vertices = {
+		-1,-1, 0,  0,0,1,  0,0,
+		 1,-1, 0,  0,0,1,  1,0,
+		 1, 1, 0,  0,0,1,  1,1,
+		-1, 1, 0,  0,0,1,  0,1,
+	};
 
-    constexpr std::array<Index, 6> indices = { 0,1,2, 2,3,0 };
+	constexpr std::array<Index, 6> indices = { 0, 2, 1, 2, 0, 3 };
 
-    return RegisterMesh(m_Layout, vertices, indices, "quad");
+	return RegisterMesh(m_Layout, vertices, indices, "quad");
 }
 
 Shared<Mesh> PrimitiveMeshes::BuildPlane() const {
-    // pos(3) normal(3) uv(2) per vertex
-    constexpr float size = 5.0f;
-    constexpr std::array<float, 4 * 8> vertices = {
-        -size,0,-size,  0,1,0,  0,0,
-         size,0,-size,  0,1,0,  1,0,
-         size,0, size,  0,1,0,  1,1,
-        -size,0, size,  0,1,0,  0,1,
-    };
+	constexpr float size = 5.0f;
+	constexpr std::array<float, 4 * 8> vertices = {
+		-size,0,-size,  0,1,0,  0,0,
+		 size,0,-size,  0,1,0,  1,0,
+		 size,0, size,  0,1,0,  1,1,
+		-size,0, size,  0,1,0,  0,1,
+	};
 
-    constexpr std::array<Index, 6> indices = { 0,2,1, 2,0,3 };
+	constexpr std::array<Index, 6> indices = { 0, 1, 2, 2, 3, 0 };
 
-    return RegisterMesh(m_Layout, vertices, indices, "plane");
+	return RegisterMesh(m_Layout, vertices, indices, "plane");
 }
 
 Shared<Mesh> PrimitiveMeshes::BuildSphere() const {
@@ -119,14 +117,17 @@ Shared<Mesh> PrimitiveMeshes::BuildSphere() const {
         }
     }
 
-    for (int i = 0; i < rings; i++) {
-        for (int j = 0; j < sectors; j++) {
-            const Index first  = i * (sectors + 1) + j;
-            const Index second = first + sectors + 1;
-            indices.insert(indices.end(), { first, second, first + 1, second, second + 1, first + 1 });
-        }
-    }
+	for (int i = 0; i < rings; i++) {
+		for (int j = 0; j < sectors; j++) {
+			const Index first  = i * (sectors + 1) + j;
+			const Index second = first + sectors + 1;
 
+			indices.insert(indices.end(), {
+				first, first + 1, second,      // Triangle 1.
+				second, first + 1, second + 1  // Triangle 2.
+			});
+		}
+	}
     return RegisterMesh(m_Layout, vertices, indices, "sphere");
 }
 
@@ -165,15 +166,14 @@ Shared<Mesh> PrimitiveMeshes::BuildCube() const {
         -0.5f,-0.5f, 0.5f,  0,-1, 0,  0,1,
     };
 
-    // CCW in model space — LH_TO_RH_CORRECTION (Y inversion) flips winding to CW for the rasterizer
-    constexpr std::array<Index, 36> indices = {
-         0, 1, 2,  2, 3, 0,
-         4, 5, 6,  6, 7, 4,
-         8, 9,10, 10,11, 8,
-        12,13,14, 14,15,12,
-        16,17,18, 18,19,16,
-        20,21,22, 22,23,20,
-    };
+	constexpr std::array<Index, 36> indices = {
+		0, 2, 1,  2, 0, 3,
+		4, 6, 5,  6, 4, 7,
+		8, 10, 9, 10, 8, 11,
+	   12, 14, 13, 14, 12, 15,
+	   16, 18, 17, 18, 16, 19,
+	   20, 22, 21, 22, 20, 23,
+   };
 
     return RegisterMesh(m_Layout, vertices, indices, "cube");
 }

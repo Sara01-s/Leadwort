@@ -30,9 +30,11 @@ class AssetCache {
 public:
     [[nodiscard]] Shared<TValue> Get(const TKey& key) const {
         const auto it = m_Cache.find(key);
+
         if (it == m_Cache.end()) {
 	        return nullptr;
         }
+
         return it->second.lock();
     }
 
@@ -67,7 +69,8 @@ public:
     [[nodiscard]] std::string          LoadText   (const std::string& path) const;
     [[nodiscard]] std::vector<uint8_t> LoadBytes  (const std::string& path) const;
 
-    [[nodiscard]] Shared<Bindables::Shader>   GetShader                 (const std::string& path);
+    [[nodiscard]] Shared<Bindables::Shader>   GetShader(const std::string& path,
+													    const std::optional<std::set<std::string>>& defines);
     [[nodiscard]] Shared<Bindables::Texture>  GetTexture                (const std::string& path);
     [[nodiscard]] Shared<Bindables::Texture>  GetTextureFromAbsolutePath(const std::string& absolutePath);
     [[nodiscard]] Shared<Bindables::Texture>  GetEmbeddedTexture        (int index, const uint8_t* data, size_t size);
@@ -103,8 +106,11 @@ public:
     [[nodiscard]] static std::vector<uint8_t> LoadBytes (const std::string& path) { return Get().LoadBytes(path); }
 
     [[nodiscard]]
-    static Shared<Bindables::Shader> GetShader(const std::string& path) {
-        return Get().GetShader(path);
+    static Shared<Bindables::Shader> GetShader(
+    	const std::string& path,
+    	const std::optional<std::set<std::string>>& defines = std::nullopt
+    ) {
+        return Get().GetShader(path, defines);
     }
 
     [[nodiscard]]

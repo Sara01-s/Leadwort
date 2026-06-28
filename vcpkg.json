@@ -1,5 +1,5 @@
 {
-  "name": "glengine",
+  "name": "leadwort",
   "version": "0.1.0",
   "dependencies": [
     "glfw3",
@@ -7,6 +7,7 @@
     "openal-soft",
     "assimp",
     "glm",
-    "gtest"
+    "gtest",
+    "efsw"
   ]
 }

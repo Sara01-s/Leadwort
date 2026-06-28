@@ -72,14 +72,12 @@ void Material::Bind() const noexcept {
 	m_Shader->Bind();
 
 	if (m_Shader->GetVersion() != m_LastShaderVersion) {
-		CORE_LOG("Material: Shader recompilado detectado. Sincronizando uniforms...");
-
-		for (const auto& [name, v] : m_Ints)   m_Shader->SetUniform(name, v);
-		for (const auto& [name, v] : m_Floats) m_Shader->SetUniform(name, v);
-		for (const auto& [name, v] : m_Vec3s)  m_Shader->SetUniform(name, v);
-		for (const auto& [name, v] : m_Vec4s)  m_Shader->SetUniform(name, v);
-		for (const auto& [name, v] : m_Mat3s)  m_Shader->SetUniform(name, v);
-		for (const auto& [name, v] : m_Mat4s)  m_Shader->SetUniform(name, v);
+		for (const auto& [name, value] : m_Ints)   m_Shader->SetUniform(name, value);
+		for (const auto& [name, value] : m_Floats) m_Shader->SetUniform(name, value);
+		for (const auto& [name, value] : m_Vec3s)  m_Shader->SetUniform(name, value);
+		for (const auto& [name, value] : m_Vec4s)  m_Shader->SetUniform(name, value);
+		for (const auto& [name, value] : m_Mat3s)  m_Shader->SetUniform(name, value);
+		for (const auto& [name, value] : m_Mat4s)  m_Shader->SetUniform(name, value);
 
 		m_LastShaderVersion = m_Shader->GetVersion();
 	}

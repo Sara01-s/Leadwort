@@ -20,12 +20,16 @@ void MeshRenderer::Render(const Camera* camera) {
 
 	CORE_ASSERT(activeMaterial, "MeshRenderer::Render: Material is null.");
 
-	const auto model = Rendering::MatrixUtils::CalculateModelMatrix(GetEntity().GetTransform());
+	const Mat4 modelMatrix = Rendering::MatrixUtils::CalculateModelMatrix(GetEntity().GetTransform());
+	const Mat3 normalMatrix = Transpose(Inverse(modelMatrix.ToMat3()));
+
 	activeMaterial->GetShader().Bind();
-	activeMaterial->GetShader().SetUniform("_ModelMatrix", model);
+	activeMaterial->GetShader().SetUniform("_ModelMatrix", modelMatrix);
+	activeMaterial->GetShader().SetUniform("_NormalMatrix", normalMatrix);
 
 	if (const auto* sun = Systems::LightingSystem::Get().GetDirectionalLight()) {
 		const Vec3 dir = sun->GetEntity().GetTransform().GetForward();
+
 		activeMaterial->SetVec3("_LightDirection", dir);
 		activeMaterial->SetFloat("_LightIntensity", sun->intensity);
 		activeMaterial->SetColor3("_LightColor", sun->color);

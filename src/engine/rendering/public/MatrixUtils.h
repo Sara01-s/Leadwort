@@ -16,7 +16,7 @@ struct ProjectionSettings {
 // LH (Y-up, +Z forward) → RH conversion applied at a single point
 inline constexpr auto LH_TO_RH_CORRECTION = Mat4(
 	1.0f,  0.0f,  0.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,  0.0f, // Invert Y
+	0.0f,  1.0f,  0.0f,  0.0f,
 	0.0f,  0.0f, -1.0f,  0.0f, // Invert Z
 	0.0f,  0.0f,  0.0f,  1.0f
 );

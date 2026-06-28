@@ -60,10 +60,11 @@ struct RenderPipelineState {
     static constexpr RenderPipelineState Grid() {
         RenderPipelineState state;
         state.depthTest  = true;
-        state.depthWrite = false;
+        state.depthWrite = true;
         state.depthFunc  = DepthFunc::LEqual;
         state.cullMode   = CullMode::None;
         state.blendMode  = BlendMode::AlphaBlend;
+    	state.multisample = true;
         return state;
     }
 

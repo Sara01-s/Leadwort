@@ -7,7 +7,7 @@ add_executable(UnitTests ${TEST_SOURCES})
 
 target_link_libraries(UnitTests
         PRIVATE
-        GLEngineLib
+        LeadwortLib
         GTest::gtest_main
 )
 

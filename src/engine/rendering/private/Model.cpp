@@ -31,7 +31,6 @@ Model::Model(const std::string& path, AssetKey<Model>) {
         aiProcess_Triangulate
         | aiProcess_JoinIdenticalVertices
         | aiProcess_CalcTangentSpace
-        | aiProcess_GenSmoothNormals
         | aiProcess_ImproveCacheLocality
         | aiProcess_LimitBoneWeights
         | aiProcess_FindInvalidData
@@ -158,19 +157,26 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 
     const MaterialFeatures features = ParseMaterialFeatures(scene->mMaterials[meshIndex]);
 
-	const auto shader = features.hasDiffuse
-		? DefaultAssets::GetLitShader()
-		: DefaultAssets::GetUnlitShader();
+	std::set<std::string> defines{};
 
-    if (features.hasDiffuse)   { shader->EnableDefine("HAS_DIFFUSE");   }
-    if (features.hasNormals)   { shader->EnableDefine("HAS_TANGENTS");  }
-    if (features.hasSpecular)  { shader->EnableDefine("HAS_SPECULAR");  }
-    if (features.hasOpacity)   { shader->EnableDefine("HAS_OPACITY");   }
-    if (features.hasEmissive)  { shader->EnableDefine("HAS_EMISSIVE");  }
-    if (features.hasRoughness) { shader->EnableDefine("HAS_ROUGHNESS"); }
-    if (features.hasMetallic)  { shader->EnableDefine("HAS_METALLIC");  }
-    if (features.hasAO)        { shader->EnableDefine("HAS_AO");        }
+	if (features.pbrWorkflow == PBRWorkflow::SpecularGlossiness) {
+		defines.insert("SPECULAR_GLOSSINESS");
+	}
 
+	if (features.hasNormals && hasTangents) {
+		defines.insert("HAS_NORMAL");
+		defines.insert("HAS_TANGENTS");
+	}
+
+	if (features.hasDiffuse)   defines.insert("HAS_DIFFUSE");
+	if (features.hasSpecular)  defines.insert("HAS_SPECULAR");
+	if (features.hasOpacity)   defines.insert("HAS_OPACITY");
+	if (features.hasEmissive)  defines.insert("HAS_EMISSIVE");
+	if (features.hasRoughness) defines.insert("HAS_ROUGHNESS");
+	if (features.hasMetallic)  defines.insert("HAS_METALLIC");
+	if (features.hasAO)        defines.insert("HAS_AO");
+
+	const Shared<Shader> shader = EngineAssets::GetShader("shaders/shd_lit.glsl", defines);
 	const Shared<Material> material = EngineAssets::CreateMaterial(shader);
 
     material->SetColor4("_Color", features.color);
@@ -184,8 +190,8 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 	const auto meshKey = MeshKey { path, meshIndex };
 	auto resultMesh = EngineAssets::GetMesh(MeshData {
 		layout,
-		std::as_bytes(std::span<const float>{ vertices }),
-		std::as_bytes(std::span<const Index>{ indices }),
+		std::as_bytes(std::span<const float> { vertices }),
+		std::as_bytes(std::span<const Index> { indices }),
 		material,
 		meshKey
 	});
@@ -199,105 +205,131 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 // ---------------------------------------------------------------------------
 // Material helpers
 // ---------------------------------------------------------------------------
-
 MaterialFeatures Model::ParseMaterialFeatures(const aiMaterial* material) {
     MaterialFeatures features{};
 
-    features.hasDiffuse   = material->GetTextureCount(aiTextureType_DIFFUSE)           > 0
-                         || material->GetTextureCount(aiTextureType_BASE_COLOR)        > 0;
-    features.hasNormals   = material->GetTextureCount(aiTextureType_NORMALS)           > 0
-                         || material->GetTextureCount(aiTextureType_HEIGHT)            > 0;
-    features.hasSpecular  = material->GetTextureCount(aiTextureType_SPECULAR)          > 0;
-    features.hasOpacity   = material->GetTextureCount(aiTextureType_OPACITY)           > 0
-                         || material->GetTextureCount(aiTextureType_DISPLACEMENT)      > 0;
-    features.hasEmissive  = material->GetTextureCount(aiTextureType_EMISSIVE)          > 0;
-    features.hasRoughness = material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0;
-    features.hasMetallic  = material->GetTextureCount(aiTextureType_METALNESS)         > 0
-                         || material->GetTextureCount(aiTextureType_UNKNOWN)           > 0;
-    features.hasAO        = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0
-                         || material->GetTextureCount(aiTextureType_LIGHTMAP)          > 0
-                         || material->GetTextureCount(aiTextureType_UNKNOWN)           > 0
-                         || material->GetTextureCount(aiTextureType_SHININESS)         > 0;
+    const bool hasORM       = material->GetTextureCount(aiTextureType_UNKNOWN)   > 0;
+    const bool hasSGSpecular = material->GetTextureCount(aiTextureType_SPECULAR) > 0;
+    const bool hasMRMetallic = hasORM
+                            || material->GetTextureCount(aiTextureType_METALNESS) > 0;
+
+    features.pbrWorkflow = hasSGSpecular && !hasMRMetallic
+        ? PBRWorkflow::SpecularGlossiness
+        : PBRWorkflow::MetallicRoughness;
+
+    features.hasDiffuse  = material->GetTextureCount(aiTextureType_DIFFUSE)    > 0
+                        || material->GetTextureCount(aiTextureType_BASE_COLOR) > 0;
+    features.hasNormals  = material->GetTextureCount(aiTextureType_NORMALS)    > 0
+                        || material->GetTextureCount(aiTextureType_HEIGHT)     > 0;
+    features.hasSpecular = hasSGSpecular;
+    features.hasOpacity  = material->GetTextureCount(aiTextureType_OPACITY)      > 0
+                        || material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0;
+    features.hasEmissive = material->GetTextureCount(aiTextureType_EMISSIVE)     > 0;
+
+    if (features.pbrWorkflow == PBRWorkflow::MetallicRoughness) {
+        features.hasRoughness = hasORM || material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0;
+        features.hasMetallic  = hasORM || material->GetTextureCount(aiTextureType_METALNESS)         > 0;
+        features.hasAO        = hasORM || material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0
+                                       || material->GetTextureCount(aiTextureType_LIGHTMAP)          > 0;
+
+        float roughness = 1.0f;
+        float metallic  = 1.0f;
+        material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness);
+        material->Get(AI_MATKEY_METALLIC_FACTOR,  metallic);
+        features.roughnessIntensity = roughness;
+        features.metallicIntensity  = metallic;
+    }
+	else {
+		// S/G: roughness comes from specular texture's alpha, metallic doesn't exists.
+        features.hasAO             = material->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0
+                                  || material->GetTextureCount(aiTextureType_LIGHTMAP)          > 0;
+        features.roughnessIntensity = 1.0f;
+        features.metallicIntensity  = 0.0f;
+    }
 
     aiColor4D color{};
-
     if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
         features.color = Utils::Color(color.r, color.g, color.b, color.a);
     }
 
-	float roughness = 0.5f;
-	float metallic  = 0.0f;
-
-	material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness);
-	material->Get(AI_MATKEY_METALLIC_FACTOR,  metallic);
-
-	features.roughnessIntensity = roughness;
-	features.metallicIntensity  = metallic;
-
     return features;
 }
+
 
 void Model::BindTextures(
     Material& material,
     const aiMaterial* aiMat,
     const MaterialFeatures& features
 ) const {
-	auto tryBind = [&](const std::string& uniform, const int slot, const std::initializer_list<aiTextureType> types) {
-		for (const aiTextureType type : types) {
-			aiString aiPath{};
+    auto tryBind = [&](const std::string& uniform, const int slot, const std::initializer_list<aiTextureType> types) {
+        for (const aiTextureType type : types) {
+            aiString aiPath{};
 
-			if (aiMat->GetTexture(type, 0, &aiPath) != AI_SUCCESS) {
+            if (aiMat->GetTexture(type, 0, &aiPath) != AI_SUCCESS) {
 				continue;
 			}
 
 			const std::string pathStr = aiPath.C_Str();
 
-			// Embedded texture.
-			if (pathStr[0] == '*') {
-				const int index = std::stoi(pathStr.substr(1));
-				const aiTexture* embedded = m_AiScene->mTextures[index];
+            if (pathStr[0] == '*') {
+                const int index = std::stoi(pathStr.substr(1));
+                const aiTexture* embedded = m_AiScene->mTextures[index];
+                const auto* data = reinterpret_cast<const uint8_t*>(embedded->pcData);
+                const size_t size = embedded->mWidth;
 
-				const auto* data = reinterpret_cast<const uint8_t*>(embedded->pcData);
-				const size_t size = embedded->mWidth;
+                const Shared<Texture> texture = EngineAssets::GetEmbeddedTexture(index, data, size);
+                CORE_ASSERT(texture, "Failed to load embedded texture at index: " + std::to_string(index));
+                material.SetTexture(uniform, texture, slot);
+                return;
+            }
 
-				const Shared<Texture> texture = EngineAssets::GetEmbeddedTexture(index, data, size);
-				CORE_ASSERT(texture, "Failed to load embedded texture at index: " + std::to_string(index));
+            const std::string fullPath = m_ResourceBaseDir + "/" + pathStr;
+            const Shared<Texture> texture = EngineAssets::GetTextureAbsolute(fullPath);
 
-				material.SetTexture(uniform, texture, slot);
-				return;
-			}
+            CORE_ASSERT(texture, "Failed to load texture at path: " + fullPath);
+            material.SetTexture(uniform, texture, slot);
 
-			// Disk texture.
-			const std::string fullPath = m_ResourceBaseDir + "/" + pathStr;
-			const Shared<Texture> texture = EngineAssets::GetTextureAbsolute(fullPath);
-			CORE_ASSERT(texture, "Failed to load texture at path: " + fullPath);
+            return;
+        }
+    };
 
-			material.SetTexture(uniform, texture, slot);
-			return;
-		}
-	};
+    // ORM: Occlusion (R) Roughness (G) Metallic (B) — packed, used in M/R workflow
+    const std::initializer_list ormTypes = {
+        aiTextureType_UNKNOWN,
+        aiTextureType_AMBIENT_OCCLUSION,
+        aiTextureType_DIFFUSE_ROUGHNESS,
+        aiTextureType_METALNESS,
+    };
 
-    if (features.hasDiffuse)   { tryBind("_DiffuseTexture",           0, {aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE}); }
-    if (features.hasSpecular)  { tryBind("_SpecularTexture",          1, {aiTextureType_SPECULAR, aiTextureType_SHININESS}); }
-    if (features.hasNormals)   { tryBind("_NormalTexture",            2, {aiTextureType_NORMALS, aiTextureType_HEIGHT}); }
-    if (features.hasOpacity)   { tryBind("_OpacityTexture",           3, {aiTextureType_OPACITY, aiTextureType_DISPLACEMENT}); }
-    if (features.hasEmissive)  { tryBind("_EmissiveTexture",          4, {aiTextureType_EMISSIVE}); }
-    if (features.hasRoughness) { tryBind("_RoughnessTexture",         5, {aiTextureType_DIFFUSE_ROUGHNESS}); }
-    if (features.hasMetallic)  { tryBind("_MetallicTexture",          6, {aiTextureType_METALNESS, aiTextureType_UNKNOWN}); }
-    if (features.hasAO)        { tryBind("_AmbientOcclusionTexture",  7, {aiTextureType_AMBIENT_OCCLUSION, aiTextureType_LIGHTMAP,
-    																	  aiTextureType_UNKNOWN, aiTextureType_SHININESS}); }
+    if (features.hasDiffuse)  { tryBind("_DiffuseTexture",  0, {aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE}); }
+    if (features.hasNormals)  { tryBind("_NormalTexture",   2, {aiTextureType_NORMALS, aiTextureType_HEIGHT}); }
+    if (features.hasOpacity)  { tryBind("_OpacityTexture",  3, {aiTextureType_OPACITY, aiTextureType_DISPLACEMENT}); }
+    if (features.hasEmissive) { tryBind("_EmissiveTexture", 4, {aiTextureType_EMISSIVE}); }
+
+    if (features.pbrWorkflow == PBRWorkflow::SpecularGlossiness) {
+        // S/G: specular RGB = F0, specular Alpha = glossiness (= 1 - roughness)
+        if (features.hasSpecular) { tryBind("_SpecularTexture", 1, {aiTextureType_SPECULAR}); }
+        if (features.hasAO)       { tryBind("_AmbientOcclusionTexture", 7, {aiTextureType_AMBIENT_OCCLUSION, aiTextureType_LIGHTMAP}); }
+    }
+	else {
+        // M/R: ORM packed or separate textures
+        if (features.hasSpecular)  { tryBind("_SpecularTexture",          1, {aiTextureType_SPECULAR}); }
+        if (features.hasRoughness) { tryBind("_RoughnessTexture",         5, ormTypes); }
+        if (features.hasMetallic)  { tryBind("_MetallicTexture",          6, ormTypes); }
+        if (features.hasAO)        { tryBind("_AmbientOcclusionTexture",  7, ormTypes); }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
 
-[[nodiscard]] Mat4 Model::AssimpToMat4(const aiMatrix4x4& m) {
+[[nodiscard]] Mat4 Model::AssimpToMat4(const aiMatrix4x4& matrix) {
 	return Mat4(
-		m.a1, m.a2, m.a3, m.a4,
-		m.b1, m.b2, m.b3, m.b4,
-		m.c1, m.c2, m.c3, m.c4,
-		m.d1, m.d2, m.d3, m.d4
+		matrix.a1, matrix.a2, matrix.a3, matrix.a4,
+		matrix.b1, matrix.b2, matrix.b3, matrix.b4,
+		matrix.c1, matrix.c2, matrix.c3, matrix.c4,
+		matrix.d1, matrix.d2, matrix.d3, matrix.d4
 	);
 }
 

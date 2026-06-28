@@ -8,7 +8,6 @@
 #include "engine/systems/public/Input.h"
 #include "engine/systems/public/RenderSystem.h"
 #include "engine/systems/public/SceneSystem.h"
-#include "engine/systems/public/ShaderWatcher.h"
 
 #include <GLFW/glfw3.h>
 
@@ -18,14 +17,16 @@ using Engine::Systems::Input;
 using Engine::Systems::Key;
 using Engine::Systems::RenderSystem;
 using Engine::Systems::SceneSystem;
-using Engine::Systems::ShaderWatcher;
 
 namespace Engine::Core {
 
 Game::Game() {
-    Window::Get().Initialize(1280, 720, "GLEngine uwu");
+	if (!Window::Get().Initialize(1280, 720, "Leadwort")) {
+		CORE_ERROR("Error to initialize Engine");
+	}
+
     Utils::Log::Initialize();
-    RenderSystem::Get().Init();
+    RenderSystem::Get().Initialize();
     Input::Init(Window::Get().GetHandle());
 
     SceneSystem::Get().LoadEmptyScene();
@@ -42,8 +43,6 @@ Game::Game() {
 void Game::Tick() const {
     SceneSystem::Get().LoadPendingScene();
 
-	ShaderWatcher::Get().Update();
-
     Time::Update(glfwGetTime());
     Input::Update(Time::GetDeltaTime());
 
@@ -54,8 +53,8 @@ void Game::Tick() const {
 
     BehaviourSystem::Get().Update();
 
-    RenderSystem::Get().Render(CameraSystem::Get().GetMain(), m_GameRenderTarget.get());
-	RenderSystem::Get().RenderPostProcess(m_GameRenderTarget.get(), m_GamePostProcessRenderTarget.get());
+ //    RenderSystem::Get().Render(CameraSystem::Get().GetMain(), m_GameRenderTarget.get());
+	// RenderSystem::Get().RenderPostProcess(m_GameRenderTarget.get(), m_GamePostProcessRenderTarget.get());
 
     RenderSystem::Get().Render(CameraSystem::Get().GetSceneCamera(), m_SceneRenderTarget.get());
 

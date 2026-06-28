@@ -44,17 +44,26 @@ std::vector<uint8_t> AssetManager::LoadBytes(const std::string& path) const {
 }
 
 
-Shared<Shader> AssetManager::GetShader(const std::string& path) {
-	const std::string key = Resolve(path).string();
+Shared<Shader> AssetManager::GetShader(
+	const std::string& path,
+	const std::optional<std::set<std::string>>& defines
+) {
+	std::string key = Resolve(path).lexically_normal().generic_string();
+
+	if (defines) {
+		for (const auto& define : *defines) {
+			key += '|';
+			key += define;
+		}
+	}
 
 	if (auto cached = m_ShaderCache.Get(key)) {
+		CORE_LOG("AssetManager [GetShader]: cache HIT key='", key, "'");
 		return cached;
 	}
 
-	CORE_LOG("AssetManager: Loading Shader: ", key);
-	auto shader = CreateShared<Shader>(path, AssetKey<Shader>{});
-	CORE_ASSERT(shader != nullptr, "AssetManager: Failed to create Shader from: " + path);
-
+	CORE_LOG("AssetManager [GetShader]: cache MISS key='", key, "'");
+	auto shader = CreateShared<Shader>(path, defines.value_or(std::set<std::string>{}), AssetKey<Shader>{});
 	m_ShaderCache.Set(key, shader);
 	return shader;
 }
@@ -200,10 +209,12 @@ Shared<Texture> AssetManager::CreateTextureFromBytes(const uint8_t* bytes, const
 }
 
 std::string AssetManager::MakeCubeMapKey(const std::array<std::string, 6>& paths) {
-    std::string key;
+    std::string key{};
+
     for (const auto& p : paths) {
 	    key += p; key += '|';
     }
+
     return key;
 }
 
@@ -213,7 +224,7 @@ std::filesystem::path AssetManager::Resolve(const std::string& path) const {
 
 	if (!p.empty() && p[0] == '/') { p.erase(0, 1); }
 
-	return std::filesystem::path(m_Root) / p;
+	return (std::filesystem::path(m_Root) / p).lexically_normal().generic_string();
 }
 
 } // namespace Engine::AssetManagement

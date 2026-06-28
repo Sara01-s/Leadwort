@@ -35,6 +35,7 @@ const float _GrainStrength = 0.01;
 void main() {
     vec3 sceneColor = texture(_ScreenTexture, v_uv).rgb;
     float vignette = applyVignette(v_uv, _VignetteIntensity);
+
     sceneColor *= vignette;
 
     sceneColor = applyFilmGrain(sceneColor, v_uv, _GrainStrength);

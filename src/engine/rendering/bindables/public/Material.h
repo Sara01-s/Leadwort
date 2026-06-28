@@ -61,10 +61,10 @@ private:
     };
 
 	Shared<Shader> m_Shader;
-	mutable uint32_t m_LastShaderVersion = 0xFFFFFFFF;
+	mutable uint32_t m_LastShaderVersion { IntInfinity } ;
 
-    std::unordered_map<std::string, int>       m_Ints;
-    std::unordered_map<std::string, float>     m_Floats;
+    std::unordered_map<std::string, int>   m_Ints;
+    std::unordered_map<std::string, float> m_Floats;
     std::unordered_map<std::string, Vec3> m_Vec3s;
     std::unordered_map<std::string, Vec4> m_Vec4s;
     std::unordered_map<std::string, Mat3> m_Mat3s;

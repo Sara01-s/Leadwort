@@ -50,6 +50,7 @@ struct Vec3 {
 	// Conversions
 	[[nodiscard]] struct Vec2 ToVec2() const;
 	[[nodiscard]] struct Vec4 ToVec4(float w = 0.0f) const;
+	[[nodiscard]] float* ToPtr() { return &x; }
 
 	// Swizzles — same type
 	[[nodiscard]] constexpr Vec3 XZY() const { return Vec3(x, z, y); }
