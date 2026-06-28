@@ -21,14 +21,11 @@ void SceneSystem::LoadPendingScene() {
 		return;
 	}
 
-	RenderSystem::Get().Clear();
 	CameraSystem::Get().Clear();
 	BehaviourSystem::Get().Clear();
 	Input::Clear();
 
 	m_CurrentScene = std::move(m_PendingScene);
-	m_PendingScene = nullptr;
-
 	m_CurrentScene->Create();
 
 	OnSceneLoaded.Execute(m_CurrentScene.get());

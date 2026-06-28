@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../utils/public/Singleton.h"
+#include "engine/core/math/public/Vec2.h"
 #include "engine/utils/public/ReactiveCommand.h"
 
 #include "glad/glad.h"
@@ -20,26 +21,26 @@ public:
 	Window& operator=(const Window&) = delete;
 	~Window();
 
-	[[nodiscard]]
-	bool Initialize(int width, int height, std::string_view title);
+	[[nodiscard]] bool Initialize(int width, int height, std::string_view title);
+
 	void ToggleFullscreen();
 	void SetIcons() const;
-	[[nodiscard]]
-	bool IsOpen() const;
-	static void SetVSync(bool enabled);
 	void SwapBuffers() const;
+	static void SetVSync(bool enabled);
 	static void PollEvents();
-	[[nodiscard]]
-	float GetAspectRatio() const;
 
-	int GetWidth() const noexcept { return m_Width; }
-	int GetHeight() const noexcept { return m_Height; }
-	GLFWwindow* GetHandle() const noexcept { return m_Handle; }
+	[[nodiscard]] bool IsOpen() const;
+	[[nodiscard]] float GetAspectRatio() const;
+	[[nodiscard]] constexpr Vec2 GetResolution() const noexcept { return Vec2(m_Width, m_Height); }
+	[[nodiscard]] constexpr int GetWidth() const noexcept { return m_Width; }
+	[[nodiscard]] constexpr int GetHeight() const noexcept { return m_Height; }
+	[[nodiscard]] constexpr GLFWwindow* GetHandle() const noexcept { return m_Handle; }
 
 private:
 	void SetupGLState() const;
 
-	GLFWwindow* m_Handle{nullptr};
+private:
+	GLFWwindow* m_Handle { nullptr };
 	int m_Width { 1280 };
 	int m_Height { 720 };
 	int m_WindowedX { 100 };
@@ -47,7 +48,7 @@ private:
 	int m_WindowedWidth { 1280 };
 	int m_WindowedHeight { 720 };
 	bool m_IsFullscreen { false };
-	std::string m_Title{};
+	std::string_view m_Title{};
 };
 
 } // namespace Core

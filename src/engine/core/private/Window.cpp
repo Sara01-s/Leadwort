@@ -36,7 +36,7 @@ bool Window::Initialize(const int width, const int height, const std::string_vie
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-	m_Handle = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
+	m_Handle = glfwCreateWindow(m_Width, m_Height, m_Title.data(), nullptr, nullptr);
 	if (!m_Handle) {
 		std::cerr << "Failed to create GLFW window" << std::endl;
 		return false;

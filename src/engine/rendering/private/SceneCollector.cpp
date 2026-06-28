@@ -8,10 +8,10 @@
 
 namespace Engine::Rendering {
 
-void SceneCollector::FindRenderersInScene(const Core::Scene* scene) {
+void SceneCollector::FindRenderersInScene(const Core::Scene& scene) {
 	m_Renderers.clear();
 
-	for (const auto& entity : scene->GetEntities() | std::views::values) {
+	for (const auto& entity : scene.GetEntities() | std::views::values) {
 		for (auto* component : entity->GetAllComponents()) {
 			if (auto* renderer = dynamic_cast<Components::Renderer*>(component)) {
 				CORE_LOG("SceneCollector: Renderer found in current scene: ", renderer->GetEntity().name);
@@ -21,11 +21,12 @@ void SceneCollector::FindRenderersInScene(const Core::Scene* scene) {
 	}
 }
 
-[[nodiscard]] RenderQueues SceneCollector::BuildRenderQueues(const Components::Camera* camera) const {
-	RenderQueues result;
+[[nodiscard]]
+RenderQueues SceneCollector::BuildRenderQueues(const Components::Camera& camera) const {
+	RenderQueues result{};
 
 	for (auto* renderer : m_Renderers) {
-		if (renderer->isVisible && camera->ShouldRender(renderer->GetEntity())) {
+		if (renderer->isVisible && camera.ShouldRender(renderer->GetEntity())) {
 			const auto slot = static_cast<std::uint8_t>(renderer->renderQueue);
 			result[slot].push_back(renderer);
 		}

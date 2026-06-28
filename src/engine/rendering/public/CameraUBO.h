@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <glm/glm.hpp>
 
 namespace Engine::Components { class Camera; }
 
@@ -16,7 +15,7 @@ public:
     CameraUBO(const CameraUBO&) = delete;
     CameraUBO& operator=(const CameraUBO&) = delete;
 
-    void Update(const Components::Camera* camera) const;
+    void Update(const Components::Camera& camera) const;
 
 private:
     GLuint m_UBO = 0;

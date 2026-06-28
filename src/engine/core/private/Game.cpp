@@ -53,10 +53,8 @@ void Game::Tick() const {
 
     BehaviourSystem::Get().Update();
 
- //    RenderSystem::Get().Render(CameraSystem::Get().GetMain(), m_GameRenderTarget.get());
-	// RenderSystem::Get().RenderPostProcess(m_GameRenderTarget.get(), m_GamePostProcessRenderTarget.get());
-
-    RenderSystem::Get().Render(CameraSystem::Get().GetSceneCamera(), m_SceneRenderTarget.get());
+	RenderSystem::Get().Render(*CameraSystem::Get().GetMain(), *m_GameRenderTarget.get());
+    RenderSystem::Get().Render(*CameraSystem::Get().GetSceneCamera(), *m_SceneRenderTarget.get());
 
 	RenderSystem::Get().ClearScreen();
     RenderSystem::Get().RenderUI();

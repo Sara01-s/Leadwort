@@ -11,8 +11,8 @@ namespace Engine::Rendering {
 
 class SceneCollector {
 public:
-	void FindRenderersInScene(const Core::Scene* scene);
-	[[nodiscard]] RenderQueues BuildRenderQueues(const Components::Camera* camera) const;
+	void FindRenderersInScene(const Core::Scene& scene);
+	[[nodiscard]] RenderQueues BuildRenderQueues(const Components::Camera& camera) const;
 
 private:
 	std::vector<Components::Renderer*> m_Renderers;

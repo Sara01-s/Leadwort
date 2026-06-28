@@ -34,6 +34,7 @@ private:
 	static void ApplyBlendMode(BlendMode mode);
 	static void ApplyMultisample(bool enabled);
 
+private:
 	RenderPipelineState m_CurrentRenderPipelineState{};
 	bool m_Initialized { false };
 };

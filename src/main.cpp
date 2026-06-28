@@ -74,14 +74,14 @@ int main() {
     Engine::Editor::EditorLayer editor;
     editor.Init(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-	auto& gamePostProcessRenderTarget = game.GetGamePostProcessRenderTarget();
+	auto& gameRenderTarget = game.GetGameRenderTarget();
     auto& sceneRenderTarget = game.GetSceneRenderTarget();
 
     Engine::Systems::RenderSystem::Get().AddOverlay([&] {
         editor.StartFrame();
         editor.SetupDockSpace();
     	ShowViewport("Scene", sceneRenderTarget);
-		ShowViewport("Game",  gamePostProcessRenderTarget, [&](const int w, const int h) { game.ResizeGameView(w, h); });
+		ShowViewport("Game",  gameRenderTarget, [&](const int w, const int h) { game.ResizeGameView(w, h); });
 		ShowStatus();
 		editor.EndFrame();
 	});
