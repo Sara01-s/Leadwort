@@ -35,7 +35,7 @@ struct MaterialFeatures {
 	float roughnessIntensity { 0.5f };
 	float metallicIntensity  { 0.0f };
 
-    Utils::Color color = Utils::Color::White();
+    Color color = Color::White();
 };
 
 class Model {
@@ -56,6 +56,7 @@ private:
     void BindTextures(Rendering::Bindables::Material& material, const aiMaterial* aiMat, const MaterialFeatures& features) const;
 	static Mat4 AssimpToMat4(const aiMatrix4x4& matrix);
 
+private:
     Assimp::Importer m_Importer{};
     const aiScene* m_AiScene { nullptr };
     std::string m_ResourceBaseDir{};

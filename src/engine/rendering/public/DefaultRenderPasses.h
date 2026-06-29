@@ -21,7 +21,7 @@ namespace Engine::Rendering::Passes {
 
 class BackgroundPass final : public RenderPass {
 public:
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         std::visit(overloaded {
             [](const Components::Camera::SkyBox& sky) {
                 sky.skybox->Render();
@@ -34,7 +34,7 @@ public:
         }, renderContext.camera->background);
     }
 
-    constexpr std::string_view GetName() const override { return "Background"; }
+    constexpr std::string_view GetName() const noexcept override { return "Background"; }
 };
 
 // ─────────────────────────────────────────────
@@ -43,7 +43,7 @@ public:
 
 class OpaquePass final : public RenderPass {
 public:
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         DrawCommandBuffer buffer{};
 
         for (const auto* renderer : (*renderContext.renderQueues)[static_cast<std::size_t>(RenderQueue::Opaque)]) {
@@ -54,7 +54,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const override { return "Opaque"; }
+    constexpr std::string_view GetName() const noexcept override { return "Opaque"; }
 };
 
 // ─────────────────────────────────────────────
@@ -63,7 +63,7 @@ public:
 
 class AlphaTestPass final : public RenderPass {
 public:
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         DrawCommandBuffer buffer{};
 
         for (const auto* renderer : (*renderContext.renderQueues)[static_cast<std::size_t>(RenderQueue::AlphaTest)]) {
@@ -74,7 +74,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const override { return "AlphaTest"; }
+    constexpr std::string_view GetName() const noexcept override { return "AlphaTest"; }
 };
 
 // ─────────────────────────────────────────────
@@ -83,11 +83,11 @@ public:
 
 class GridPass final : public RenderPass {
 public:
-    GridPass() {
+    GridPass() noexcept {
         glGenVertexArrays(1, &m_EmptyVAO);
     }
 
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         if ((renderContext.camera->cullingMask & Utils::Layers::SCENE) == 0) {
             return;
         }
@@ -96,7 +96,7 @@ public:
 
         m_GridShader->Bind();
         m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(renderContext.camera->GetProjectionMatrix()));
-        m_GridShader->SetUniform("_Resolution",          renderContext.resolution);
+        m_GridShader->SetUniform("_Resolution", renderContext.resolution);
 
         glBindVertexArray(m_EmptyVAO);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -105,7 +105,7 @@ public:
         glBindVertexArray(0);
     }
 
-    constexpr std::string_view GetName() const override { return "Grid"; }
+    constexpr std::string_view GetName() const noexcept override { return "Grid"; }
 
 private:
     Shared<Bindables::Shader> m_GridShader { AssetManagement::EngineAssets::GetShader("shaders/shd_grid.glsl") };
@@ -118,7 +118,7 @@ private:
 
 class TransparentPass final : public RenderPass {
 public:
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         DrawCommandBuffer buffer{};
 
         for (const auto* renderer : (*renderContext.renderQueues)[static_cast<std::size_t>(RenderQueue::Transparent)]) {
@@ -130,7 +130,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const override { return "Transparent"; }
+    constexpr std::string_view GetName() const noexcept override { return "Transparent"; }
 };
 
 // ─────────────────────────────────────────────
@@ -147,7 +147,7 @@ public:
           ))
     {}
 
-    void Execute(const RenderContext& renderContext) override {
+    void Execute(const RenderContext& renderContext) noexcept override {
         CORE_ASSERT(m_PostProcess, "PostProcessPass: PostProcess not initialized.");
         CORE_ASSERT(m_Src,         "PostProcessPass: Source render target is null.");
         CORE_ASSERT(m_Dst,         "PostProcessPass: Destination render target is null.");
@@ -162,13 +162,13 @@ public:
         m_Dst->Unbind();
     }
 
-    constexpr std::string_view GetName() const override { return "PostProcess"; }
+	constexpr std::string_view GetName() const noexcept override { return "PostProcess"; }
 
 private:
 
     const Bindables::RenderTarget* m_Src { nullptr };
     const Bindables::RenderTarget* m_Dst { nullptr };
-    Unique<PostProcess>            m_PostProcess;
+    Unique<PostProcess> m_PostProcess;
 };
 
 } // namespace Engine::Rendering::Passes

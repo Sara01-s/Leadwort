@@ -1,18 +1,16 @@
 #include "../public/Material.h"
 
+#include "../../../core/math/public/Color.h"
 #include "engine/asset-management/private/AssetKey.h"
 #include "engine/asset-management/public/AssetManager.h"
 #include "engine/asset-management/public/DefaultAssets.h"
 #include "engine/core/math/public/Vec4.h"
 #include "engine/rendering/bindables/public/CubeMap.h"
-#include "engine/utils/public/Color.h"
 #include "engine/utils/public/Logger.h"
 
 #include <memory>
 
 namespace Engine::Rendering::Bindables {
-
-using Color = Utils::Color;
 
 Material::Material(const Shared<Shader>& shader, AssetManagement::AssetKey<Material>) : m_Shader(shader) {
 	CORE_ASSERT(m_Shader, "Material::Material: Provided shader is null!");

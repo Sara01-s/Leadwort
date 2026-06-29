@@ -17,8 +17,8 @@ struct RenderContext {
 class RenderPass {
 public:
 	virtual ~RenderPass() = default;
-	virtual void Execute(const RenderContext& renderContext) = 0;
-	virtual std::string_view GetName() const = 0;
+	virtual void Execute(const RenderContext& renderContext) noexcept = 0;
+	virtual std::string_view GetName() const noexcept = 0;
 };
 
 }

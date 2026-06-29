@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../core/math/public/Color.h"
 #include "engine/components/public/Camera.h"
 #include "engine/components/public/Transform.h"
 #include "engine/rendering/bindables/public/RenderTarget.h"
@@ -8,7 +9,6 @@
 #include "engine/rendering/public/PostProcess.h"
 #include "engine/rendering/public/RenderPass.h"
 #include "engine/rendering/public/SceneCollector.h"
-#include "engine/utils/public/Color.h"
 #include "engine/utils/public/Singleton.h"
 
 #include <functional>
@@ -29,7 +29,7 @@ public:
     void AddOverlay(std::function<void()> callback);
 
 	static void ClearScreen();
-    static void SetClearColor(const Utils::Color& color);
+    static void SetClearColor(const Color& color);
     static void SetClearColor(float r, float g, float b, float a = 1.0f);
 
 private:

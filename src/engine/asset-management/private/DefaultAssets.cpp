@@ -33,7 +33,7 @@ Shared<Material> DefaultAssets::CreateUnlitMaterial() {
 Shared<Material> DefaultAssets::CreateLitMaterial() {
 	auto material = EngineAssets::CreateMaterial(GetLitShader());
 
-	material->SetColor4("_Color", Utils::Color::White());
+	material->SetColor4("_Color", Color::White());
 	material->SetTexture("_DiffuseTexture", GetTexture(), 0);
 	material->SetFloat("_RoughnessIntensity", 0.5f);
 	material->SetFloat("_MetallicIntensity",  0.0f);

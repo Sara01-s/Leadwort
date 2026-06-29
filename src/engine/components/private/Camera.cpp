@@ -5,6 +5,10 @@
 
 namespace Engine::Components {
 
+Vec3 Camera::WorldToCameraSpace(const Vec3& worldPosition) const noexcept {
+	return (GetViewMatrix() * worldPosition.ToVec4(1.0f)).ToVec3();
+}
+
 bool Camera::ShouldRender(const Core::Entity& entity) const {
 	return (entity.layerMask & cullingMask) != 0;
 }

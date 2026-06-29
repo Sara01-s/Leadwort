@@ -18,6 +18,7 @@ public:
 
 public:
 	void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const override;
+	[[nodiscard]] std::optional<AABB> GetAABB() const override { return mesh->GetAABB(); }
 };
 
 } // namespace Engine::Components

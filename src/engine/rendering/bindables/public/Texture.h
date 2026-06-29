@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../../../core/math/public/Color.h"
 #include "Bindable.h"
 #include "engine/asset-management/private/AssetKey.h"
-#include "engine/utils/public/Color.h"
 
 #include <glad/glad.h>
 #include <string>

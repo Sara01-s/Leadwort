@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/core/math/public/Math.h"
-#include "engine/core/math/public/Vec3.h"
 
 #include <algorithm>
 #include <glm/glm.hpp>
@@ -9,7 +8,7 @@
 struct Vec2;
 struct Vec4;
 
-namespace Engine::Utils {
+namespace Engine {
 
 struct Color {
     float r, g, b, a;

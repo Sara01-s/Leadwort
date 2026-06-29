@@ -1,10 +1,11 @@
 #pragma once
 #include "engine/components/Component.h"
 #include "engine/rendering/public/RenderQueue.h"
+#include "engine/core/math/public/AABB.h"
 
-namespace Engine::Rendering {
-	class DrawCommandBuffer;
-}
+#include <optional>
+
+namespace Engine::Rendering { class DrawCommandBuffer; }
 
 namespace Engine::Components {
 
@@ -18,6 +19,7 @@ public:
 	bool isVisible = true;
 
 	virtual void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const = 0;
+	[[nodiscard]] virtual std::optional<AABB> GetAABB() const { return std::nullopt; }
 };
 
 } // namespace Engine::Components

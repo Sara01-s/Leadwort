@@ -4,7 +4,8 @@
 
 namespace Engine::Rendering::Bindables {
 
-Mesh::Mesh(const MeshData& meshData, AssetManagement::AssetKey<Mesh>&&) : m_MeshData(meshData)
+Mesh::Mesh(const MeshData& meshData, AssetManagement::AssetKey<Mesh>&&) noexcept
+	: m_MeshData(meshData)
 {
 	CORE_ASSERT(m_MeshData.material != nullptr, "Mesh constructor: Material is NULL after initialization!");
 
@@ -17,7 +18,7 @@ Mesh::Mesh(const MeshData& meshData, AssetManagement::AssetKey<Mesh>&&) : m_Mesh
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
 
-	size_t offset = 0;
+	size_t offset { 0 };
 	for (const auto& attribute: m_MeshData.layout.GetAttributes()) {
 		attribute.Apply(static_cast<int>(m_MeshData.layout.GetStride()), reinterpret_cast<const void*>(offset));
 		offset += attribute.sizeInBytes;
@@ -47,7 +48,20 @@ Mesh::~Mesh() {
 	}
 }
 
-void Mesh::SetData(const ConstBufferView vertexData, const ConstBufferView indices) {
+void Mesh::CalculateAABB(const ConstBufferView vertexData) {
+	m_AABB = {};
+
+	const auto stride = m_MeshData.layout.GetStride();
+	const auto* bytes = vertexData.data();
+	const std::size_t vertexCount = vertexData.size_bytes() / stride;
+
+	for (std::size_t i = 0; i < vertexCount; i++) {
+		const auto* pos = reinterpret_cast<const float*>(bytes + i * stride);
+		m_AABB.Expand(Vec3(pos[0], pos[1], pos[2]));
+	}
+}
+
+void Mesh::SetData(const ConstBufferView vertexData, const ConstBufferView indices) noexcept {
 	if (indices.empty()) {
 		m_IndexCount = 0;
 		return;
@@ -64,9 +78,11 @@ void Mesh::SetData(const ConstBufferView vertexData, const ConstBufferView indic
 	glBindVertexArray(0);
 
 	m_IndexCount = static_cast<int>(indices.size_bytes() / sizeof(Index));
+
+	CalculateAABB(vertexData);
 }
 
-void Mesh::Render() const {
+void Mesh::Render() const noexcept {
 	if (m_IndexCount <= 0) {
 		CORE_WARN("Trying to render a mesh with IndexCount = 0!");
 		return;

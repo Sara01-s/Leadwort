@@ -38,8 +38,8 @@ void LightingUBO::Update(const Components::Behaviours::DirectionalLight* light) 
 		return;
 	}
 
-	const Vec4 direction = light->GetEntity().GetTransform().GetForward().ToVec4();
-	const auto color     = Vec3(light->color.r, light->color.g, light->color.b);
+	const Vec4 direction  = light->GetEntity().GetTransform().GetForward().ToVec4();
+	const auto color      = Vec3(light->color.r, light->color.g, light->color.b);
 	const float intensity = light->intensity;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);

@@ -1,5 +1,6 @@
 #include "engine/systems/public/RenderSystem.h"
 
+#include "../../core/math/public/Color.h"
 #include "engine/asset-management/public/AssetManager.h"
 #include "engine/components/public/Camera.h"
 #include "engine/core/public/Window.h"
@@ -8,11 +9,8 @@
 #include "engine/rendering/public/RenderPass.h"
 #include "engine/systems/public/LightingSystem.h"
 #include "engine/systems/public/SceneSystem.h"
-#include "engine/utils/public/Color.h"
-#include "engine/utils/public/Visit.h"
 
 #include <glad/glad.h>
-#include <variant>
 
 #undef near
 #undef far
@@ -29,7 +27,7 @@ void RenderSystem::Initialize() {
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	glFrontFace(GL_CW);
 
-    SetClearColor(Utils::Color::Gray20());
+    SetClearColor(Color::Gray20());
 
     SceneSystem::Get().OnSceneLoaded.Subscribe(
         [this](const Scene* scene) {
@@ -105,7 +103,7 @@ void RenderSystem::ClearScreen() {
 //  Clear color / cleanup
 // ─────────────────────────────────────────────
 
-void RenderSystem::SetClearColor(const Utils::Color& color) {
+void RenderSystem::SetClearColor(const Color& color) {
     SetClearColor(color.r, color.g, color.b, color.a);
 }
 

@@ -249,7 +249,7 @@ MaterialFeatures Model::ParseMaterialFeatures(const aiMaterial* material) {
 
     aiColor4D color{};
     if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
-        features.color = Utils::Color(color.r, color.g, color.b, color.a);
+        features.color = Color(color.r, color.g, color.b, color.a);
     }
 
     return features;

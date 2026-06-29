@@ -44,10 +44,10 @@ public:
 	void SetCubeMap(const std::string& name, const CubeMap* cubeMap);
 	void SetCubeMap(const std::string& name, const CubeMap* cubeMap, int slot);
 
-    void SetColor3(const std::string& name, const Utils::Color& color);
-    void SetColor4(const std::string& name, const Utils::Color& color);
+    void SetColor3(const std::string& name, const Color& color);
+    void SetColor4(const std::string& name, const Color& color);
 
-    void SetMainColor(const Utils::Color& color);
+    void SetMainColor(const Color& color);
     void SetMainTexture(const Shared<Texture>& texture);
 
     void Bind() const noexcept override;

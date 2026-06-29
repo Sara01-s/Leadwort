@@ -15,15 +15,14 @@
 namespace Engine {
 
 struct Mat4 {
-
-    constexpr Mat4() : m_Data(1.0f) {}
-    constexpr explicit Mat4(const glm::mat4& m) : m_Data(m) {}
+    constexpr Mat4() noexcept : m_Data(1.0f) {}
+    constexpr explicit Mat4(const glm::mat4& m) noexcept : m_Data(m) {}
 	constexpr Mat4(
 		const float m00, const float m01, const float m02, const float m03,
 		const float m10, const float m11, const float m12, const float m13,
 		const float m20, const float m21, const float m22, const float m23,
 		const float m30, const float m31, const float m32, const float m33
-	)
+	) noexcept
 		: m_Data(
 			m00, m10, m20, m30,
 			m01, m11, m21, m31,
@@ -32,7 +31,7 @@ struct Mat4 {
 		)
 	{}
 
-	explicit operator glm::mat4() const { return m_Data; }
+	explicit operator glm::mat4() const noexcept { return m_Data; }
 
     // Arithmetic
     Mat4  operator*(const Mat4& o) const { return Mat4(m_Data * o.m_Data); }
@@ -82,8 +81,9 @@ struct Mat4 {
 
     // OpenGL upload
     [[nodiscard]] const float* ToPtr() const { return glm::value_ptr(m_Data); }
+	int operator*(int _cpp_par_) const;
 
-    // Factories
+	// Factories
     static Mat4 Identity() { return Mat4(glm::mat4(1.0f)); }
     static Mat4 Zero()     { return Mat4(glm::mat4(0.0f)); }
 
