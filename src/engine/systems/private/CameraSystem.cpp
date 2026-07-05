@@ -6,7 +6,7 @@
 #include <ranges>
 namespace Engine::Systems {
 
-Components::Camera* CameraSystem::GetMain() {
+Components::Camera* CameraSystem::GetMainCamera() {
 	if (m_Main == nullptr) {
 		m_Main = FindByTag(Core::Tags::MAIN_CAMERA);
 	}

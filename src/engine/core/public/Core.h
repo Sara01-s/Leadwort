@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <span>
-#include <cstdint>
 
 namespace Engine {
 
@@ -18,6 +18,7 @@ using Weak = std::weak_ptr<T>;
 using BufferView = std::span<std::byte>;
 using ConstBufferView = std::span<const std::byte>;
 
+using GpuID = unsigned int;
 using Index = std::uint32_t;
 
 template <typename T, size_t Alignment = 16>

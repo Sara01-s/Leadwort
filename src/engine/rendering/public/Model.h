@@ -2,6 +2,7 @@
 
 #include "engine/core/public/Entity.h"
 #include "engine/rendering/bindables/public/Material.h"
+#include "engine/core/math/public/Color.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -14,6 +15,7 @@ namespace Engine::Rendering::Bindables {
 }
 
 namespace Engine::Core {
+
 enum class PBRWorkflow {
 	MetallicRoughness,
 	SpecularGlossiness
@@ -28,7 +30,7 @@ struct MaterialFeatures {
     bool hasRoughness { false };
     bool hasMetallic  { false };
     bool hasAO        { false };
-	PBRWorkflow pbrWorkflow = PBRWorkflow::MetallicRoughness;
+	PBRWorkflow pbrWorkflow { PBRWorkflow::MetallicRoughness };
 
     float specularIntensity  { 1.0f };
     float specularPower      { 1.0f };

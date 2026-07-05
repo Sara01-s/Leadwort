@@ -4,6 +4,7 @@
 #include "engine/asset-management/public/AssetManager.h"
 #include "engine/asset-management/public/DefaultAssets.h"
 #include "engine/components/public/MeshRenderer.h"
+#include "engine/components/public/Transform.h"
 #include "engine/core/public/Entity.h"
 #include "engine/rendering/bindables/public/Material.h"
 #include "engine/rendering/bindables/public/Mesh.h"

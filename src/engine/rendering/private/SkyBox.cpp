@@ -65,6 +65,7 @@ Skybox::~Skybox() {
 }
 
 void Skybox::Render() const {
+	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
 	glDisable(GL_CULL_FACE);
 
@@ -74,8 +75,9 @@ void Skybox::Render() const {
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 
-	glEnable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
 }
 
 }

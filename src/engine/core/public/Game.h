@@ -1,30 +1,38 @@
 #pragma once
 
 #include "Core.h"
-#include "engine/rendering/bindables/public/RenderTarget.h"
+#include "engine/rendering/public/RenderGraph.h"
+
 #include <memory>
 
 namespace Engine::Core {
 
 class Game {
-	using RenderTarget = Rendering::Bindables::RenderTarget;
-
 public:
 	Game();
+	void BuildRenderGraphs();
 
 	void Tick() const;
 	void Loop() const;
 
-	void ResizeGameView(int width, int height) const;
+	void ResizeGameView(int width, int height);
+	void ResizeSceneView(int width, int height);
 
-	RenderTarget& GetGameRenderTarget() const noexcept { return *m_GameRenderTarget;  }
-	RenderTarget& GetGamePostProcessRenderTarget() const noexcept { return *m_GamePostProcessRenderTarget; }
-	RenderTarget& GetSceneRenderTarget() const noexcept { return *m_SceneRenderTarget; }
+	[[nodiscard]] Rendering::RenderTexture& GetGameColorTexture()  const noexcept { return *m_GameColorTex; }
+	[[nodiscard]] Rendering::RenderTexture& GetGameDepthTexture()  const noexcept { return *m_GameDepthTex; }
+	[[nodiscard]] Rendering::RenderTexture& GetGameOutputTexture() const noexcept { return *m_PostProcessTex; }
+	[[nodiscard]] Rendering::RenderTexture& GetSceneOutputTexture() const noexcept { return *m_SceneColorTex; }
+	[[nodiscard]] Rendering::RenderTexture& GetSceneDepthTexture() const noexcept { return *m_SceneDepthTex; }
 
 private:
-	Unique<RenderTarget> m_GameRenderTarget  = nullptr;
-	Unique<RenderTarget> m_GamePostProcessRenderTarget = nullptr;
-	Unique<RenderTarget> m_SceneRenderTarget = nullptr;
+	Unique<Rendering::RenderTexture> m_GameColorTex{};
+	Unique<Rendering::RenderTexture> m_GameDepthTex{};
+	Unique<Rendering::RenderTexture> m_PostProcessTex{};
+	Unique<Rendering::RenderTexture> m_SceneColorTex{};
+	Unique<Rendering::RenderTexture> m_SceneDepthTex{};
+
+	Rendering::RenderGraph m_GameRenderGraph{};
+	Rendering::RenderGraph m_SceneRenderGraph{};
 };
 
 } // namespace Engine::Core

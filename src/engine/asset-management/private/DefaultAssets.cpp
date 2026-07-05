@@ -1,5 +1,8 @@
 #include "engine/asset-management/public/DefaultAssets.h"
 
+#include "engine/asset-management/public/AssetManager.h"
+#include "engine/core/math/public/Color.h"
+
 namespace Engine::AssetManagement {
 
 using namespace Bindables;

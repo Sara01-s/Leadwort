@@ -4,8 +4,10 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "engine/core/math/public/Mat4.h"
+#include "engine/core/math/public/Math.h"
 #include "engine/core/public/Core.h"
 #include "engine/rendering/public/RenderPipelineState.h"
+#include "engine/core/math/public/Color.h"
 
 #include <glad/glad.h>
 #include <string>
@@ -14,7 +16,6 @@
 #include <memory>
 
 namespace Engine::Rendering::Bindables {
-
 class CubeMap;
 
 class Material : public Bindable {

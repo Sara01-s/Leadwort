@@ -53,7 +53,6 @@ struct DrawCommand {
 	}
 
 private:
-
 	// ─────────────────────────────────────────────
 	//  Sort key layout (64 bits)
 	//

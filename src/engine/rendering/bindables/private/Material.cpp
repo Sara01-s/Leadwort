@@ -1,6 +1,5 @@
 #include "../public/Material.h"
 
-#include "../../../core/math/public/Color.h"
 #include "engine/asset-management/private/AssetKey.h"
 #include "engine/asset-management/public/AssetManager.h"
 #include "engine/asset-management/public/DefaultAssets.h"
@@ -9,6 +8,7 @@
 #include "engine/utils/public/Logger.h"
 
 #include <memory>
+
 
 namespace Engine::Rendering::Bindables {
 
@@ -82,7 +82,7 @@ void Material::Bind() const noexcept {
 
 	static const Shared<Texture> s_Fallback = AssetManagement::DefaultAssets::GetTexture();
 
-	int slot = 0;
+	int slot{};
 	for (const auto& [name, samplerInfo] : m_Shader->GetSamplers()) {
 		glActiveTexture(GL_TEXTURE0 + slot);
 

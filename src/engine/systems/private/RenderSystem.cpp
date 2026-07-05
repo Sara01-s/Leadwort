@@ -37,49 +37,24 @@ void RenderSystem::Initialize() {
 
     m_CameraUBO.Initialize();
 	m_LightingUBO.Initialize();
-
-	m_RenderPasses.emplace_back(CreateUnique<BackgroundPass>());
-	m_RenderPasses.emplace_back(CreateUnique<OpaquePass>());
-	m_RenderPasses.emplace_back(CreateUnique<AlphaTestPass>());
-	m_RenderPasses.emplace_back(CreateUnique<GridPass>());
-	m_RenderPasses.emplace_back(CreateUnique<TransparentPass>());
 }
 
 // ─────────────────────────────────────────────
 //  Main render
 // ─────────────────────────────────────────────
 
-void RenderSystem::Render(Camera& camera, const RenderTarget& renderTarget) const {
+void RenderSystem::Render(Camera& camera, const RenderGraph& graph) const {
 	GLStateCache::Get().Invalidate();
-	GLStateCache::Get().ApplyState(RenderPipelineState::Opaque());
 
-	camera.aspect = renderTarget.GetAspectRatio();
+	auto queues = m_SceneCollector.BuildRenderQueues(camera);
+	m_CameraUBO.Update(camera);
+	m_LightingUBO.Update(LightingSystem::Get().GetDirectionalLight());
 
-	renderTarget.Bind();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
+	graph.Execute(camera, queues);
 
-    auto queues = m_SceneCollector.BuildRenderQueues(camera);
-    m_CameraUBO.Update(camera);
-
-	const auto* directionalLight = LightingSystem::Get().GetDirectionalLight();
-	m_LightingUBO.Update(directionalLight);
-
-	const RenderContext renderContext {
-		.camera = &camera,
-		.renderTarget = &renderTarget,
-		.renderQueues = &queues,
-		.resolution = renderTarget.GetResolution()
-	};
-
-	for (const auto& pass : m_RenderPasses) {
-		pass->Execute(renderContext);
-	}
-
-	renderTarget.Unbind();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());
 }
-
 // ─────────────────────────────────────────────
 //  UI / Overlay
 // ─────────────────────────────────────────────
@@ -90,7 +65,7 @@ void RenderSystem::RenderUI() const {
     }
 }
 
-void RenderSystem::AddOverlay(std::function<void()> callback) {
+void RenderSystem::AddOverlayCallback(std::function<void()> callback) {
     m_OverlayCallbacks.push_back(std::move(callback));
 }
 
@@ -100,15 +75,11 @@ void RenderSystem::ClearScreen() {
 }
 
 // ─────────────────────────────────────────────
-//  Clear color / cleanup
+//  Clear color
 // ─────────────────────────────────────────────
 
-void RenderSystem::SetClearColor(const Color& color) {
-    SetClearColor(color.r, color.g, color.b, color.a);
-}
-
-void RenderSystem::SetClearColor(const float r, const float g, const float b, const float a) {
-    glClearColor(r, g, b, a);
+void RenderSystem::SetClearColor(const Color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
 }
 
 } // namespace Engine::Systems

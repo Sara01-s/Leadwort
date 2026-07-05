@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -67,7 +66,7 @@ public:
 	// Logging.
 	template <typename... Args>
 	static void Info(Args&&... args) noexcept {
-		LogMessage("[INFO]: ", COLOR_WHITE, std::forward<Args>(args)...);
+		LogMessage("[INFO] ", COLOR_WHITE, std::forward<Args>(args)...);
 	}
 
 	template <typename... Args>
@@ -101,7 +100,7 @@ public:
 
 	template <typename... Args>
 	static void Warn(Args&&... args) noexcept {
-		LogMessage("[WARNING]: ", COLOR_YELLOW, std::forward<Args>(args)...);
+		LogMessage("[WARNING] ", COLOR_YELLOW, std::forward<Args>(args)...);
 	}
 
 	template <typename... Args>
@@ -116,7 +115,7 @@ public:
 
 	template <typename... Args>
 	static void Error(Args&&... args) noexcept {
-		LogMessage("[ERROR]: ", COLOR_RED, std::forward<Args>(args)...);
+		LogMessage("[ERROR] ", COLOR_RED, std::forward<Args>(args)...);
 	}
 
 	template <typename... Args>
@@ -168,7 +167,7 @@ private:
 	template <typename... Args>
 	static void SubInfoImpl(const size_t level, Args&&... args) noexcept {
 		std::ostringstream oss{};
-		oss << "[INFO]: ";
+		oss << "[INFO] ";
 
 		for (size_t i{}; i < level; ++i) {
 			oss << "   ";
@@ -181,7 +180,7 @@ private:
 	template <typename... Args>
 	static void SubWarnImpl(const size_t level, Args&&... args) noexcept {
 		std::ostringstream oss{};
-		oss << "[WARNING]: ";
+		oss << "[WARNING] ";
 
 		for (size_t i{}; i < level; ++i) {
 			oss << "   ";
@@ -194,7 +193,7 @@ private:
 	template <typename... Args>
 	static void SubErrorImpl(const size_t level, Args&&... args) noexcept {
 		std::ostringstream oss{};
-		oss << "[ERROR]: ";
+		oss << "[ERROR] ";
 
 		for (size_t i{}; i < level; ++i) {
 			oss << "   ";

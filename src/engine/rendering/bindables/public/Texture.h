@@ -1,11 +1,9 @@
 #pragma once
 
-#include "../../../core/math/public/Color.h"
 #include "Bindable.h"
 #include "engine/asset-management/private/AssetKey.h"
 
 #include <glad/glad.h>
-#include <string>
 
 namespace Engine::AssetManagement {
 	class AssetManager;

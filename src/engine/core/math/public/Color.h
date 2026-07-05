@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/core/math/public/Math.h"
-
 #include <algorithm>
 #include <glm/glm.hpp>
 

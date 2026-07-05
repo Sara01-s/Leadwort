@@ -11,7 +11,7 @@ class CameraSystem : public Utils::Singleton<CameraSystem> {
 	friend class Singleton;
 
 public:
-	Components::Camera* GetMain();
+	Components::Camera* GetMainCamera();
 	Components::Camera* GetSceneCamera();
 
 	void Clear();
