@@ -1,0 +1,8 @@
+//
+// Created by sarao on 08/07/2026.
+//
+
+#ifndef LEADWORT_EDITORWINDOW_H
+#define LEADWORT_EDITORWINDOW_H
+
+#endif // LEADWORT_EDITORWINDOW_H
