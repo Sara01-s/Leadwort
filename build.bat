@@ -32,7 +32,7 @@ set "MY_CXX=%MINGW_BIN%\g++.exe"
 :: ==========================================
 set "PROJECT_DIR=%~dp0"
 set "BUILD_DIR=%PROJECT_DIR%build-dist"
-set "VCPKG_TOOLCHAIN=%PROJECT_DIR%engine\vcpkg\scripts\buildsystems\vcpkg.cmake"
+set "VCPKG_TOOLCHAIN=%PROJECT_DIR%\vcpkg\scripts\buildsystems\vcpkg.cmake"
 set "VCPKG_TRIPLET=x64-mingw-dynamic"
 set "BUILD_TYPE=RelWithDebInfo"
 

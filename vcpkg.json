@@ -1,5 +1,5 @@
 {
-  "name": "leadwort",
+  "name": "leadwort-workspace",
   "version": "0.1.0",
   "dependencies": [
     "glfw3",

@@ -8,6 +8,9 @@ target_link_libraries(Leadwort
         PRIVATE LeadwortEditorLib
 )
 
+set_target_properties(Leadwort PROPERTIES VS_USER_PROPS_CXX "${VCPKG_ROOT}/scripts/buildsystems/msbuild/vcpkg.targets")
+set(VCPKG_APPLOCAL_DEPS ON)
+
 add_custom_command(TARGET Leadwort
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -18,5 +21,5 @@ add_custom_command(TARGET Leadwort
 )
 
 if(MINGW)
-    target_link_options(Leadwort PRIVATE -static-libgcc -static-libstdc++ -static -lwinpthread)
+    target_link_options(Leadwort PRIVATE -static-libgcc -static-libstdc++)
 endif()

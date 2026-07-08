@@ -16,21 +16,6 @@ target_include_directories(glad PUBLIC thirdparty)
 add_library(stb STATIC thirdparty/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC thirdparty)
 
-# ImGui
-set(IMGUI_DIR thirdparty/imgui)
-add_library(imgui
-        STATIC
-            ${IMGUI_DIR}/imgui.cpp
-            ${IMGUI_DIR}/imgui_draw.cpp
-            ${IMGUI_DIR}/imgui_tables.cpp
-            ${IMGUI_DIR}/imgui_widgets.cpp
-            ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-            ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-)
-target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backends)
-target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
-target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_DOCKING)
-
 file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS "src/*.h" "src/*.hpp")
 
@@ -55,9 +40,6 @@ target_compile_definitions(LeadwortEngineLib
 )
 
 target_link_libraries(LeadwortEngineLib
-        PUBLIC
-            imgui
-
         PRIVATE
             glad
             stb
