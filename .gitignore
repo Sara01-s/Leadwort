@@ -1,5 +1,5 @@
 vcpkg_installed
-cmake-build-debug
-cmake-build-release
-cmake-build-relwithdebinfo
+engine/cmake-build-debug
+engine/cmake-build-release
+engine/cmake-build-relwithdebinfo
 .idea
