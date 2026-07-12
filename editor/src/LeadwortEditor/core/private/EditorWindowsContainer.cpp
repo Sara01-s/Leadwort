@@ -1,6 +1,6 @@
 #include "../public/EditorWindowsContainer.h"
 
-#include "core/math/public/Vec2.h"
+#include <Leadwort/core/math/public/Vec2.h>
 
 namespace Editor::Core {
 

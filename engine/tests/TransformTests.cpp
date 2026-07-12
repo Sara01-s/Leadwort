@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "components/public/Transform.h"
+#include <Leadwort/components/public/Transform.h>
 
-using namespace Engine;
+using namespace Leadwort;
 
 TEST(TransformHierarchy, ChildWorldPositionAccountsForParent) {
     Components::Transform parent;

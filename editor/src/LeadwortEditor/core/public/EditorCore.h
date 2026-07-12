@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ImGuiTheme.h"
-#include "asset-management/public/AssetManager.h"
+#include <Leadwort/asset-management/public/AssetManager.h>
 
 #include <GLFW/glfw3.h>
 
@@ -26,7 +26,7 @@ public:
 
         SetupImGuiStyle();
 
-    	auto const& fontPath { Engine::AssetManagement::EngineAssets::ResolvePath("fonts/font_inter_variable.ttf") };
+    	auto const& fontPath { Leadwort::AssetManagement::EngineAssets::ResolvePath("fonts/font_inter_variable.ttf") };
     	io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 24.0f);
     	io.FontDefault = io.Fonts->Fonts[0];
 

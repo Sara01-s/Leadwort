@@ -1,11 +1,11 @@
-#include "components/public/Transform.h"
-#include "core/math/public/Math.h"
-#include "rendering/public/MatrixUtils.h"
+#include <Leadwort/components/public/Transform.h>
+#include <Leadwort/core/math/public/Math.h>
+#include <Leadwort/rendering/public/MatrixUtils.h>
 
 #include <gtest/gtest.h>
 #include <cmath>
 
-using namespace Engine;
+using namespace Leadwort;
 
 TEST(EngineTest, CanaryTest) {
     constexpr int a = 1;

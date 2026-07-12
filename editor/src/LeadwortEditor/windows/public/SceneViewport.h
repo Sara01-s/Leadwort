@@ -1,7 +1,7 @@
 #pragma once
 #include "../../core/public/IEditorWindow.h"
 #include "imgui.h"
-#include "rendering/public/RenderTexture.h"
+#include <Leadwort/rendering/public/RenderTexture.h>
 
 namespace Editor::Windows {
 
@@ -10,7 +10,7 @@ public:
 	using ResizeCallback = std::function<void(int, int)>;
 
 	explicit SceneViewport(
-		Engine::Rendering::RenderTexture* sceneRenderTexture,
+		Leadwort::Rendering::RenderTexture* sceneRenderTexture,
 		const ResizeCallback& onResize
 	) : m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize) {}
 
@@ -54,7 +54,7 @@ public:
 	}
 
 private:
-	Engine::Rendering::RenderTexture* m_SceneRenderTexture{};
+	Leadwort::Rendering::RenderTexture* m_SceneRenderTexture{};
 	ResizeCallback m_OnResize{};
 };
 

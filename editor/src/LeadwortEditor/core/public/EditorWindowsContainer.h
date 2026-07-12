@@ -1,6 +1,6 @@
 #pragma once
 #include "IEditorWindow.h"
-#include "core/public/Core.h"
+#include <Leadwort/core/public/Core.h>
 
 #include <vector>
 
@@ -13,14 +13,14 @@ public:
 
 	template <class... Windows>
 	void AddWindows(Windows&&... windows) {
-		static_assert((std::is_convertible_v<Windows, Engine::Unique<IEditorWindow>> && ...));
+		static_assert((std::is_convertible_v<Windows, Leadwort::Unique<IEditorWindow>> && ...));
 		(m_Windows.emplace_back(std::forward<Windows>(windows)), ...);
 	}
 
 	void RenderAllWindows() const;
 
 private:
-	std::vector<Engine::Unique<IEditorWindow>> m_Windows{};
+	std::vector<Leadwort::Unique<IEditorWindow>> m_Windows{};
 };
 
 }

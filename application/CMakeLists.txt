@@ -16,7 +16,7 @@ add_custom_command(TARGET Leadwort
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:Leadwort>/engine-assets"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/engine/src/engine-assets"
+            "${CMAKE_SOURCE_DIR}/engine/engine-assets"
             "$<TARGET_FILE_DIR:Leadwort>/engine-assets"
 )
 
