@@ -174,9 +174,9 @@ std::string Shader::LoadSource(const std::string& path) {
 	return AssetManagement::EngineAssets::LoadText(path);
 }
 
-std::unordered_map<std::string, std::string> Shader::ParseShader(const std::string& source) {
+std::unordered_map<std::string, std::string> Shader::ParseShader(const std::string_view source) {
 	std::unordered_map<std::string, std::string> shaders;
-	std::istringstream stream(source);
+	std::istringstream stream((source.data()));
 	std::string line;
 	std::string currentType;
 	std::ostringstream builder;
@@ -209,12 +209,12 @@ std::unordered_map<std::string, std::string> Shader::ParseShader(const std::stri
 }
 
 std::string Shader::ResolveIncludes(
-	const std::string& source,
+	const std::string_view source,
 	const std::string& currentDir,
 	std::set<std::string>& visited
 ) {
 	std::ostringstream result;
-	std::istringstream stream(source);
+	std::istringstream stream((source.data()));
 	std::string line;
 
 	while (std::getline(stream, line)) {
@@ -226,15 +226,20 @@ std::string Shader::ResolveIncludes(
 		if (trimmed.rfind("#include", 0) == 0) {
 			const size_t q1 = trimmed.find('"');
 			const size_t q2 = trimmed.find('"', q1 + 1);
+
 			if (q1 == std::string::npos || q2 == std::string::npos) {
 				throw std::runtime_error("Shader: Malformed #include: " + line);
 			}
 
 			const std::string includePath = trimmed.substr(q1 + 1, q2 - q1 - 1);
-			const std::string fullPath = currentDir.empty() ? includePath : currentDir + "/" + includePath;
 
-			if (const std::string normalized = Core::Path(fullPath).GetGenericString(); visited.insert(normalized).second) {
-				const std::string includeDir = normalized.substr(0, normalized.find_last_of('/'));
+			fs::path fullFsPath = currentDir.empty() ? fs::path(includePath) : fs::path(currentDir) / includePath;
+			fullFsPath = fullFsPath.lexically_normal();
+
+			const std::string normalized = fullFsPath.generic_string();
+
+			if (visited.insert(normalized).second) {
+				const std::string includeDir = fullFsPath.parent_path().generic_string();
 
 				m_Dependencies.emplace_back(normalized);
 
@@ -249,12 +254,12 @@ std::string Shader::ResolveIncludes(
 	return result.str();
 }
 
-std::string Shader::InjectDefines(const std::string& source) const {
+std::string Shader::InjectDefines(const std::string_view source) const {
 	if (m_Defines.empty()) {
-		return source;
+		return std::string(source);
 	}
 
-	std::istringstream stream(source);
+	std::istringstream stream((source.data()));
 	std::ostringstream builder;
 	std::string line;
 	bool injected = false;

@@ -19,15 +19,16 @@ target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
 target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_DOCKING)
 
-file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADERS "src/*.h" "src/*.hpp")
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "src/*.h" "src/*.hpp")
 
 add_library(LeadwortEditorLib
+        ${ENGINE_SOURCES}
         ${ENGINE_HEADERS}
 )
 
 target_include_directories(LeadwortEditorLib
-        PUBLIC src/public
+        PUBLIC src
 )
 
 target_link_libraries(LeadwortEditorLib

@@ -9,10 +9,6 @@
 #include "../../utils/public/Singleton.h"
 #include "rendering/public/RenderGraph.h"
 
-#include <functional>
-#include <memory>
-#include <vector>
-
 namespace Engine::Systems {
 
 class RenderSystem : public Utils::Singleton<RenderSystem> {
@@ -23,8 +19,6 @@ public:
     void Initialize();
 
 	void Render(Components::Camera& camera, const Rendering::RenderGraph& graph) const;
-    void RenderUI() const;
-    void AddOverlayCallback(std::function<void()> callback);
 
 	static void ClearScreen();
     static void SetClearColor(Color color);
@@ -39,8 +33,6 @@ private:
 	Rendering::SceneCollector m_SceneCollector{};
 	Rendering::RenderGraph m_GameRenderGraph{};
 	Rendering::RenderGraph m_SceneRenderGraph{};
-
-    std::vector<std::function<void()>> m_OverlayCallbacks{};
 };
 
 } // namespace Engine::Systems

@@ -78,19 +78,22 @@ void Game::Tick() const {
 
     BehaviourSystem::Get().Update();
 
-	RenderSystem::Get().Render(*CameraSystem::Get().GetMainCamera(),        m_GameRenderGraph);
+	RenderSystem::Get().Render(*CameraSystem::Get().GetMainCamera(), m_GameRenderGraph);
 	RenderSystem::Get().Render(*CameraSystem::Get().GetSceneCamera(), m_SceneRenderGraph);
 
 	RenderSystem::Get().ClearScreen();
-    RenderSystem::Get().RenderUI();
 }
 
-void Game::Loop() const {
+void Game::Loop(const std::function<void()>& renderOverlay = nullptr) const {
 	Utils::Log::Header("Hello World!");
 
     while (Window::Get().IsOpen()) {
         Window::PollEvents();
         Tick();
+
+    	if (renderOverlay) {
+    		renderOverlay();
+    	}
         Window::Get().SwapBuffers();
     }
 

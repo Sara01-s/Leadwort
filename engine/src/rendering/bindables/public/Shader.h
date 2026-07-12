@@ -54,9 +54,9 @@ public:
 private:
 	int GetUniformLocation(std::string_view name) const;
 	static std::string LoadSource(const std::string& path);
-	static std::unordered_map<std::string, std::string> ParseShader(const std::string& source);
-	std::string ResolveIncludes(const std::string& source, const std::string& currentDir, std::set<std::string>& visited);
-	std::string InjectDefines(const std::string& source) const;
+	static std::unordered_map<std::string, std::string> ParseShader(std::string_view source);
+	std::string ResolveIncludes(std::string_view source, const std::string& currentDir, std::set<std::string>& visited);
+	std::string InjectDefines(std::string_view source) const;
 
 	static uint32_t CompileShader(uint32_t type, const std::string& source);
 	static uint32_t LinkProgram(uint32_t vs, uint32_t fs);

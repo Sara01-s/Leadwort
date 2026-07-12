@@ -39,9 +39,9 @@ void RenderSystem::Initialize() {
 	m_LightingUBO.Initialize();
 }
 
-// ─────────────────────────────────────────────
+// ----------------------------------------------
 //  Main render
-// ─────────────────────────────────────────────
+// ----------------------------------------------
 
 void RenderSystem::Render(Camera& camera, const RenderGraph& graph) const {
 	GLStateCache::Get().Invalidate();
@@ -55,28 +55,11 @@ void RenderSystem::Render(Camera& camera, const RenderGraph& graph) const {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());
 }
-// ─────────────────────────────────────────────
-//  UI / Overlay
-// ─────────────────────────────────────────────
-
-void RenderSystem::RenderUI() const {
-    for (auto const& callback : m_OverlayCallbacks) {
-        callback();
-    }
-}
-
-void RenderSystem::AddOverlayCallback(std::function<void()> callback) {
-    m_OverlayCallbacks.push_back(std::move(callback));
-}
 
 void RenderSystem::ClearScreen() {
     glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-
-// ─────────────────────────────────────────────
-//  Clear color
-// ─────────────────────────────────────────────
 
 void RenderSystem::SetClearColor(const Color color) {
     glClearColor(color.r, color.g, color.b, color.a);

@@ -22,11 +22,10 @@ public:
     	sphere->GetTransform().SetLocalScale(Vec3(7.0f));
 
 		const auto modelParent = CreateEntity("Model");
-		const auto model = AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb");
+		const auto model = AssetManagement::EngineAssets::GetModel("models/model_telephone.glb");
 		model->Instantiate(*modelParent);
     	modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
-    	modelParent->GetTransform().SetLocalScale(Vec3(0.1f));
-    	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
+    	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(0.0f, -180.0f, 0.0f));
 
         // Main Camera
         {

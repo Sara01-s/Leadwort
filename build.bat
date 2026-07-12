@@ -102,3 +102,5 @@ if exist "%BUILD_DIR%\application\Leadwort.exe" (
     echo [WARNING] Executable target not found in expected binary directories.
     pause
 )
+
+pause

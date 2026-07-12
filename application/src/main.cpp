@@ -1,91 +1,29 @@
 #include "../../engine/pch.h"
 
-#include "EditorLayer.h"
 #include "core/public/Game.h"
 #include "core/public/Window.h"
 #include "systems/public/RenderSystem.h"
 
 /* TODO: Cosas para torturarte en el futuro Sara:
- *   --- Must have.
+ *  --- Must have.
  *	- Arreglar el Shader Hot Reload (ShaderWatcher no hace nada el muy vago).
+ *	- Cambiar Engine namespace a Leadwort.
+ *	- Cambiar el src include de Leadwort a LeadwortEngine
  *	--- Nice to have.
  *	- Poner las coordenadas en GUI.
  *	- Poner un botón para resetear coordenadas en GUI.
  *	- Añadir tests >:(.
  */
 
-#include <imgui.h>
-
-void ShowViewport(
-    const char* name,
-    Engine::Rendering::RenderTexture& renderTexture,
-    const std::function<void(int, int)>& onResize = nullptr,
-	const float targetAspect = -1.0f // 0 means free aspect ratio.
-) {
-    ImGui::Begin(name);
-
-    const ImVec2 availSize = ImGui::GetContentRegionAvail();
-    ImVec2 renderSize = availSize;
-
-    if (targetAspect > 0.0f && availSize.x > 0 && availSize.y > 0) {
-		const float windowAspect = availSize.x / availSize.y;
-
-        if (windowAspect > targetAspect) {
-            renderSize.y = availSize.y;
-            renderSize.x = renderSize.y * targetAspect;
-        }
-    	else {
-            renderSize.x = availSize.x;
-            renderSize.y = renderSize.x / targetAspect;
-        }
-
-		const float cursorX = (availSize.x - renderSize.x) * 0.5f;
-		const float cursorY = (availSize.y - renderSize.y) * 0.5f;
-        ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + cursorX, ImGui::GetCursorPosY() + cursorY));
-    }
-
-    const int newWidth  = static_cast<int>(renderSize.x);
-    const int newHeight = static_cast<int>(renderSize.y);
-
-    if (newWidth > 0 && newHeight > 0) {
-       const bool resized = newWidth != renderTexture.GetWidth() || newHeight != renderTexture.GetHeight();
-
-       if (resized) {
-          if (onResize) {
-             onResize(newWidth, newHeight);
-          }
-          else {
-             renderTexture.Resize(newWidth, newHeight);
-          }
-       }
-
-       ImGui::Image(
-          renderTexture.GetGpuID(),
-          renderSize,
-          ImVec2(0.0f, 1.0f),
-          ImVec2(1.0f, 0.0f)
-       );
-    }
-
-    ImGui::End();
-}
-
-void ShowStatus() {
-    ImGui::Begin("Leadwort");
-    ImGui::Separator();
-
-    ImGui::Text("Status");
-
-    const float framerate = ImGui::GetIO().Framerate;
-    const float frameTime = 1000.0f / framerate;
-
-    ImGui::Text("%s", std::format("FPS: {:.1f}", framerate).c_str());
-    ImGui::Text("%s", std::format("Frame Time: {:.3f} ms", frameTime).c_str());
-
-    ImGui::End();
-}
+#include <LeadwortEditor/core/public/EditorCore.h>
+#include <LeadwortEditor/core/public/EditorWindowsContainer.h>
+#include <LeadwortEditor/windows/public/GameViewport.h>
+#include <LeadwortEditor/windows/public/SceneViewport.h>
+#include <LeadwortEditor/windows/public/StatusWindow.h>
 
 int main() {
+	using namespace Editor;
+
     Engine::Core::Game game{};
 
     auto& window = Engine::Core::Window::Get();
@@ -94,35 +32,34 @@ int main() {
         window.SwapBuffers();
     });
 
-    Engine::Editor::EditorLayer editor{};
-    editor.Init(reinterpret_cast<std::uint64_t>(window.GetHandle()));
+    Core::EditorCore::Initialize(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-	auto& gameFrameColor = game.GetGameOutputTexture();
-    auto& sceneFrameColor = game.GetSceneOutputTexture();
+	Engine::Rendering::RenderTexture& gameRenderTexture = game.GetGameOutputTexture();
+    Engine::Rendering::RenderTexture& sceneRenderTexture = game.GetSceneOutputTexture();
 
-	Engine::Systems::RenderSystem::Get().AddOverlayCallback([&] {
-		editor.StartFrame();
-		editor.SetupDockSpace();
+	Core::EditorWindowsContainer windowsContainer{};
 
-		static float chosenGameAspect = 16.0f / 9.0f;
+	windowsContainer.AddWindows(
+		Engine::CreateUnique<Windows::GameViewport>(
+			&gameRenderTexture,
+			[&game](const int width, const int height) { game.ResizeGameView(width, height); }
+		),
+		Engine::CreateUnique<Windows::SceneViewport>(
+			&sceneRenderTexture,
+			[&game](const int width, const int height) { game.ResizeSceneView(width, height); }
+		),
+		Engine::CreateUnique<Core::StatusWindow>()
+	);
 
-		ImGui::Begin("Game Aspect Ratio");
-		if (ImGui::BeginCombo("##", chosenGameAspect == -1.0f ? "Free" : (chosenGameAspect > 1.5f ? "16:9" : "4:3"))) {
-			if (ImGui::Selectable("Free Aspect")) { chosenGameAspect = -1.0f; }
-			if (ImGui::Selectable("16:9"))        { chosenGameAspect = 16.0f / 9.0f; }
-			if (ImGui::Selectable("4:3"))         { chosenGameAspect = 4.0f / 3.0f; }
-			ImGui::EndCombo();
-		}
-		ImGui::End();
+	game.Loop([&] {
+		Core::EditorCore::StartFrame();
+		Core::EditorCore::SetupDockSpace();
 
-		ShowViewport("Scene", sceneFrameColor, [&game](const int w, const int h) { game.ResizeSceneView(w, h); }, -1.0f);
-		ShowViewport("Game", gameFrameColor, [&game](const int w, const int h) { game.ResizeGameView(w, h); }, chosenGameAspect);
+		windowsContainer.RenderAllWindows();
 
-		ShowStatus();
-		editor.EndFrame();
+		Core::EditorCore::EndFrame();
 	});
 
-	game.Loop();
 
 	return 0;
 }

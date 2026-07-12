@@ -16,8 +16,8 @@ target_include_directories(glad PUBLIC thirdparty)
 add_library(stb STATIC thirdparty/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC thirdparty)
 
-file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADERS "src/*.h" "src/*.hpp")
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "src/*.h" "src/*.hpp")
 
 add_library(LeadwortEngineLib
         STATIC

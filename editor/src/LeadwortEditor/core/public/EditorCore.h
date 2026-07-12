@@ -2,8 +2,6 @@
 
 #include "ImGuiTheme.h"
 #include "asset-management/public/AssetManager.h"
-#include "ui/UILayer.h"
-#include "utils/public/Logger.h"
 
 #include <GLFW/glfw3.h>
 
@@ -13,57 +11,55 @@
 #include <imgui_internal.h>
 #include <string>
 
-namespace Engine::Editor {
+namespace Editor::Core  {
 
-class EditorLayer {
+class EditorCore {
 public:
-    void Init(const std::uint64_t windowHandle) {
+	static void Initialize(const std::uint64_t windowHandle) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io { ImGui::GetIO() };
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     	io.IniFilename = "editor.ini";
 
         SetupImGuiStyle();
 
-    	auto const& fontPath = AssetManagement::EngineAssets::ResolvePath("fonts/font_inter_variable.ttf");
+    	auto const& fontPath { Engine::AssetManagement::EngineAssets::ResolvePath("fonts/font_inter_variable.ttf") };
     	io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 24.0f);
     	io.FontDefault = io.Fonts->Fonts[0];
 
-		const auto window = reinterpret_cast<GLFWwindow*>(windowHandle);
+		const auto window { reinterpret_cast<GLFWwindow*>(windowHandle) };
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 430");
     }
 
-    void StartFrame() override {
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-    }
+	static void StartFrame() {
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
 
-    void EndFrame() override {
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	static void EndFrame() {
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            GLFWwindow* backupContext = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backupContext);
-        }
-    }
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			GLFWwindow* backupContext { glfwGetCurrentContext() };
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backupContext);
+		}
+	}
 
 	static void SetupDockSpace() {
-        static bool firstTime = true;
-
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(viewport->WorkSize);
         ImGui::SetNextWindowViewport(viewport->ID);
 
-		constexpr ImGuiWindowFlags windowFlags =
+		constexpr ImGuiWindowFlags windowFlags {
 			ImGuiWindowFlags_MenuBar
     		| ImGuiWindowFlags_NoDocking
     		| ImGuiWindowFlags_NoTitleBar
@@ -71,7 +67,8 @@ public:
     		| ImGuiWindowFlags_NoResize
     		| ImGuiWindowFlags_NoMove
     		| ImGuiWindowFlags_NoBringToFrontOnFocus
-    		| ImGuiWindowFlags_NoNavFocus;
+    		| ImGuiWindowFlags_NoNavFocus
+		};
 
         ImGui::Begin("DockSpace", nullptr, windowFlags);
 		const ImGuiID dockSpaceId = ImGui::GetID("MyDockSpace");
@@ -94,7 +91,7 @@ public:
         ImGui::End();
     }
 
-    ~EditorLayer() override {
+    ~EditorCore() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
