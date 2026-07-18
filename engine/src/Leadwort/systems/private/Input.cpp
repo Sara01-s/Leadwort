@@ -5,27 +5,6 @@
 
 namespace Leadwort::Systems {
 
-// ── Static storage ────────────────────────────────────────────────────────────
-
-GLFWwindow* Input::s_Window = nullptr;
-std::array<bool, GLFW_KEY_LAST + 1> Input::s_CurrentKeys = {};
-std::array<bool, GLFW_KEY_LAST + 1> Input::s_PreviousKeys = {};
-std::array<Vec2, Input::PlayerCount> Input::s_Axes = std::array<Vec2, PlayerCount>();
-
-std::array<Input::KeyMap, Input::PlayerCount> Input::s_PlayerKeys = {{
-	{Key::W, Key::S, Key::A, Key::D},			 // P1
-	{Key::Up, Key::Down, Key::Left, Key::Right}, // P2
-}};
-
-Vec2 Input::s_MousePosition{};
-Vec2 Input::s_MouseDelta{};
-Vec2 Input::s_MouseLastPosition{};
-Vec2 Input::s_MouseScroll{};
-bool Input::s_MouseCaptured = false;
-bool Input::s_MouseFirstFrame = true;
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-
 void Input::Init(GLFWwindow* window) {
 	s_Window = window;
 
@@ -34,30 +13,16 @@ void Input::Init(GLFWwindow* window) {
 	});
 }
 
-// ── Update ────────────────────────────────────────────────────────────────────
-
 void Input::Update(const float delta) {
 	LW_ASSERT(s_Window, "Input uninitialized, please call Input::Init(GLFWindow*)");
 
 	Mouse::ClearDeltas();
 	Mouse::Update();
 
-	s_PreviousKeys = s_CurrentKeys;
-
-	for (int i = 0; i <= KeyLast; ++i) {
-		s_CurrentKeys[i] = glfwGetKey(s_Window, i) == GLFW_PRESS;
-	}
-
-	for (int p = 0; p < PlayerCount; ++p) {
-		const auto& [up, down, left, right] = s_PlayerKeys[p];
-		auto& a = s_Axes[p];
-		a.x = SmoothAxis(a.x, delta, left, right);
-		a.y = SmoothAxis(a.y, delta, down, up);
-	}
+	Keyboard::Update(delta);
 }
 
-// ── Axis ──────────────────────────────────────────────────────────────────────
-
+// Axis
 float Input::GetAxis(const Player player, const Axis axis) {
 	const auto& a = s_Axes[static_cast<int>(player)];
 	return axis == Axis::Horizontal ? a.x : a.y;
@@ -67,8 +32,7 @@ Vec2 Input::GetAxis(const Player player) {
 	return s_Axes[static_cast<int>(player)];
 }
 
-// ── Keyboard ──────────────────────────────────────────────────────────────────
-
+// Keyboard
 bool Input::Keyboard::IsPressed(const Key key) {
 	return s_CurrentKeys[static_cast<int>(key)];
 }
@@ -81,8 +45,41 @@ bool Input::Keyboard::IsJustReleased(const Key key) {
 	return !s_CurrentKeys[static_cast<int>(key)] && s_PreviousKeys[static_cast<int>(key)];
 }
 
-// ── Mouse ─────────────────────────────────────────────────────────────────────
+bool Input::Keyboard::IsOrderedCombo(const Key first, const Key second) {
+	const int f = static_cast<int>(first);
+	const int s = static_cast<int>(second);
 
+	if (!IsPressed(first) || !IsPressed(second)) {
+		return false;
+	}
+
+	return IsJustPressed(second) && s_PressFrame[f] < s_PressFrame[s];
+}
+
+void Input::Keyboard::Update(const float delta) {
+	s_PreviousKeys = s_CurrentKeys;
+
+	for (int i = 0; i <= KeyLast; ++i) {
+		const bool wasPressed = s_CurrentKeys[i];
+		const bool isPressed = glfwGetKey(s_Window, i) == GLFW_PRESS;
+
+		s_CurrentKeys[i] = isPressed;
+
+		if (isPressed && !wasPressed) {
+			s_PressFrame[i] = s_FrameCount;
+		}
+	}
+	++s_FrameCount;
+
+	for (int p = 0; p < PlayerCount; ++p) {
+		const auto& [up, down, left, right] = s_PlayerKeys[p];
+		auto& a = s_Axes[p];
+		a.x = SmoothAxis(a.x, delta, left, right);
+		a.y = SmoothAxis(a.y, delta, down, up);
+	}
+}
+
+// Mouse
 Vec2 Input::Mouse::GetPosition() {
 	return s_MousePosition;
 }
@@ -148,13 +145,13 @@ void Input::Mouse::OnScroll(const float xOffset, const float yOffset) {
 
 void Input::Mouse::Reset() {
 	SetCaptured(false);
+
 	s_MouseDelta = Vec2::Zero();
 	s_MouseScroll = Vec2::Zero();
 	s_MouseFirstFrame = true;
 }
 
-// ── Clear ─────────────────────────────────────────────────────────────────────
-
+// Clear
 void Input::Clear() {
 	s_CurrentKeys.fill(false);
 	s_PreviousKeys.fill(false);
@@ -166,8 +163,7 @@ void Input::Clear() {
 	Mouse::Reset();
 }
 
-// ── Internals ─────────────────────────────────────────────────────────────────
-
+// Internals
 float Input::MoveToward(const float current, const float target, const float step) {
 	const float delta = target - current;
 	return std::abs(delta) <= step ? target : current + std::copysign(step, delta);

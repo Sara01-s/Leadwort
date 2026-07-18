@@ -1,12 +1,16 @@
 #include <Leadwort/core/public/Game.h>
+
+#include "Leadwort/serialization/SceneSerializer.h"
+#include "Leadwort/systems/public/ShaderWatcher.h"
+
 #include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/core/public/Time.h>
 #include <Leadwort/core/public/Window.h>
 #include <Leadwort/rendering/public/DefaultRenderPasses.h>
 #include <Leadwort/systems/public/BehaviourSystem.h>
 #include <Leadwort/systems/public/CameraSystem.h>
-#include <Leadwort/systems/public/RenderSystem.h>
 #include <Leadwort/systems/public/Input.h>
+#include <Leadwort/systems/public/RenderSystem.h>
 #include <Leadwort/systems/public/SceneSystem.h>
 
 #include <GLFW/glfw3.h>
@@ -66,6 +70,16 @@ void Game::BuildRenderGraphs() {
 
 void Game::Tick() const {
     SceneSystem::Get().LoadPendingScene();
+
+	if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::R)) {
+		ShaderWatcher::Get().MarkAllShaderAsPending();
+		ShaderWatcher::Get().RecompilePendingShaders();
+	}
+
+	if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::S)) {
+		const std::string path = AssetManagement::EngineAssets::ResolvePath("scenes/") + "/empty-scene.json";
+		Serialization::SceneSerializer::SaveToFile(*SceneSystem::Get().GetCurrentScene(), path);
+	}
 
     Time::Update(glfwGetTime());
     Input::Update(Time::GetDeltaTime());

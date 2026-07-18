@@ -8,10 +8,8 @@
 
 namespace Leadwort::Systems {
 
-// ── Key ───────────────────────────────────────────────────────────────────────
-
 enum class Key : int {
-    // ── Alphanumeric ──────────────────────────────────────────────────────────
+    // Alphanumeric
     Alpha0 = GLFW_KEY_0, Alpha1 = GLFW_KEY_1, Alpha2 = GLFW_KEY_2, Alpha3 = GLFW_KEY_3,
     Alpha4 = GLFW_KEY_4, Alpha5 = GLFW_KEY_5, Alpha6 = GLFW_KEY_6, Alpha7 = GLFW_KEY_7,
     Alpha8 = GLFW_KEY_8, Alpha9 = GLFW_KEY_9,
@@ -23,7 +21,7 @@ enum class Key : int {
     U = GLFW_KEY_U, V = GLFW_KEY_V, W = GLFW_KEY_W, X = GLFW_KEY_X, Y = GLFW_KEY_Y,
     Z = GLFW_KEY_Z,
 
-    // ── Signs and Punctuation ─────────────────────────────────────────────────
+    // Signs and Punctuation
     Space        = GLFW_KEY_SPACE,        Apostrophe = GLFW_KEY_APOSTROPHE,
     Comma        = GLFW_KEY_COMMA,        Minus      = GLFW_KEY_MINUS,
     Period       = GLFW_KEY_PERIOD,       Slash      = GLFW_KEY_SLASH,
@@ -32,16 +30,16 @@ enum class Key : int {
     RightBracket = GLFW_KEY_RIGHT_BRACKET,GraveAccent= GLFW_KEY_GRAVE_ACCENT,
     World1       = GLFW_KEY_WORLD_1,      World2     = GLFW_KEY_WORLD_2,
 
-    // ── Navigation and Editing ────────────────────────────────────────────────
+    // Navigation and Editing
     Escape    = GLFW_KEY_ESCAPE, Enter  = GLFW_KEY_ENTER,  Tab    = GLFW_KEY_TAB,
     Backspace = GLFW_KEY_BACKSPACE, Insert = GLFW_KEY_INSERT, Delete = GLFW_KEY_DELETE,
     PageUp    = GLFW_KEY_PAGE_UP,   PageDown = GLFW_KEY_PAGE_DOWN,
     Home      = GLFW_KEY_HOME,      End    = GLFW_KEY_END,
 
-    // ── Directional Arrows ────────────────────────────────────────────────────
+    // Directional Arrows
     Right = GLFW_KEY_RIGHT, Left = GLFW_KEY_LEFT, Down = GLFW_KEY_DOWN, Up = GLFW_KEY_UP,
 
-    // ── Modifiers and System ──────────────────────────────────────────────────
+    // Modifiers and System
     LeftShift   = GLFW_KEY_LEFT_SHIFT,   LeftControl = GLFW_KEY_LEFT_CONTROL,
     LeftAlt     = GLFW_KEY_LEFT_ALT,     LeftSuper   = GLFW_KEY_LEFT_SUPER,
     RightShift  = GLFW_KEY_RIGHT_SHIFT,  RightControl= GLFW_KEY_RIGHT_CONTROL,
@@ -51,7 +49,7 @@ enum class Key : int {
     NumLock     = GLFW_KEY_NUM_LOCK,     PrintScreen = GLFW_KEY_PRINT_SCREEN,
     Pause       = GLFW_KEY_PAUSE,
 
-    // ── Function Keys ─────────────────────────────────────────────────────────
+    // Function Keys
     F1  = GLFW_KEY_F1,  F2  = GLFW_KEY_F2,  F3  = GLFW_KEY_F3,  F4  = GLFW_KEY_F4,
     F5  = GLFW_KEY_F5,  F6  = GLFW_KEY_F6,  F7  = GLFW_KEY_F7,  F8  = GLFW_KEY_F8,
     F9  = GLFW_KEY_F9,  F10 = GLFW_KEY_F10, F11 = GLFW_KEY_F11, F12 = GLFW_KEY_F12,
@@ -60,7 +58,7 @@ enum class Key : int {
     F21 = GLFW_KEY_F21, F22 = GLFW_KEY_F22, F23 = GLFW_KEY_F23, F24 = GLFW_KEY_F24,
     F25 = GLFW_KEY_F25,
 
-    // ── Numpad ────────────────────────────────────────────────────────────────
+    // Numpad
     NumPad0        = GLFW_KEY_KP_0,        NumPad1   = GLFW_KEY_KP_1,
     NumPad2        = GLFW_KEY_KP_2,        NumPad3   = GLFW_KEY_KP_3,
     NumPad4        = GLFW_KEY_KP_4,        NumPad5   = GLFW_KEY_KP_5,
@@ -72,12 +70,8 @@ enum class Key : int {
     NumPadEqual    = GLFW_KEY_KP_EQUAL,
 };
 
-// ── Axis / Player ─────────────────────────────────────────────────────────────
-
-enum class Axis   { Horizontal, Vertical };
+enum class Axis { Horizontal, Vertical };
 enum class Player { P1 = 0, P2 = 1 };
-
-// ── Input ─────────────────────────────────────────────────────────────────────
 
 class Input {
 public:
@@ -87,18 +81,16 @@ public:
     static void Update(float delta);
     static void Clear();
 
-    static float     GetAxis(Player player, Axis axis);
+    static float GetAxis(Player player, Axis axis);
     static Vec2 GetAxis(Player player);
-
-    // ── Keyboard ──────────────────────────────────────────────────────────────
 
     struct Keyboard {
         static bool IsPressed(Key key);
         static bool IsJustPressed(Key key);
         static bool IsJustReleased(Key key);
+    	static bool IsOrderedCombo(Key first, Key second);
+    	static void Update(float delta);
     };
-
-    // ── Mouse ─────────────────────────────────────────────────────────────────
 
     struct Mouse {
         enum class Button { Left = 0, Right = 1 };
@@ -127,24 +119,31 @@ private:
     static float MoveToward(float current, float target, float step);
     static float SmoothAxis(float current, float delta, Key neg, Key pos);
 
-    static constexpr int   KeyLast      = GLFW_KEY_LAST;
-    static constexpr float SmoothSpeed  = 15.0f;
-    static constexpr int   PlayerCount  = 2;
+private:
+    static constexpr int KeyLast { GLFW_KEY_LAST };
+    static constexpr float SmoothSpeed { 15.0f };
+    static constexpr int PlayerCount { 2 };
 
-    static GLFWwindow* s_Window;
+    static inline GLFWwindow* s_Window { nullptr };
 
-    static std::array<bool, GLFW_KEY_LAST + 1> s_CurrentKeys;
-    static std::array<bool, GLFW_KEY_LAST + 1> s_PreviousKeys;
-    static std::array<Vec2, PlayerCount> s_Axes;
-    static std::array<KeyMap,    PlayerCount> s_PlayerKeys;
+    static inline std::array<bool, GLFW_KEY_LAST + 1> s_CurrentKeys{};
+    static inline std::array<bool, GLFW_KEY_LAST + 1> s_PreviousKeys{};
+    static inline auto s_Axes { std::array{ Vec2::Zero(), Vec2::Zero() }};
+    static inline std::array<KeyMap, PlayerCount> s_PlayerKeys{{
+    	{ Key::W, Key::S, Key::A, Key::D },			   // P1
+		{ Key::Up, Key::Down, Key::Left, Key::Right }, // P2
+	}};
+
+	static inline std::array<std::uint32_t, GLFW_KEY_LAST + 1> s_PressFrame{};
+	static inline std::uint64_t s_FrameCount{};
 
     // Mouse state
-    static Vec2 s_MousePosition;
-    static Vec2 s_MouseDelta;
-    static Vec2 s_MouseLastPosition;
-    static Vec2 s_MouseScroll;
-    static bool      s_MouseCaptured;
-    static bool      s_MouseFirstFrame;
+    static inline Vec2 s_MousePosition{};
+    static inline Vec2 s_MouseDelta{};
+    static inline Vec2 s_MouseLastPosition{};
+    static inline Vec2 s_MouseScroll{};
+    static inline bool s_MouseCaptured { false };
+    static inline bool s_MouseFirstFrame { true };
 };
 
 } // namespace Engine::Systems

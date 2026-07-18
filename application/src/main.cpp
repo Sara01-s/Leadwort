@@ -7,7 +7,6 @@
 /* TODO: Cosas para torturarte en el futuro Sara:
  *  --- Must have.
  *	- Arreglar el Shader Hot Reload (ShaderWatcher no hace nada el muy vago).
- *	- Cambiar el src include de Leadwort a LeadwortEngine
  *	--- Nice to have.
  *	- Poner las coordenadas en GUI.
  *	- Poner un botón para resetear coordenadas en GUI.
@@ -25,16 +24,12 @@ int main() {
 
     Leadwort::Core::Game game{};
 
-    auto& window = Leadwort::Core::Window::Get();
-    window.OnWindowResized.Subscribe([&game, &window] {
-        game.Tick();
-        window.SwapBuffers();
-    });
+	const auto& window = Leadwort::Core::Window::Get();
 
     Core::EditorCore::Initialize(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-	Leadwort::Rendering::RenderTexture& gameRenderTexture = game.GetGameOutputTexture();
-    Leadwort::Rendering::RenderTexture& sceneRenderTexture = game.GetSceneOutputTexture();
+	Leadwort::Rendering::RenderTexture& gameRenderTexture { game.GetGameOutputTexture() };
+    Leadwort::Rendering::RenderTexture& sceneRenderTexture { game.GetSceneOutputTexture() };
 
 	Core::EditorWindowsContainer windowsContainer{};
 
@@ -58,7 +53,4 @@ int main() {
 
 		Core::EditorCore::EndFrame();
 	});
-
-
-	return 0;
 }

@@ -21,19 +21,18 @@ namespace Leadwort::Core { class Scene; }
 
 namespace Leadwort::Core {
 
-class Entity {
+class Entity final : public Serialization::ISerializable {
 public:
     static constexpr auto DEFAULT_NAME = "New Entity";
 
-    const std::string name;
-
+    std::string name;
     uint32_t layerMask = Utils::Layers::EVERYTHING;
     std::string tag = Tags::DEFAULT;
 
     Scene* scene = nullptr;
 
     explicit Entity(int id, std::string name = DEFAULT_NAME);
-    ~Entity();
+    ~Entity() override;
 
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
@@ -98,7 +97,7 @@ public:
     }
 
     [[nodiscard]] std::vector<Components::Component*> GetAllComponents() const {
-        std::vector<Components::Component*> result;
+        std::vector<Components::Component*> result{};
         result.reserve(m_OwnedComponents.size());
 
         for (const auto& owned : m_OwnedComponents) {
@@ -109,6 +108,7 @@ public:
     }
 
     [[nodiscard]] bool CompareTag(const std::string& t) const { return tag == t; }
+	[[nodiscard]] int GetID() const { return m_ID; }
     [[nodiscard]] Entity* FindEntityByTag(const std::string& t) const;
     Entity* CreateChild(const std::string& childName) const;
 
@@ -119,6 +119,11 @@ public:
 
         return child;
     }
+
+public:
+	void Serialize(Json& out) const override;
+	void Deserialize(const Json& in) override;
+	std::string_view GetTypeName() const override { return "Entity"; }
 
 private:
     template <Components::IsComponent TComponent>
@@ -143,10 +148,11 @@ private:
         }
     }
 
+private:
     std::unordered_map<std::type_index, Components::Component*> m_Components{};
     std::vector<Unique<Components::Component>> m_OwnedComponents{};
 	Components::Transform* m_Transform;
-    const int m_ID { 0 };
+     int m_ID { 0 };
 };
 
 } // namespace Engine::Core

@@ -8,10 +8,10 @@
 
 namespace Leadwort::Core {
 
-class Scene {
+class Scene : public Serialization::ISerializable {
 public:
 	Scene();
-	virtual ~Scene();
+	~Scene() override;
 
 	Scene& operator=(const Scene&) = delete;
 
@@ -28,6 +28,11 @@ public:
 
 	static int GenerateNextEntityID();
 
+public:
+	void Serialize(Json& out) const override;
+	void Deserialize(const Json& in) override;
+	std::string_view GetTypeName() const override { return "Scene"; }
+
 protected:
 	Entity* AddEntity(
 		const std::string& name,
@@ -39,6 +44,7 @@ private:
 
 	static void ResetSequence();
 
+private:
 	Unique<Entity> m_RootEntity { nullptr };
 	std::unordered_map<int, Unique<Entity>>  m_EntityMap{};
 	std::unordered_map<std::string, Entity*> m_NamedRefs{};

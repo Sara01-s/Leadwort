@@ -234,6 +234,24 @@ void Transform::SetWorldTransform(const Vec3& pos, const Quat& rot, const Vec3& 
     SetWorldScale(scl);
 }
 
+void Transform::Serialize(Json& out) const {
+	out["position"] = { m_LocalPosition.x, m_LocalPosition.y, m_LocalPosition.z };
+	out["rotation"] = { m_LocalRotation.x, m_LocalRotation.y, m_LocalRotation.z, m_LocalRotation.w };
+	out["scale"]    = { m_LocalScale.x, m_LocalScale.y, m_LocalScale.z };
+}
+
+void Transform::Deserialize(const Json& in) {
+	const auto& p = in["position"];
+	const auto& r = in["rotation"];
+	const auto& s = in["scale"];
+
+	m_LocalPosition = Vec3(p[0], p[1], p[2]);
+	m_LocalRotation = Quat(r[0], r[1], r[2], r[3]); // ajustá el orden de componentes según tu ctor de Quat
+	m_LocalScale    = Vec3(s[0], s[1], s[2]);
+
+	MarkDirty();
+}
+
 // ─────────────────────────────────────────────
 //  Mutation helpers
 // ─────────────────────────────────────────────

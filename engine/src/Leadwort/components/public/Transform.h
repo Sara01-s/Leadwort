@@ -1,4 +1,6 @@
 #pragma once
+#include "Leadwort/components/ComponentRegistry.h"
+
 #include <Leadwort/components/Component.h>
 #include <Leadwort/core/math/public/Mat4.h>
 #include <Leadwort/core/math/public/Math.h>
@@ -13,36 +15,32 @@ namespace Leadwort::Components {
 class Transform : public Component {
 public:
 	// Local space
-
 	void SetLocalPosition(const Vec3& position);
-	void SetLocalScale(const Vec3& scale);
 	void SetLocalRotation(const Quat& rotation);
+	void SetLocalScale(const Vec3& scale);
 
 	[[nodiscard]] const Vec3& GetLocalPosition() const { return m_LocalPosition; }
-	[[nodiscard]] const Vec3& GetLocalScale()    const { return m_LocalScale; }
 	[[nodiscard]] const Quat& GetLocalRotation() const { return m_LocalRotation; }
+	[[nodiscard]] const Vec3& GetLocalScale()    const { return m_LocalScale; }
 
 	[[nodiscard]] Vec3 GetForward() const { return GetWorldRotation() * Vec3::Forward(); }
 	[[nodiscard]] Vec3 GetRight()   const { return GetWorldRotation() * Vec3::Right(); }
 	[[nodiscard]] Vec3 GetUp()      const { return GetWorldRotation() * Vec3::Up(); }
 
-	// ── World space ──────────────────────────────────────────────────────────
-
+	// World space
 	[[nodiscard]] Vec3 GetWorldPosition() const;
 	[[nodiscard]] Quat GetWorldRotation() const;
-	[[nodiscard]] Vec3 GetWorldScale()    const;
+	[[nodiscard]] Vec3 GetWorldScale() const;
 
 	void SetWorldPosition(const Vec3& worldPosition);
 	void SetWorldRotation(const Quat& worldRotation);
 	void SetWorldScale(const Vec3& worldScale);
 
-	// ── Matrices ─────────────────────────────────────────────────────────────
-
+	// Matrices
 	[[nodiscard]] const Mat4& GetLocalMatrix() const;
 	[[nodiscard]] const Mat4& GetWorldMatrix() const;
 
-	// ── Hierarchy ────────────────────────────────────────────────────────────
-
+	// Hierarchy
 	void AddChild(Transform& child);
 	void RemoveChild(Transform& child);
 	void SetParent(Transform* newParent);
@@ -51,14 +49,17 @@ public:
 	[[nodiscard]] const std::vector<Transform*>& GetChildren() const { return m_Children; }
 	[[nodiscard]] bool IsAncestorOf(const Transform& other) const;
 
-	// ── Mutation helpers ─────────────────────────────────────────────────────
-
+	// Mutation helpers
 	void Translate(const Vec3& delta);
 	void TranslateXZ(const Vec3& delta);
 	void Rotate(float pitch = 0.0f, float yaw = 0.0f, float roll = 0.0f);
 	void Rotate(const Vec3& euler);
 	void LookAt(const Vec3& targetPosition, const Vec3& worldUp = Vec3::Up());
 	void LookAt(const Transform& target, const Vec3& worldUp = Vec3::Up());
+
+	void Serialize(Json& out) const final override;
+	void Deserialize(const Json& in) final override;
+	std::string_view GetTypeName() const final override { return "Transform"; }
 
 private:
 	[[nodiscard]] bool IsDirty() const;
@@ -80,7 +81,6 @@ private:
 	}
 
 private:
-
 	Vec3 m_LocalPosition { Vec3::Zero() };
 	Vec3 m_LocalScale { Vec3::One() };
     Quat m_LocalRotation { Quat::Identity() };
@@ -93,4 +93,7 @@ private:
     std::vector<Transform*> m_Children{};
 };
 
+LW_REGISTER_COMPONENT(Transform)
+
 } // namespace Engine::Components
+

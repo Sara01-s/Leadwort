@@ -6,7 +6,7 @@ find_package(assimp CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(efsw CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 # Glad
 add_library(glad STATIC thirdparty/glad/glad.c)
@@ -48,7 +48,7 @@ target_link_libraries(LeadwortEngineLib
             glm::glm
             OpenAL::OpenAL
             OpenGL::GL
-            efsw::efsw
+            nlohmann_json::nlohmann_json
 )
 
 target_precompile_headers(LeadwortEngineLib PRIVATE pch.h)

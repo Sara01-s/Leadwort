@@ -25,13 +25,47 @@ int Scene::GenerateNextEntityID() {
 	return s_IdSequence++;
 }
 
+void Scene::Serialize(Json& out) const {
+	out["entities"] = Json::array();
+
+	for (const auto& entity: m_EntityMap | std::views::values) {
+		Json entityJson{};
+		entity->Serialize(entityJson);
+		out["entities"].push_back(entityJson);
+	}
+}
+
+void Scene::Deserialize(const Json& in) {
+	std::unordered_map<int, Entity*> idRemap;
+
+	for (const auto& entityJson : in["entities"]) {
+		const std::string entityName { entityJson.value("name", Entity::DEFAULT_NAME) };
+		Entity* entity { CreateEntity(entityName) };
+
+		entity->Deserialize(entityJson);
+
+		idRemap[entityJson["id"]] = entity;
+	}
+
+	for (const auto& entityJson : in["entities"]) {
+		if (!entityJson.contains("parentId")) {
+			continue;
+		}
+
+		const Entity* self   { idRemap.at(entityJson["id"]) };
+		const Entity* parent { idRemap.at(entityJson["parentId"]) };
+
+		self->GetTransform().SetParent(&parent->GetTransform());
+	}
+}
+
 void Scene::ResetSequence() {
 	s_IdSequence = 0;
 }
 
 Entity* Scene::CreateEntity(const std::string& name) {
-	const int entityID = GenerateNextEntityID();
-	auto entity = CreateUnique<Entity>(entityID, name);
+	const int entityID { GenerateNextEntityID() };
+	auto entity { CreateUnique<Entity>(entityID, name) };
 
 	Entity* rawPtr = entity.get();
 	rawPtr->scene = this;
@@ -51,7 +85,7 @@ Entity* Scene::AddEntity(
 	const std::string& name,
 	const std::function<void(Entity*)>& configure
 ) {
-	auto* entity = CreateEntity(name);
+	auto* entity { CreateEntity(name) };
 
 	if (configure) {
 		configure(entity);
@@ -62,7 +96,7 @@ Entity* Scene::AddEntity(
 }
 
 Entity* Scene::GetEntity(const int id) const {
-	const auto it = m_EntityMap.find(id);
+	const auto it { m_EntityMap.find(id) };
 
 	if (it == m_EntityMap.end()) {
 		throw std::runtime_error("Entity with id " + std::to_string(id) + " not found");

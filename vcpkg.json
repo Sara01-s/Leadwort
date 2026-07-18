@@ -8,6 +8,6 @@
     "assimp",
     "glm",
     "gtest",
-    "efsw"
+    "nlohmann-json"
   ]
 }

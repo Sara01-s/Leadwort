@@ -3,7 +3,6 @@
 #include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/core/math/public/Mat4.h>
 #include <Leadwort/core/math/public/Vec4.h>
-#include <Leadwort/core/public/Path.h>
 #include <Leadwort/systems/public/ShaderWatcher.h>
 #include <Leadwort/utils/public/Logger.h>
 
@@ -20,8 +19,10 @@ Shader::Shader(const std::string& filePath, const std::set<std::string>& defines
 	m_Source = AssetManagement::EngineAssets::LoadText(m_Path);
 	Compile();
 
-	const fs::path sourceRoot = fs::path(PROJECT_SOURCE_DIR) / "src" / "engine" / "engine-assets";
-	const fs::path sourcePath = (sourceRoot / m_Path).lexically_normal();
+	const fs::path sourceRoot { fs::path(PROJECT_SOURCE_DIR) / "src" / "engine" / "engine-assets" };
+	const fs::path sourcePath { (sourceRoot / m_Path).lexically_normal() };
+
+	Systems::ShaderWatcher::Get().RegisterShader(this);
 }
 
 Shader::~Shader() {
@@ -29,6 +30,8 @@ Shader::~Shader() {
 		LW_LOG("Destroying Shader with a path: ", m_Path, " and GPU ID: ", m_GpuID);
 		glDeleteProgram(m_GpuID);
 	}
+
+	Systems::ShaderWatcher::Get().UnregisterShader(this);
 }
 
 void Shader::Bind() const noexcept {
