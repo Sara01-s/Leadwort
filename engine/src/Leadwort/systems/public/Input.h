@@ -99,8 +99,9 @@ public:
         static Vec2 GetDelta();
         static Vec2 GetScroll();
 
+    	static bool IsButtonJustPressed(Button button);
+    	static bool IsButtonJustReleased(Button button);
         static bool IsButtonPressed(Button button);
-        static bool IsButtonPressed(int button);
 
         static bool IsCaptured();
         static void SetCaptured(bool captured);
@@ -138,12 +139,16 @@ private:
 	static inline std::uint64_t s_FrameCount{};
 
     // Mouse state
-    static inline Vec2 s_MousePosition{};
-    static inline Vec2 s_MouseDelta{};
-    static inline Vec2 s_MouseLastPosition{};
-    static inline Vec2 s_MouseScroll{};
-    static inline bool s_MouseCaptured { false };
-    static inline bool s_MouseFirstFrame { true };
+	static inline Vec2 s_MousePosition{};
+	static inline Vec2 s_MouseDelta{};
+	static inline Vec2 s_MouseLastPosition{};
+	static inline Vec2 s_MouseScroll{};
+	static inline bool s_MouseCaptured { false };
+	static inline bool s_MouseFirstFrame { true };
+
+	static constexpr int MouseButtonCount { 2 };
+	static inline std::array<bool, MouseButtonCount> s_CurrentMouseButtons{};
+	static inline std::array<bool, MouseButtonCount> s_PreviousMouseButtons{};
 };
 
 } // namespace Engine::Systems

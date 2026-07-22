@@ -97,12 +97,8 @@ bool Input::Mouse::IsCaptured() {
 }
 
 bool Input::Mouse::IsButtonPressed(const Button button) {
-	return IsButtonPressed(static_cast<int>(button));
-}
-
-bool Input::Mouse::IsButtonPressed(const int button) {
 	LW_ASSERT(s_Window, "Input uninitialized, please call Input::Init(GLFWindow*)");
-	return glfwGetMouseButton(s_Window, button) == GLFW_PRESS;
+	return glfwGetMouseButton(s_Window, static_cast<int>(button)) == GLFW_PRESS;
 }
 
 void Input::Mouse::SetCaptured(const bool captured) {
@@ -116,10 +112,25 @@ void Input::Mouse::SetCaptured(const bool captured) {
 	s_MouseFirstFrame = true;
 }
 
+bool Input::Mouse::IsButtonJustPressed(const Button button) {
+	const int b = static_cast<int>(button);
+	return s_CurrentMouseButtons[b] && !s_PreviousMouseButtons[b];
+}
+
+bool Input::Mouse::IsButtonJustReleased(const Button button) {
+	const int b = static_cast<int>(button);
+	return !s_CurrentMouseButtons[b] && s_PreviousMouseButtons[b];
+}
+
 void Input::Mouse::Update() {
 	LW_ASSERT(s_Window, "Input uninitialized, please call Input::Init(GLFWindow*)");
 
-	double x, y;
+	s_PreviousMouseButtons = s_CurrentMouseButtons;
+	for (int b = 0; b < MouseButtonCount; ++b) {
+		s_CurrentMouseButtons[b] = glfwGetMouseButton(s_Window, b) == GLFW_PRESS;
+	}
+
+	double x{}, y{};
 	glfwGetCursorPos(s_Window, &x, &y);
 
 	s_MousePosition = Vec2(static_cast<float>(x), static_cast<float>(y));
@@ -149,6 +160,9 @@ void Input::Mouse::Reset() {
 	s_MouseDelta = Vec2::Zero();
 	s_MouseScroll = Vec2::Zero();
 	s_MouseFirstFrame = true;
+
+	s_CurrentMouseButtons.fill(false);
+	s_PreviousMouseButtons.fill(false);
 }
 
 // Clear
