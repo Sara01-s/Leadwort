@@ -24,7 +24,7 @@ std::filesystem::path AssetManager::Resolve(const std::string& path) const {
 }
 
 std::string AssetManager::LoadText(const std::string& path) const {
-    const auto& fullPath = Resolve(path);
+    const auto& fullPath { Resolve(path) };
 
     std::ifstream file(fullPath, std::ios::in | std::ios::binary);
     LW_ASSERT(file.is_open(), "AssetManager: Could not open a file at: " + fullPath.string());
@@ -35,7 +35,7 @@ std::string AssetManager::LoadText(const std::string& path) const {
 }
 
 std::vector<uint8_t> AssetManager::LoadBytes(const std::string& path) const {
-    const auto& fullPath = Resolve(path);
+    const auto& fullPath { Resolve(path) };
     std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
     LW_ASSERT(file.is_open(), "AssetManager: Could not open a binary file at: " + fullPath.string());
 
@@ -54,7 +54,7 @@ Shared<Shader> AssetManager::GetShader(
 	const std::string& path,
 	const std::optional<std::set<std::string>>& defines
 ) {
-	std::string key = Resolve(path).lexically_normal().generic_string();
+	std::string key { Resolve(path).lexically_normal().generic_string() };
 
 	if (defines) {
 		for (const auto& define : *defines) {
@@ -69,21 +69,28 @@ Shared<Shader> AssetManager::GetShader(
 	}
 
 	LW_LOG("AssetManager [GetShader]: cache MISS key='", key, "'");
-	auto shader = CreateShared<Shader>(path, defines.value_or(std::set<std::string>{}), AssetKey<Shader>{});
+	auto shader { CreateShared<Shader>(path, defines.value_or(std::set<std::string>{}), AssetKey<Shader>{}) };
 	m_ShaderCache.Set(key, shader);
 	return shader;
 }
 
-Shared<Texture> AssetManager::GetTexture(const std::string& path) {
-	const std::string key = Resolve(path).string();
+Shared<Texture> AssetManager::GetTexture(const std::string_view path) {
+	const std::string key { Resolve(std::string(path)).string() };
 
 	if (auto cached = m_TextureCache.Get(key)) {
 		return cached;
 	}
 
+	if (path.ends_with(".exr")) {
+		LW_LOG("AssetManager: Loading Texture: ", key);
+		const auto& texture = CreateShared<Texture>(key, AssetKey<Texture>{});
+		m_TextureCache.Set(key, texture);
+		return texture;
+	}
+
 	LW_LOG("AssetManager: Loading Texture: ", key);
-	const auto bytes = LoadBytes(path);
-	auto texture = CreateTextureFromBytes(bytes.data(), bytes.size());
+	const auto& bytes = LoadBytes(key);
+	const auto& texture = CreateTextureFromBytes(bytes.data(), bytes.size());
 
 	m_TextureCache.Set(key, texture);
 	return texture;
@@ -111,7 +118,7 @@ Shared<Texture> AssetManager::GetTextureFromAbsolutePath(const std::string& abso
 }
 
 Shared<Texture> AssetManager::GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
-	const std::string key = "*" + std::to_string(index);
+	const std::string key { "*" + std::to_string(index) };
 
 	if (auto cached = m_TextureCache.Get(key)) {
 		return cached;

@@ -1,5 +1,7 @@
 #include "../public/Texture.h"
 
+#include "tinyexr/tinyexr.h"
+
 #include <Leadwort/asset-management/private/AssetKey.h>
 #include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/utils/public/Logger.h>
@@ -20,6 +22,34 @@ float GetMaxAnisotropy() {
 } // namespace
 
 Texture::Texture(AssetManagement::AssetKey<Texture>) {}
+
+Texture::Texture(std::string_view exrPath, AssetManagement::AssetKey<Texture>) {
+	float* exrData { nullptr };
+	const char* error { nullptr };
+
+	const int ret { LoadEXR(&exrData, &m_Width, &m_Height, exrPath.data(), &error) };
+	if (ret != TINYEXR_SUCCESS) {
+		const std::string errorMsg { error ? error : "Unknown error" };
+		if (error) {
+			FreeEXRErrorMessage(error);
+		}
+		LW_ERROR("Error loading EXR: ", errorMsg, " path: ", exrPath);
+	}
+
+	m_GpuID = 0;
+	glGenTextures(1, &m_GpuID);
+	glBindTexture(GL_TEXTURE_2D, m_GpuID);
+
+	m_Channels = 4;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, exrData);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	free(exrData);
+}
 
 Texture::~Texture() {
 	if (m_GpuID != 0) {
@@ -49,6 +79,8 @@ void Texture::ApplySamplerParams(const bool generateMipmaps, const bool anisotro
 		);
 	}
 }
+
+
 
 void Texture::UploadRGBA(
 	const uint8_t* pixels,

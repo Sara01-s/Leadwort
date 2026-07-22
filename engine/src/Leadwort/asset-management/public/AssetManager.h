@@ -70,7 +70,7 @@ public:
 
     [[nodiscard]] Shared<Bindables::Shader>   GetShader(const std::string& path,
 													    const std::optional<std::set<std::string>>& defines);
-    [[nodiscard]] Shared<Bindables::Texture>  GetTexture                (const std::string& path);
+    [[nodiscard]] Shared<Bindables::Texture>  GetTexture                (std::string_view path);
     [[nodiscard]] Shared<Bindables::Texture>  GetTextureFromAbsolutePath(const std::string& absolutePath);
     [[nodiscard]] Shared<Bindables::Texture>  GetEmbeddedTexture        (int index, const uint8_t* data, size_t size);
     [[nodiscard]] Shared<Bindables::CubeMap>  GetCubeMap                (const std::array<std::string, 6>& paths);
@@ -112,7 +112,7 @@ public:
     }
 
     [[nodiscard]]
-    static Shared<Bindables::Texture> GetTexture(const std::string& path) {
+    static Shared<Bindables::Texture> GetTexture(std::string_view path) {
         return Get().GetTexture(path);
     }
 

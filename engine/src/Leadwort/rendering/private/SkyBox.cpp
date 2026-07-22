@@ -3,7 +3,7 @@
 
 namespace Leadwort::Rendering {
 
-Skybox::Skybox() {
+Skybox::Skybox(const std::string_view exrPath) {
 	const auto shader = AssetManagement::EngineAssets::GetShader("shaders/shd_skybox.glsl");
 	m_SkyboxMaterial = AssetManagement::EngineAssets::CreateMaterial(shader);
 
@@ -27,15 +27,6 @@ Skybox::Skybox() {
 		6, 2, 3,  7, 6, 3,
 	};
 
-	const std::array<std::string, 6> cubeMapTexturePaths = {
-		"textures/skyboxes/alt/alt_ft.jpg",
-		"textures/skyboxes/alt/alt_bk.jpg",
-		"textures/skyboxes/alt/alt_up.jpg",
-		"textures/skyboxes/alt/alt_dn.jpg",
-		"textures/skyboxes/alt/alt_rt.jpg",
-		"textures/skyboxes/alt/alt_lf.jpg",
-	};
-
 	glGenVertexArrays(1, &m_Vao);
 	glGenBuffers(1, &m_Vbo);
 	glGenBuffers(1, &m_Ibo);
@@ -53,9 +44,8 @@ Skybox::Skybox() {
 
 	glBindVertexArray(0);
 
-	const auto cubeMap = AssetManagement::EngineAssets::GetCubeMap(cubeMapTexturePaths);
-	m_SkyboxMaterial->SetCubeMap("_SkyboxTexture", cubeMap.get());
-	m_CubeMap = cubeMap;
+	const auto& exrTexture { AssetManagement::EngineAssets::GetTexture(exrPath) };
+	m_SkyboxMaterial->SetTexture("_SkyboxTexture", exrTexture);
 }
 
 Skybox::~Skybox() {

@@ -14,6 +14,7 @@ namespace Leadwort::Rendering::Bindables {
 class Texture final : public Bindable {
 public:
 	explicit Texture(AssetManagement::AssetKey<Texture>);
+	explicit Texture(std::string_view exrPath, AssetManagement::AssetKey<Texture>);
 	Texture() = delete;
 	~Texture() override;
 
@@ -37,9 +38,10 @@ private:
 	void UploadRGBA(const uint8_t* pixels, int width, int height, bool generateMipmaps, bool anisotropicFiltering);
 	static void ApplySamplerParams(bool generateMipmaps, bool anisotropicFiltering);
 
-	int m_Width    = 1;
-	int m_Height   = 1;
-	int m_Channels = 4;
+private:
+	int m_Width    { 1 };
+	int m_Height   { 1 };
+	int m_Channels { 4 };
 };
 
 } // namespace Engine::Rendering::Bindables

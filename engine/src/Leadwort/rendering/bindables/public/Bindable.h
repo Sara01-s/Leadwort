@@ -17,7 +17,7 @@ public:
 protected:
 	Bindable() = default;
 
-	GpuID m_GpuID{ DEFAULT_GPU_ID };
+	GpuID m_GpuID { DEFAULT_GPU_ID };
 };
 
 } // namespace Core::Rendering::Bindables

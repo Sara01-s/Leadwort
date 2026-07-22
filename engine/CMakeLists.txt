@@ -7,6 +7,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # Glad
 add_library(glad STATIC thirdparty/glad/glad.c)
@@ -15,6 +16,11 @@ target_include_directories(glad PUBLIC thirdparty)
 # Stb
 add_library(stb STATIC thirdparty/stb/stb_image.cpp)
 target_include_directories(stb PUBLIC thirdparty)
+
+# TinyEXR
+add_library(tinyEXR STATIC thirdparty/tinyexr/tinyexr.cpp)
+target_include_directories(tinyEXR PUBLIC thirdparty)
+target_link_libraries(tinyEXR PRIVATE ZLIB::ZLIB)
 
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "src/*.h" "src/*.hpp")
@@ -43,6 +49,7 @@ target_link_libraries(LeadwortEngineLib
         PRIVATE
             glad
             stb
+            tinyEXR
             glfw
             assimp::assimp
             glm::glm

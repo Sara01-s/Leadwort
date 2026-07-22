@@ -5,7 +5,6 @@
 #include "../../rendering/public/Skybox.h"
 #include "../Component.h"
 
-#include <glm/glm.hpp>
 #include <memory>
 #include <variant>
 
