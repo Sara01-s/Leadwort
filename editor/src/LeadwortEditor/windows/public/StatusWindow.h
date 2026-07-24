@@ -8,7 +8,7 @@ namespace Editor::Core {
 
 class StatusWindow final : public IEditorWindow {
 public:
-	std::string_view GetName() override {
+	std::string_view GetName() const noexcept override {
 		return "Status";
 	}
 
@@ -28,4 +28,4 @@ public:
 	}
 };
 
-}
+} // namespace Editor::Core

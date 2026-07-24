@@ -10,35 +10,35 @@
 namespace Leadwort::Utils {
 
 // Opaque handle returned by Subscribe. Pass it to Unsubscribe for exact removal.
-struct SubscriptionHandle {
-    uint64_t id = 0;
-    bool IsValid() const { return id != 0; }
+struct Token {
+    uint64_t id { 0 };
+    bool IsValid() const noexcept { return id != 0; }
 };
 
 template <typename... Args>
-class ReactiveCommand {
+class Event {
 public:
-    ~ReactiveCommand() { Clear(); }
+    ~Event() { Clear(); }
 
-    ReactiveCommand() = default;
-    ReactiveCommand(const ReactiveCommand&) = delete;
-    ReactiveCommand& operator=(const ReactiveCommand&) = delete;
-    ReactiveCommand(ReactiveCommand&&) = default;
-    ReactiveCommand& operator=(ReactiveCommand&&) = default;
+    Event() = default;
+    Event(const Event&) = delete;
+    Event& operator=(const Event&) = delete;
+    Event(Event&&) = default;
+    Event& operator=(Event&&) = default;
 
-    // Returns a handle for later unsubscription
+    // Returns a token for later unsubscription
     // Optional owner pointer for bulk unsubscription
-    SubscriptionHandle Subscribe(std::function<void(Args...)> action, void* owner = nullptr) {
+    Token Subscribe(std::function<void(Args...)> action, void* owner = nullptr) {
         LW_ASSERT(action, "Subscribing a null callback");
 
-        const SubscriptionHandle handle { ++m_NextId };
+        const Token handle { ++m_NextId };
         m_Callbacks.push_back({ std::move(action), owner, handle.id });
 
         return handle;
     }
 
     // Exact removal via handle, O(n), always correct
-    void Unsubscribe(SubscriptionHandle handle) {
+    void Unsubscribe(Token handle) {
         if (!handle.IsValid()) {
             return;
         }
@@ -93,16 +93,16 @@ public:
 
 private:
     struct Entry {
-        std::function<void(Args...)> action;
-        void*    owner          = nullptr;
-        uint64_t id             = 0;
-        bool     pendingRemoval = false;
+        std::function<void(Args...)> action{};
+        void* owner { nullptr };
+        uint64_t id { 0 };
+        bool pendingRemoval { false };
     };
 
     template <typename Predicate>
-    void MarkForRemoval(Predicate pred) {
+    void MarkForRemoval(Predicate predicate) {
         for (auto& entry : m_Callbacks) {
-            if (!entry.pendingRemoval && pred(entry)) {
+            if (!entry.pendingRemoval && predicate(entry)) {
                 entry.pendingRemoval = true;
                 ++m_PendingRemovals;
             }
@@ -124,19 +124,13 @@ private:
         m_PendingRemovals = 0;
     }
 
-    std::vector<Entry> m_Callbacks;
-    uint64_t m_NextId         = 0;
-    int      m_Depth          = 0; // re-entrance guard
-    int      m_PendingRemovals = 0;
+    std::vector<Entry> m_Callbacks{};
+    uint64_t m_NextId          { 0 };
+    int      m_Depth           { 0 }; // re-entrance guard
+    int      m_PendingRemovals { 0 };
 };
 
 // Convenience aliases
-using ReactiveVoidCommand = ReactiveCommand<>;
-
-template <typename T>
-using ReactiveCommand1 = ReactiveCommand<T>;
-
-template <typename T1, typename T2>
-using ReactiveCommand2 = ReactiveCommand<T1, T2>;
+using VoidEvent = Event<>;
 
 } // namespace Engine::Utils

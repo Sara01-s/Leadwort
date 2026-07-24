@@ -152,6 +152,8 @@ public:
 		return value ? std::string(LIGHT_GREEN) + "true" : std::string(LIGHT_RED) + "false";
 	}
 
+	static inline std::function<void(const std::string&)> LogCallback;
+
 private:
 	static bool SupportsColor() noexcept {
 #ifdef _WIN32
@@ -207,7 +209,7 @@ private:
 	static void LogMessage(const char* prefix, const char* color, Args&&... args) noexcept {
 		std::ostringstream oss{};
 		(oss << ... << args);
-		const std::string message = oss.str();
+		const std::string message { oss.str() };
 
 #ifdef CORE_LOG_TO_FILE
 		if (!std::filesystem::exists("../logs/")) {
@@ -220,10 +222,18 @@ private:
 		}
 #else
 		if (SupportsColor()) {
-			std::cout << color << prefix << message << COLOR_CLEAR << EOL << std::flush;
+			std::ostringstream coloredMessage{};
+			coloredMessage << color << prefix << message << COLOR_CLEAR << EOL << std::flush;
+			std::cout << coloredMessage.str();
+			assert(LogCallback && "LogCallback is null");
+			LogCallback(coloredMessage.str());
 		}
 		else {
-			std::cout << prefix << message << EOL << std::flush;
+			std::ostringstream finalMessage{};
+			finalMessage << prefix << message << EOL << std::flush;
+			std::cout << finalMessage.str();
+			assert(LogCallback && "LogCallback is null");
+			LogCallback(finalMessage.str());
 		}
 #endif
 	}

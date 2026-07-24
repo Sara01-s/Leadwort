@@ -6,8 +6,10 @@ namespace Editor {
 
 struct EditorContext final {
 	Leadwort::EntityID selectedEntityID{};
-	Core::IEditorWindow* focusedWindow{};
 	Leadwort::Core::Scene* openedScene{};
+
+	std::vector<std::string> logHistory{};
+	Leadwort::Utils::Event<const std::string&> logCallback{};
 };
 
 }

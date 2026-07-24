@@ -4,16 +4,8 @@
 #include <Leadwort/core/public/Window.h>
 #include <Leadwort/systems/public/RenderSystem.h>
 
-/* TODO: Cosas para torturarte en el futuro Sara:
- *  --- Must have.
- *	- Arreglar el Shader Hot Reload (ShaderWatcher no hace nada el muy vago).
- *	--- Nice to have.
- *	- Poner las coordenadas en GUI.
- *	- Poner un botón para resetear coordenadas en GUI.
- *	- Añadir tests >:(.
- */
-
 #include "Leadwort/systems/public/SceneSystem.h"
+#include "LeadwortEditor/windows/public/ConsoleWindow.h"
 #include "LeadwortEditor/windows/public/HierarchyWindow.h"
 
 #include <LeadwortEditor/core/public/EditorCore.h>
@@ -25,6 +17,13 @@
 int main() {
 	using namespace Editor;
 
+	EditorContext editorContext{};
+
+	Leadwort::Utils::Log::LogCallback = [&editorContext](const std::string& message) {
+		editorContext.logHistory.push_back(message);
+		editorContext.logCallback.Execute(message);
+	};
+
     Leadwort::Core::Game game{};
 
 	const auto& window = Leadwort::Core::Window::Get();
@@ -35,7 +34,6 @@ int main() {
     Leadwort::Rendering::RenderTexture& sceneRenderTexture { game.GetSceneOutputTexture() };
 
 	Core::EditorWindowsContainer windowsContainer{};
-	EditorContext editorContext{};
 
 	editorContext.openedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
 
@@ -49,7 +47,8 @@ int main() {
 			[&game](const int width, const int height) { game.ResizeSceneView(width, height); }
 		),
 		Leadwort::CreateUnique<Core::StatusWindow>(),
-		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext)
+		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext),
+		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext)
 	);
 
 	game.Loop([&] {

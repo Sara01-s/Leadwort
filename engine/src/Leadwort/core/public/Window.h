@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../utils/public/ReactiveCommand.h"
+#include "../../utils/public/Event.h"
 #include "../../utils/public/Singleton.h"
 #include "../math/public/Vec2.h"
 
@@ -14,7 +14,7 @@ class Window : public Utils::Singleton<Window> {
 	friend class Singleton;
 
 public:
-	Utils::ReactiveVoidCommand OnWindowResized{};
+	Utils::VoidEvent OnWindowResized{};
 
 	Window() = default;
 	Window(const Window&) = delete;

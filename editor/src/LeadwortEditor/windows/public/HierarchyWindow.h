@@ -11,7 +11,7 @@ class HierarchyWindow final : public Core::IEditorWindow {
 public:
 	explicit HierarchyWindow(EditorContext& editorContext) : m_EditorContext(editorContext) {}
 
-	std::string_view GetName() override {
+	std::string_view GetName() const noexcept override {
 		return "Hierarchy";
 	}
 
