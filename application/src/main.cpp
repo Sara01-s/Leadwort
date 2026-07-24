@@ -56,6 +56,8 @@ int main() {
 		Core::EditorCore::StartFrame();
 		Core::EditorCore::SetupDockSpace();
 
+		game.SetHighlightedEntity(editorContext.selectedEntityID);
+
 		windowsContainer.RenderAllWindows();
 
 		Core::EditorCore::EndFrame();

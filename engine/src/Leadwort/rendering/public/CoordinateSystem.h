@@ -4,7 +4,7 @@
 
 #include <tuple>
 
-namespace Leadwort::Rendering::MatrixUtils {
+namespace Leadwort::Rendering::CoordinateSystem {
 
 struct ProjectionSettings {
 	float fovY;

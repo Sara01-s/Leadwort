@@ -6,8 +6,8 @@
 
 namespace Leadwort::Rendering {
 
-// Owns a single GPU texture (color or depth).
-// Does not own a FBO, use Framebuffer to assemble textures into a render target.
+// Possesses one GPU texture (for color or depth).
+// It does not possess an FBO; use Framebuffer to combine textures into a render target.
 class RenderTexture {
 public:
     enum class Format {
@@ -25,7 +25,7 @@ public:
     RenderTexture& operator=(const RenderTexture&) = delete;
 
     // Recreates the texture at the new size. Invalidates any Framebuffer
-    // that references this texture — those must be rebuilt after resizing.
+    // that references this texture, those must be rebuilt after resizing.
     void Resize(int newWidth, int newHeight);
 
     // Binds as a sampler at the given texture unit.

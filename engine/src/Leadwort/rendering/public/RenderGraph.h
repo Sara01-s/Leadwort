@@ -6,6 +6,8 @@
 #include "RenderPass.h"
 #include "RenderPassBuilder.h"
 
+namespace Leadwort::Core { class Entity; }
+
 namespace Leadwort::Rendering {
 
 class RenderGraph final {
@@ -22,47 +24,9 @@ public:
 		m_Passes.push_back(PassEntry { std::move(pass), nullptr, {} });
 	}
 
-	// Registers declared inputs/outputs per pass.
-	// Future: topological sort + render target aliasing.
-	void Compile() noexcept {
-		for (auto& [pass, frameBuffer, inputs] : m_Passes) {
-			RenderPassBuilder builder{};
-			pass->DeclareResources(builder);
-
-			std::span outputs { builder.GetOutputs() };
-			RenderTexture* depth { builder.GetDepth() };
-
-			std::span inputsSpan { builder.GetInputs() };
-			inputs.assign(inputsSpan.begin(), inputsSpan.end());
-
-			if (!outputs.empty() || depth != nullptr) {
-				frameBuffer = CreateUnique<FrameBuffer>(outputs, depth);
-			}
-		}
-
-		m_IsCompiled = true;
-	}
-
-	void Execute(Components::Camera& camera, RenderQueues& queues) const noexcept {
-		const RenderContext renderContext { &camera, &queues };
-
-		for (const auto& [pass, frameBuffer, inputs] : m_Passes) {
-			if (frameBuffer) {
-				frameBuffer->Bind();
-				glViewport(0, 0, frameBuffer->GetWidth(), frameBuffer->GetHeight());
-			}
-			else {
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			}
-
-			// Pass inputs as samplers.
-			for (GLint slot = 0; slot < static_cast<GLint>(inputs.size()); ++slot) {
-				inputs[slot]->BindAsInput(slot);
-			}
-
-			pass->Execute(renderContext);
-		}
-	}
+	void Compile() noexcept;
+	void Execute(Components::Camera& camera, RenderQueues& queues,
+				 const Core::Entity* highlightedEntity) const noexcept;
 
 	void Clear() noexcept {
 		m_IsCompiled = false;

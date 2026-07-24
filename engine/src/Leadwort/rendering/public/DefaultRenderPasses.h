@@ -1,7 +1,10 @@
 #pragma once
 
+#include "CoordinateSystem.h"
 #include "DrawCommands.h"
+#include "Leadwort/components/public/MeshRenderer.h"
 #include "RenderPassBuilder.h"
+
 #include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/components/public/Renderer.h>
 #include <Leadwort/rendering/public/GLStateCache.h>
@@ -34,20 +37,22 @@ public:
 
     void Execute(const RenderContext& ctx) noexcept override {
     	glDepthMask(GL_TRUE);
+    	glStencilMask(0xFF);
+
         std::visit(overloaded {
             [](const Components::Camera::SkyBox& sky) {
-                glClear(GL_DEPTH_BUFFER_BIT);
+                glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                 sky.skybox->Render();
             },
             [](const Components::Camera::SolidColor& solid) {
                 const auto& bg = solid.color;
                 glClearColor(bg.r, bg.g, bg.b, bg.a);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
         }, ctx.camera->background);
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "Background"; }
+    std::string_view GetName() const noexcept override { return "Background"; }
 
 private:
 	RenderTexture* m_Output { nullptr };
@@ -79,7 +84,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "Opaque"; }
+	std::string_view GetName() const noexcept override { return "Opaque"; }
 
 private:
 	RenderTexture* m_Output { nullptr };
@@ -111,7 +116,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "AlphaTest"; }
+    std::string_view GetName() const noexcept override { return "AlphaTest"; }
 
 private:
     RenderTexture* m_Output { nullptr };
@@ -153,7 +158,7 @@ public:
         glBindVertexArray(0);
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "Grid"; }
+    std::string_view GetName() const noexcept override { return "Grid"; }
 
 private:
     RenderTexture* m_Output { nullptr };
@@ -187,7 +192,7 @@ public:
         buffer.Draw();
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "Transparent"; }
+    std::string_view GetName() const noexcept override { return "Transparent"; }
 
 private:
 	RenderTexture* m_Output { nullptr };
@@ -214,7 +219,7 @@ public:
     	m_PostProcess->Render(m_Src->GetGpuID());
     }
 
-    constexpr std::string_view GetName() const noexcept override { return "PostProcess"; }
+    std::string_view GetName() const noexcept override { return "PostProcess"; }
 
 private:
     RenderTexture* m_Src { nullptr };
@@ -222,6 +227,65 @@ private:
     Unique<PostProcess> m_PostProcess { CreateUnique<PostProcess>(
 		AssetManagement::EngineAssets::GetShader("shaders/postprocess/shd_post_process.glsl")
 	)};
+};
+
+// ─────────────────────────────────────────────
+//  Outline (stencil-based selection outline)
+// ─────────────────────────────────────────────
+
+class OutlinePass final : public RenderPass {
+public:
+    explicit OutlinePass(RenderTexture* output, RenderTexture* depth) noexcept
+        : m_Output(output), m_Depth(depth) {}
+
+    void DeclareResources(RenderPassBuilder& builder) noexcept override {
+        builder.Write(m_Output);
+        builder.WriteDepth(m_Depth);
+    }
+
+    void Execute(const RenderContext& ctx) noexcept override {
+        if (ctx.highlightedMeshRenderer == nullptr) {
+            return;
+        }
+
+        const auto& entity      { ctx.highlightedMeshRenderer->GetEntity() };
+        const auto& mesh        { ctx.highlightedMeshRenderer->mesh };
+        const Mat4  modelMatrix { CoordinateSystem::CalculateModelMatrix(entity.GetTransform()) };
+
+        GLStateCache::Get().ApplyState(RenderPipelineState::OutlineStencilWrite());
+        DrawMesh(*mesh, modelMatrix, *m_MaskShader);
+
+        GLStateCache::Get().ApplyState(RenderPipelineState::OutlineDraw());
+
+    	m_OutlineShader->Bind();
+    	m_OutlineShader->SetUniform("_ModelMatrix", modelMatrix);
+    	m_OutlineShader->SetUniform("_OutlineThickness", 0.03f);
+    	m_OutlineShader->SetUniform("_OutlineColor", Vec4(0.2f, 0.75f, 0.9f, 1.0f));
+
+    	mesh->Bind();
+        glDrawElements(mesh->GetTopology(), mesh->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+        mesh->Unbind();
+
+        m_OutlineShader->Unbind();
+    }
+
+    std::string_view GetName() const noexcept override { return "Outline"; }
+
+private:
+    static void DrawMesh(const Bindables::Mesh& mesh, const Mat4& modelMatrix, const Bindables::Shader& shader) noexcept {
+        shader.Bind();
+        shader.SetUniform("_ModelMatrix", modelMatrix);
+        mesh.Bind();
+        glDrawElements(mesh.GetTopology(), mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+        mesh.Unbind();
+        shader.Unbind();
+    }
+
+private:
+    RenderTexture* m_Output { nullptr };
+    RenderTexture* m_Depth { nullptr };
+    Shared<Bindables::Shader> m_MaskShader    { AssetManagement::EngineAssets::GetShader("shaders/shd_outline_mask.glsl") };
+    Shared<Bindables::Shader> m_OutlineShader { AssetManagement::EngineAssets::GetShader("shaders/shd_outline.glsl") };
 };
 
 } // namespace Engine::Rendering::Passes

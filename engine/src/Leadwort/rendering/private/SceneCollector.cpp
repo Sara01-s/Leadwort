@@ -1,10 +1,10 @@
-#include <Leadwort/rendering/public/SceneCollector.h>
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/components/public/Renderer.h>
 #include <Leadwort/core/math/public/Frustum.h>
 #include <Leadwort/core/public/Entity.h>
 #include <Leadwort/core/public/Scene.h>
-#include <Leadwort/rendering/public/MatrixUtils.h>
+#include <Leadwort/rendering/public/CoordinateSystem.h>
+#include <Leadwort/rendering/public/SceneCollector.h>
 
 #include <ranges>
 
@@ -38,7 +38,7 @@ RenderQueues SceneCollector::BuildRenderQueues(const Components::Camera& camera)
 
 		if (const auto aabb = renderer->GetAABB()) {
 			const AABB worldAABB = aabb->Transformed(
-				MatrixUtils::CalculateModelMatrix(renderer->GetEntity().GetTransform())
+				CoordinateSystem::CalculateModelMatrix(renderer->GetEntity().GetTransform())
 			);
 
 			if (!frustum.Intersects(worldAABB)) {

@@ -25,7 +25,8 @@ public:
 		const auto model { AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb") };
 		model->Instantiate(*modelParent);
     	modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
-    	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(0.0f, -180.0f, 0.0f));
+    	modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
+    	modelParent->GetTransform().SetLocalScale(Vec3(0.03f));
 
         // Main Camera
         {

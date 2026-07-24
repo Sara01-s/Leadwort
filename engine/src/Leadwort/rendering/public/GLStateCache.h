@@ -1,10 +1,12 @@
 #pragma once
 
+#include "glad/glad.h"
+
 #include <Leadwort/rendering/public/RenderPipelineState.h>
 
 namespace Leadwort::Rendering {
 
-// Caches the currently-applied GL state and only issues
+// Caches the currently applied GL state and only issues
 // glEnable/glDisable/etc calls when something actually changes.
 //
 // Single source of truth: every pass calls ApplyState(...)
@@ -18,7 +20,7 @@ public:
 
 	// Forces the next ApplyState to re-issue everything.
 	// Call this once at frame start (or after external code
-	// that pokes GL directly, e.g. ImGui).
+	// that pokes GL directly, e.g., ImGui).
 	void Invalidate();
 	void ApplyState(const RenderPipelineState& state);
 
@@ -33,6 +35,12 @@ private:
 	static void ApplyCullMode(CullMode mode);
 	static void ApplyBlendMode(BlendMode mode);
 	static void ApplyMultisample(bool enabled);
+
+	static void ApplyStencilTest(bool enabled);
+	static void ApplyStencilFunc(DepthFunc func, uint8_t ref, uint8_t mask);
+	static void ApplyStencilOp(StencilOp fail, StencilOp passDepthFail, StencilOp passDepthPass);
+	static void ApplyStencilWriteMask(uint8_t mask);
+	static void ApplyColorWrite(bool enabled);
 
 private:
 	RenderPipelineState m_CurrentRenderPipelineState{};

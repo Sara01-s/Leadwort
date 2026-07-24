@@ -65,6 +65,7 @@ void Game::BuildRenderGraphs() {
 	m_SceneRenderGraph.AddPass(CreateUnique<AlphaTestPass>(sceneColor, sceneDepth));
 	m_SceneRenderGraph.AddPass(CreateUnique<GridPass>(sceneColor, sceneDepth));
 	m_SceneRenderGraph.AddPass(CreateUnique<TransparentPass>(sceneColor, sceneDepth));
+	m_SceneRenderGraph.AddPass(CreateUnique<OutlinePass>(sceneColor, sceneDepth));
 	m_SceneRenderGraph.Compile();
 }
 
@@ -134,6 +135,20 @@ void Game::ResizeSceneView(const int width, const int height) {
 	if (auto* sceneCam = CameraSystem::Get().GetSceneCamera()) {
 		sceneCam->aspect = static_cast<float>(width) / static_cast<float>(height);
 	}
+}
+
+void Game::SetHighlightedEntity(const EntityID entityID) {
+	if (entityID == Entity::ROOT_ENTITY_ID) {
+		return;
+	}
+
+	auto const& entity { SceneSystem::Get().GetCurrentScene()->GetEntity(entityID) };
+
+	if (!entity->HasComponent<Components::MeshRenderer>()) {
+		return;
+	}
+
+	RenderSystem::Get().SetHighlightedEntity(entity);
 }
 
 } // namespace Engine::Core

@@ -23,6 +23,7 @@ namespace Leadwort::Core {
 
 class Entity final : public Serialization::ISerializable {
 public:
+	static constexpr EntityID ROOT_ENTITY_ID { 0U };
     static constexpr auto DEFAULT_NAME { "New Entity" };
 
     std::string name;
@@ -153,7 +154,7 @@ private:
     std::unordered_map<std::type_index, Components::Component*> m_Components{};
     std::vector<Unique<Components::Component>> m_OwnedComponents{};
 	Components::Transform* m_Transform;
-    EntityID m_ID { 0U };
+    EntityID m_ID { ROOT_ENTITY_ID };
 };
 
 } // namespace Engine::Core

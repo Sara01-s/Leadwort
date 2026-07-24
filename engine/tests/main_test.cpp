@@ -1,9 +1,9 @@
 #include <Leadwort/components/public/Transform.h>
 #include <Leadwort/core/math/public/Math.h>
-#include <Leadwort/rendering/public/MatrixUtils.h>
+#include <Leadwort/rendering/public/CoordinateSystem.h>
 
-#include <gtest/gtest.h>
 #include <cmath>
+#include <gtest/gtest.h>
 
 using namespace Leadwort;
 
@@ -23,8 +23,8 @@ TEST(CoordinateSystem, CameraLookingAtCubeAlongPositiveZ) {
     camera.SetWorldPosition(Vec3(0, 0, -5));
     camera.LookAt(Vec3(0, 0, 0));
 
-    const Mat4 view = Rendering::MatrixUtils::CalculateViewMatrix(camera);
-    const Mat4 proj = Rendering::MatrixUtils::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
+    const Mat4 view = Rendering::CoordinateSystem::CalculateViewMatrix(camera);
+    const Mat4 proj = Rendering::CoordinateSystem::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
 
     const Vec4 clipPos = proj * view * Vec4(0,0,0,1);
     const Vec3 ndc = clipPos.XYZ() / clipPos.w;
@@ -40,10 +40,10 @@ TEST(CoordinateSystem, MovingCameraForwardMovesTargetFartherInView) {
     camera.SetWorldPosition(Vec3(0,0,-5));
     camera.LookAt(Vec3(0,0,0));
 
-    const Mat4 view1 = Rendering::MatrixUtils::CalculateViewMatrix(camera);
+    const Mat4 view1 = Rendering::CoordinateSystem::CalculateViewMatrix(camera);
 
     camera.SetWorldPosition(camera.GetWorldPosition() + camera.GetWorldRotation().Forward());
-    const Mat4 view2 = Rendering::MatrixUtils::CalculateViewMatrix(camera);
+    const Mat4 view2 = Rendering::CoordinateSystem::CalculateViewMatrix(camera);
 
     const Vec4 cubeView1 = view1 * Vec4(0,0,0,1);
     const Vec4 cubeView2 = view2 * Vec4(0,0,0,1);
@@ -102,8 +102,8 @@ TEST(CoordinateSystem, IdentityTransformLooksAlongConventionForward) {
 
 // NUEVO: Verifica que el cambio de Aspect Ratio modifique correctamente NDC para evitar "stretch"
 TEST(CoordinateSystem, ProjectionAdjustsToAspectRatio) {
-    const Mat4 projSquare = Rendering::MatrixUtils::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
-    const Mat4 projWide   = Rendering::MatrixUtils::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 2.0f}); // Doble de ancho
+    const Mat4 projSquare = Rendering::CoordinateSystem::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
+    const Mat4 projWide   = Rendering::CoordinateSystem::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 2.0f}); // Doble de ancho
 
 	constexpr Vec4 viewPos(1.0f, 0.0f, -5.0f, 1.0f); // Un punto desplazado a la derecha en View Space
 
@@ -119,7 +119,7 @@ TEST(CoordinateSystem, ProjectionAdjustsToAspectRatio) {
 
 // NUEVO: Verifica que los límites del Frustum (Near y Far) clipen correctamente en OpenGL (-1 a 1)
 TEST(CoordinateSystem, ProjectionClipsOutsideNearAndFarPlanes) {
-    const Mat4 proj = Rendering::MatrixUtils::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
+    const Mat4 proj = Rendering::CoordinateSystem::CalculateProjectionMatrix({60.0f, 0.1f, 100.0f, 1.0f});
 
     // Punto exactamente en el plano Near (Z = -0.1 en View Space de OpenGL)
     const Vec4 clipNear = proj * Vec4(0.0f, 0.0f, -0.1f, 1.0f);

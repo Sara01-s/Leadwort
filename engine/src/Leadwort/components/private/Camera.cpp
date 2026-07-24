@@ -1,6 +1,6 @@
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/core/public/Entity.h>
-#include <Leadwort/rendering/public/MatrixUtils.h>
+#include <Leadwort/rendering/public/CoordinateSystem.h>
 
 namespace Leadwort::Components {
 
@@ -13,11 +13,11 @@ bool Camera::ShouldRender(const Core::Entity& entity) const {
 }
 
 Mat4 Camera::GetViewMatrix() const {
-	return Rendering::MatrixUtils::CalculateViewMatrix(GetEntity().GetTransform());
+	return Rendering::CoordinateSystem::CalculateViewMatrix(GetEntity().GetTransform());
 }
 
 Mat4 Camera::GetProjectionMatrix() const {
-	return Rendering::MatrixUtils::CalculateProjectionMatrix({fov, nearPlane, farPlane, aspect});
+	return Rendering::CoordinateSystem::CalculateProjectionMatrix({fov, nearPlane, farPlane, aspect});
 }
 
 } // namespace Engine::Components

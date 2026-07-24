@@ -19,6 +19,7 @@ public:
     void Initialize();
 
 	void Render(Components::Camera& camera, const Rendering::RenderGraph& graph) const;
+	void SetHighlightedEntity(Core::Entity* entity) noexcept { m_HighlightedEntity = entity; }
 
 	static void ClearScreen();
     static void SetClearColor(Color color);
@@ -33,6 +34,8 @@ private:
 	Rendering::SceneCollector m_SceneCollector{};
 	Rendering::RenderGraph m_GameRenderGraph{};
 	Rendering::RenderGraph m_SceneRenderGraph{};
+
+	Core::Entity* m_HighlightedEntity { nullptr };
 };
 
 } // namespace Engine::Systems

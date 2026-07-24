@@ -17,6 +17,7 @@ public:
 
 	void ResizeGameView(int width, int height);
 	void ResizeSceneView(int width, int height);
+	static void SetHighlightedEntity(EntityID entityID);
 
 	[[nodiscard]] Rendering::RenderTexture& GetGameColorTexture()  const noexcept { return *m_GameColorTex; }
 	[[nodiscard]] Rendering::RenderTexture& GetGameDepthTexture()  const noexcept { return *m_GameDepthTex; }

@@ -50,7 +50,7 @@ void RenderSystem::Render(Camera& camera, const RenderGraph& graph) const {
 	m_CameraUBO.Update(camera);
 	m_LightingUBO.Update(LightingSystem::Get().GetDirectionalLight());
 
-	graph.Execute(camera, queues);
+	graph.Execute(camera, queues, m_HighlightedEntity);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());

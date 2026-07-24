@@ -2,7 +2,6 @@
 
 #include <Leadwort/asset-management/public/DefaultAssets.h>
 #include <Leadwort/components/public/Renderer.h>
-#include <Leadwort/rendering/bindables/public/Material.h>
 #include <Leadwort/rendering/bindables/public/Mesh.h>
 #include <Leadwort/systems/public/RenderSystem.h>
 #include <Leadwort/utils/public/PrimitiveMeshes.h>

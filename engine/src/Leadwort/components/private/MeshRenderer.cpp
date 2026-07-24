@@ -1,8 +1,8 @@
 #include <Leadwort/components/public/MeshRenderer.h>
 #include <Leadwort/components/public/Transform.h>
 #include <Leadwort/core/public/Entity.h>
+#include <Leadwort/rendering/public/CoordinateSystem.h>
 #include <Leadwort/rendering/public/DrawCommands.h>
-#include <Leadwort/rendering/public/MatrixUtils.h>
 #include <Leadwort/utils/public/Logger.h>
 
 namespace Leadwort::Components {
@@ -16,7 +16,7 @@ void MeshRenderer::EmitDrawCommand(DrawCommandBuffer& drawCmdBuffer, const Camer
 	auto const& activeMaterial = mesh->GetMaterial();
 	LW_ASSERT(activeMaterial, "MeshRenderer::Render: Material is null.");
 
-	const Mat4  modelMatrix = MatrixUtils::CalculateModelMatrix(GetEntity().GetTransform());
+	const Mat4  modelMatrix = CoordinateSystem::CalculateModelMatrix(GetEntity().GetTransform());
 	const Vec3  viewPos     = camera.WorldToCameraSpace(modelMatrix.GetTranslation());
 	const float linearDepth = -viewPos.z;
 

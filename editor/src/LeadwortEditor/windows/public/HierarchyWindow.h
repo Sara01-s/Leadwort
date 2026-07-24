@@ -23,27 +23,11 @@ public:
 
 	   for (const auto& entity : m_EditorContext.openedScene->GetEntityMap() | std::views::values) {
 	      const bool hasParent { entity->GetTransform().HasParent() };
-	      const bool isChildOfRoot { hasParent && entity->GetTransform().GetParent()->GetEntity() == *m_EditorContext.openedScene->GetRootEntity() };
+	      const bool isChildOfRoot { hasParent && entity->GetTransform().GetParent()->GetEntity().GetID() == Leadwort::Core::Entity::ROOT_ENTITY_ID };
 
 	      if (!hasParent || isChildOfRoot) {
 	         DrawEntityNode(*entity, selectionChangedThisFrame);
 	      }
-	   }
-
-	   if (selectionChangedThisFrame) {
-	      ImGui::OpenPopup("Entity Selected##Hierarchy");
-	   }
-
-	   const ImVec2 center { ImGui::GetMainViewport()->GetCenter() };
-	   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-	   if (ImGui::BeginPopup("Entity Selected##Hierarchy")) {
-	      const std::string_view name { m_EditorContext.openedScene->GetEntity(m_EditorContext.selectedEntityID)->name };
-	      ImGui::Text("Seleccionaste la entidad: %s", name.data());
-	      if (ImGui::Button("OK")) {
-	         ImGui::CloseCurrentPopup();
-	      }
-	      ImGui::EndPopup();
 	   }
 
 	   ImGui::End();

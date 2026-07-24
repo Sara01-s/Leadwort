@@ -8,6 +8,10 @@ enum class DepthFunc : std::uint8_t {
 	Never, Less, Equal, LEqual, Greater, NotEqual, GEqual, Always
 };
 
+enum class StencilOp : std::uint8_t {
+	Keep, Zero, Replace, Incr, IncrWrap, Decr, DecrWrap, Invert
+};
+
 enum class CullMode : std::uint8_t {
 	None, Back, Front, FrontAndBack
 };
@@ -20,12 +24,22 @@ enum class BlendMode : std::uint8_t {
 };
 
 struct RenderPipelineState {
-    bool      depthTest   { true };
-    bool      depthWrite  { true };
-    bool      multisample { true };
-    DepthFunc depthFunc { DepthFunc::Less };
-    CullMode  cullMode  { CullMode::Back };
-    BlendMode blendMode { BlendMode::Disabled };
+	bool      depthTest   { true };
+	bool      depthWrite  { true };
+	bool      multisample { true };
+	DepthFunc depthFunc { DepthFunc::Less };
+	CullMode  cullMode  { CullMode::Back };
+	BlendMode blendMode { BlendMode::Disabled };
+
+	bool      stencilTest      { false };
+	DepthFunc stencilFunc      { DepthFunc::Always };
+	uint8_t   stencilRef       { 0 };
+	uint8_t   stencilReadMask  { 0xFF };
+	uint8_t   stencilWriteMask { 0xFF };
+	StencilOp stencilFailOp          { StencilOp::Keep };
+	StencilOp stencilPassDepthFailOp { StencilOp::Keep };
+	StencilOp stencilPassDepthPassOp { StencilOp::Keep };
+	bool      colorWrite { true };
 
     // Presets
     static constexpr RenderPipelineState Opaque() {
@@ -86,6 +100,42 @@ struct RenderPipelineState {
             .multisample = true,
             .cullMode    = CullMode::None,
             .blendMode   = BlendMode::AlphaBlend,
+        };
+    }
+
+    static constexpr RenderPipelineState OutlineStencilWrite() {
+        return RenderPipelineState {
+            .depthTest   = false,
+            .depthWrite  = false,
+        	.multisample = false,
+            .cullMode    = CullMode::Back,
+            .blendMode   = BlendMode::Disabled,
+            .stencilTest      = true,
+            .stencilFunc      = DepthFunc::NotEqual,
+            .stencilRef       = 1,
+            .stencilReadMask  = 0xFF,
+            .stencilWriteMask = 0xFF,
+            .stencilFailOp          = StencilOp::Keep,
+            .stencilPassDepthFailOp = StencilOp::Keep,
+            .stencilPassDepthPassOp = StencilOp::Replace,
+            .colorWrite = false,
+        };
+    }
+
+    static constexpr RenderPipelineState OutlineDraw() {
+        return RenderPipelineState {
+            .depthTest   = true,
+            .depthWrite  = false,
+        	.multisample = false,
+        	.depthFunc  = DepthFunc::LEqual,
+            .cullMode   = CullMode::Back,
+            .blendMode  = BlendMode::Disabled,
+            .stencilTest      = true,
+            .stencilFunc      = DepthFunc::NotEqual,
+            .stencilRef       = 1,
+            .stencilReadMask  = 0xFF,
+            .stencilWriteMask = 0x00,
+            .colorWrite = true,
         };
     }
 
