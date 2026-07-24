@@ -14,7 +14,7 @@ public:
 		const ResizeCallback& onResize
 	) : m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize) {}
 
-	constexpr std::string_view GetName() override {
+	std::string_view GetName() override {
 		return "Scene Viewport";
 	}
 

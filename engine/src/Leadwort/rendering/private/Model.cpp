@@ -55,29 +55,29 @@ void Model::Instantiate(Entity& parentEntity) {
 }
 
 void Model::AttachNodeToEntity(const aiNode* node, Entity& entity) {
-	const unsigned int numMeshes = node->mNumMeshes;
+	const unsigned int numMeshes { node->mNumMeshes };
 
-	for (unsigned int i = 0; i < numMeshes; i++) {
-		auto& mesh = m_Meshes[node->mMeshes[i]];
+	for (std::uint32_t i = 0; i < numMeshes; ++i) {
+		auto& mesh { m_Meshes[node->mMeshes[i]] };
 
 		if (numMeshes == 1) {
-			auto* renderer = entity.AddComponent<Components::MeshRenderer>();
+			auto* renderer { entity.AddComponent<Components::MeshRenderer>() };
 			renderer->mesh = mesh;
 		}
 		else {
-			const std::string childName = std::string(node->mName.C_Str()) + "_mesh_" + std::to_string(i);
+			const std::string childName { std::string(node->mName.C_Str()) + "_mesh_" + std::to_string(i) };
 			entity.CreateChild(childName, [&](Entity& child) {
-				auto* renderer = child.AddComponent<Components::MeshRenderer>();
+				auto* renderer { child.AddComponent<Components::MeshRenderer>() };
 				renderer->mesh = mesh;
 			});
 		}
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-		const aiNode* childNode = node->mChildren[i];
+	for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+		const aiNode* childNode { node->mChildren[i] };
 
 		entity.CreateChild(childNode->mName.C_Str(), [&](Entity& child) {
-			const Mat4 childMatrix = AssimpToMat4(childNode->mTransformation);
+			const Mat4 childMatrix { AssimpToMat4(childNode->mTransformation) };
 
 			child.GetTransform().SetLocalPosition(childMatrix.GetTranslation());
 			child.GetTransform().SetLocalRotation(childMatrix.GetRotation());
@@ -102,13 +102,13 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 
     using namespace Rendering::Bindables;
 
-    const bool hasNormals   = mesh->HasNormals();
-    const bool hasTexCoords = mesh->mTextureCoords[0] != nullptr;
-    const bool hasTangents  = mesh->HasTangentsAndBitangents();
+    const bool hasNormals   { mesh->HasNormals() };
+    const bool hasTexCoords { mesh->mTextureCoords[0] != nullptr };
+    const bool hasTangents  { mesh->HasTangentsAndBitangents() };
 
-	const unsigned int meshIndex = mesh->mMaterialIndex;
+	const unsigned int meshIndex { mesh->mMaterialIndex };
 
-    VertexLayout layout;
+    VertexLayout layout{};
     layout.Append(ElementType::Position3D);
     if (hasNormals)   { layout.Append(ElementType::Normal3D);    }
     if (hasTexCoords) { layout.Append(ElementType::TexCoord2D);  }
@@ -156,7 +156,7 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
         }
     }
 
-    const MaterialFeatures features = ParseMaterialFeatures(scene->mMaterials[meshIndex]);
+    const MaterialFeatures features { ParseMaterialFeatures(scene->mMaterials[meshIndex]) };
 
 	std::set<std::string> defines{};
 
@@ -177,8 +177,8 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 	if (features.hasMetallic)  defines.insert("HAS_METALLIC");
 	if (features.hasAO)        defines.insert("HAS_AO");
 
-	const Shared<Shader> shader = EngineAssets::GetShader("shaders/shd_lit.glsl", defines);
-	const Shared<Material> material = EngineAssets::CreateMaterial(shader);
+	const Shared<Shader> shader { EngineAssets::GetShader("shaders/shd_lit.glsl", defines) };
+	const Shared<Material> material { EngineAssets::CreateMaterial(shader) };
 
     material->SetColor4("_Color", features.color);
     material->SetFloat("_SpecularIntensity", features.specularIntensity);
@@ -188,14 +188,14 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 
     BindTextures(*material, scene->mMaterials[meshIndex], features);
 
-	const auto meshKey = MeshKey { path, meshIndex };
-	auto resultMesh = EngineAssets::GetMesh(MeshData {
+	const auto meshKey { MeshKey { path, meshIndex } };
+	auto resultMesh { EngineAssets::GetMesh(MeshData {
 		layout,
 		std::as_bytes(std::span<const float> { vertices }),
 		std::as_bytes(std::span<const Index> { indices }),
 		material,
 		meshKey
-	});
+	}) };
 
     LW_ASSERT(resultMesh != nullptr, "Model::ParseMesh: Failed to instantiate mesh.");
     LW_ASSERT(resultMesh->GetMaterial() != nullptr, "Model::ParseMesh: Created mesh has a null material.");

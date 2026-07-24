@@ -15,7 +15,7 @@ public:
 		const float targetAspectRatio = 16.0f / 9.0f
 	) : m_GameRenderTexture(gameRenderTexture), m_OnResize(onResize), m_TargetAspectRatio(targetAspectRatio) {}
 
-	constexpr std::string_view GetName() override {
+	std::string_view GetName() override {
 		return "Game Viewport";
 	}
 

@@ -19,9 +19,9 @@ public:
 
 	[[nodiscard]] std::size_t GetEntityCount() const { return m_EntityMap.size(); }
 	[[nodiscard]] Entity* GetRootEntity() const { return m_RootEntity.get(); }
-	[[nodiscard]] Entity* GetEntity(int id) const;
+	[[nodiscard]] Entity* GetEntity(EntityID entityID) const;
 
-	[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntities() const { return m_EntityMap; }
+	[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntityMap() const { return m_EntityMap; }
 	[[nodiscard]] const std::unordered_map<std::string, Entity*>& GetNamedRefs() const { return m_NamedRefs; }
 
 	Entity* CreateEntity(const std::string& name = Entity::DEFAULT_NAME);

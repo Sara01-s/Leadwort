@@ -13,7 +13,7 @@ namespace Leadwort::Rendering {
 void SceneCollector::FindRenderersInScene(const Core::Scene& scene) {
 	m_Renderers.clear();
 
-	for (const auto& entity : scene.GetEntities() | std::views::values) {
+	for (const auto& entity : scene.GetEntityMap() | std::views::values) {
 		for (auto* component : entity->GetAllComponents()) {
 			if (auto* renderer = dynamic_cast<Components::Renderer*>(component)) {
 				LW_LOG("SceneCollector: Renderer found in the current scene: ", renderer->GetEntity().name);

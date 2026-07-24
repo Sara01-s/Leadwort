@@ -23,7 +23,7 @@ namespace Leadwort::Core {
 
 class Entity final : public Serialization::ISerializable {
 public:
-    static constexpr auto DEFAULT_NAME = "New Entity";
+    static constexpr auto DEFAULT_NAME { "New Entity" };
 
     std::string name;
     uint32_t layerMask = Utils::Layers::EVERYTHING;
@@ -36,6 +36,7 @@ public:
 
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
+	constexpr bool operator==(const Entity& other) const noexcept { return m_ID == other.GetID(); }
 
 	Components::Transform& GetTransform() const {
 		return *m_Transform;
@@ -108,7 +109,7 @@ public:
     }
 
     [[nodiscard]] bool CompareTag(const std::string& t) const { return tag == t; }
-	[[nodiscard]] int GetID() const { return m_ID; }
+	[[nodiscard]] constexpr EntityID GetID() const { return m_ID; }
     [[nodiscard]] Entity* FindEntityByTag(const std::string& t) const;
     Entity* CreateChild(const std::string& childName) const;
 
@@ -152,7 +153,7 @@ private:
     std::unordered_map<std::type_index, Components::Component*> m_Components{};
     std::vector<Unique<Components::Component>> m_OwnedComponents{};
 	Components::Transform* m_Transform;
-     int m_ID { 0 };
+    EntityID m_ID { 0U };
 };
 
 } // namespace Engine::Core

@@ -19,6 +19,7 @@ using BufferView = std::span<std::byte>;
 using ConstBufferView = std::span<const std::byte>;
 
 using GpuID = unsigned int;
+using EntityID = std::uint32_t;
 using Index = std::uint32_t;
 
 template <typename T, size_t Alignment = 16>

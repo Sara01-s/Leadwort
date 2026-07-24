@@ -95,11 +95,11 @@ Entity* Scene::AddEntity(
 	return entity;
 }
 
-Entity* Scene::GetEntity(const int id) const {
-	const auto it { m_EntityMap.find(id) };
+Entity* Scene::GetEntity(const EntityID entityID) const {
+	const auto it { m_EntityMap.find(entityID) };
 
 	if (it == m_EntityMap.end()) {
-		throw std::runtime_error("Entity with id " + std::to_string(id) + " not found");
+		throw std::runtime_error("Entity with id " + std::to_string(entityID) + " not found");
 	}
 
 	return it->second.get();

@@ -48,6 +48,8 @@ public:
 	[[nodiscard]] Transform* GetParent() const { return m_Parent; }
 	[[nodiscard]] const std::vector<Transform*>& GetChildren() const { return m_Children; }
 	[[nodiscard]] bool IsAncestorOf(const Transform& other) const;
+	[[nodiscard]] bool HasChildren() const noexcept { return !m_Children.empty(); }
+	[[nodiscard]] bool HasParent() const noexcept { return m_Parent != nullptr; }
 
 	// Mutation helpers
 	void Translate(const Vec3& delta);
@@ -59,7 +61,7 @@ public:
 
 	void Serialize(Json& out) const final override;
 	void Deserialize(const Json& in) final override;
-	std::string_view GetTypeName() const final override { return "Transform"; }
+	[[nodiscard]] std::string_view GetTypeName() const final override { return "Transform"; }
 
 private:
 	[[nodiscard]] bool IsDirty() const;

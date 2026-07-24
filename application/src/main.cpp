@@ -13,6 +13,9 @@
  *	- Añadir tests >:(.
  */
 
+#include "Leadwort/systems/public/SceneSystem.h"
+#include "LeadwortEditor/windows/public/HierarchyWindow.h"
+
 #include <LeadwortEditor/core/public/EditorCore.h>
 #include <LeadwortEditor/core/public/EditorWindowsContainer.h>
 #include <LeadwortEditor/windows/public/GameViewport.h>
@@ -32,6 +35,9 @@ int main() {
     Leadwort::Rendering::RenderTexture& sceneRenderTexture { game.GetSceneOutputTexture() };
 
 	Core::EditorWindowsContainer windowsContainer{};
+	EditorContext editorContext{};
+
+	editorContext.openedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
 
 	windowsContainer.AddWindows(
 		Leadwort::CreateUnique<Windows::GameViewport>(
@@ -42,7 +48,8 @@ int main() {
 			&sceneRenderTexture,
 			[&game](const int width, const int height) { game.ResizeSceneView(width, height); }
 		),
-		Leadwort::CreateUnique<Core::StatusWindow>()
+		Leadwort::CreateUnique<Core::StatusWindow>(),
+		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext)
 	);
 
 	game.Loop([&] {

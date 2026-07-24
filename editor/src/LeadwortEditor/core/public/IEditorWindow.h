@@ -9,7 +9,7 @@ class IEditorWindow {
 public:
 	virtual ~IEditorWindow() = default;
 
-	constexpr virtual std::string_view GetName() = 0;
+	virtual std::string_view GetName() = 0;
 	virtual void OnGuiRender() = 0;
 };
 

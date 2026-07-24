@@ -27,7 +27,7 @@ Components::Camera* CameraSystem::FindByTag(const std::string& tag) {
 		return nullptr;
 	}
 
-	for (const auto& entity : scene->GetEntities() | std::ranges::views::values) {
+	for (const auto& entity : scene->GetEntityMap() | std::ranges::views::values) {
 		if (entity->CompareTag(tag) && entity->HasComponent<Components::Camera>()) {
 			return entity->GetComponent<Components::Camera>();
 		}
