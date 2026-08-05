@@ -14,6 +14,12 @@ namespace Leadwort::Components {
 
 class Transform : public Component {
 public:
+	LW_REFLECT(Transform,
+		LW_FIELD(Vec3, m_LocalPosition, "Position"),
+		LW_FIELD(Quat, m_LocalRotation, "Rotation"),
+		LW_FIELD(Vec3, m_LocalScale, "Scale")
+	)
+
 	// Local space
 	void SetLocalPosition(const Vec3& position);
 	void SetLocalRotation(const Quat& rotation);
@@ -61,11 +67,13 @@ public:
 
 	void Serialize(Json& out) const final override;
 	void Deserialize(const Json& in) final override;
-	[[nodiscard]] std::string_view GetTypeName() const final override { return "Transform"; }
+
+	void OnFieldsChanged() override { MarkDirty(); }
 
 private:
-	[[nodiscard]] bool IsDirty() const;
 	void MarkDirty() const;
+
+	[[nodiscard]] bool IsDirty() const;
 	void RebuildLocalMatrix() const;
 	void RebuildWorldMatrices() const;
 	void SetWorldTransform(const Vec3& pos, const Quat& rot, const Vec3& scl);

@@ -5,8 +5,10 @@
 #include <Leadwort/systems/public/RenderSystem.h>
 
 #include "Leadwort/systems/public/SceneSystem.h"
+#include "LeadwortEditor/windows/public/AssetsWindow.h"
 #include "LeadwortEditor/windows/public/ConsoleWindow.h"
 #include "LeadwortEditor/windows/public/HierarchyWindow.h"
+#include "LeadwortEditor/windows/public/InspectorWindow.h"
 
 #include <LeadwortEditor/core/public/EditorCore.h>
 #include <LeadwortEditor/core/public/EditorWindowsContainer.h>
@@ -48,17 +50,27 @@ int main() {
 		),
 		Leadwort::CreateUnique<Core::StatusWindow>(),
 		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext),
-		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext)
+		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext),
+		Leadwort::CreateUnique<Windows::InspectorWindow>(editorContext),
+		Leadwort::CreateUnique<Windows::AssetsWindow>(editorContext)
 	);
+
 
 	game.Loop([&] {
 		Core::EditorCore::StartFrame();
 		Core::EditorCore::SetupDockSpace();
 
-		game.SetHighlightedEntity(editorContext.selectedEntityID);
+		if (const auto* selectedID = std::get_if<Leadwort::EntityID>(&editorContext.selection)) {
+			game.SetHighlightedEntity(*selectedID);
+		}
+		else {
+			game.SetHighlightedEntity(Leadwort::Core::Entity::ROOT_ENTITY_ID);
+		}
 
 		windowsContainer.RenderAllWindows();
 
 		Core::EditorCore::EndFrame();
 	});
+
+	Leadwort::Utils::Log::LogCallback = nullptr;
 }

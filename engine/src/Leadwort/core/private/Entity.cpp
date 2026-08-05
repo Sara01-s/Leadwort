@@ -7,7 +7,7 @@
 
 namespace Leadwort::Core {
 
-Entity::Entity(const int id, std::string name)
+Entity::Entity(const EntityID id, std::string name)
 	: name(std::move(name)), m_Transform(AddComponent<Components::Transform>()), m_ID(id)
 {}
 
@@ -16,6 +16,8 @@ Entity::~Entity() {
 }
 
 Entity* Entity::FindEntityByTag(const std::string& t) const {
+	LW_ASSERT(scene, "Entity::FindEntityByTag called on entity without a scene");
+	
 	for (const auto& entity: scene->GetEntityMap() | std::views::values) {
 		if (entity->CompareTag(t)) {
 		    return entity.get();

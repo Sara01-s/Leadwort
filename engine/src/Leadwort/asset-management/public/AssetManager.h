@@ -77,6 +77,7 @@ public:
     [[nodiscard]] Shared<Core::Model>         GetModel                  (const std::string& path);
 	[[nodiscard]] Shared<Bindables::Mesh>	  GetMesh(const Bindables::MeshData& meshData);
 	[[nodiscard]] static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader);
+	[[nodiscard]] const std::string& GetRootPath() const { return m_Root; }
 
 	void Cleanup();
 
@@ -102,6 +103,7 @@ public:
     [[nodiscard]] static std::string          ResolvePath (const std::string& path) { return Get().ResolvePath(path); }
     [[nodiscard]] static std::string          LoadText    (const std::string& path) { return Get().LoadText(path); }
     [[nodiscard]] static std::vector<uint8_t> LoadBytes   (const std::string& path) { return Get().LoadBytes(path); }
+	[[nodiscard]] static const std::string& GetRootPath() { return Get().GetRootPath(); }
 
     [[nodiscard]]
     static Shared<Bindables::Shader> GetShader(
@@ -157,6 +159,6 @@ inline constexpr char EngineRoot[] = ENGINE_ASSET_ROOT;
 inline constexpr char GameRoot[]   = GAME_ASSET_ROOT;
 
 struct EngineAssets : AssetWrapper<EngineAssets, EngineRoot> {};
-//struct GameAssets   : AssetWrapper<GameAssets,   GameRoot>   {};
+struct GameAssets   : AssetWrapper<GameAssets,   GameRoot>   {};
 
 } // namespace Engine::AssetManagement

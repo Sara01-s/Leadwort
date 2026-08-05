@@ -26,13 +26,13 @@ public:
 	static constexpr EntityID ROOT_ENTITY_ID { 0U };
     static constexpr auto DEFAULT_NAME { "New Entity" };
 
-    std::string name;
-    uint32_t layerMask = Utils::Layers::EVERYTHING;
-    std::string tag = Tags::DEFAULT;
+    std::string name { DEFAULT_NAME };
+    uint32_t layerMask { Utils::Layers::EVERYTHING };
+    std::string tag { Tags::DEFAULT };
+	Scene* scene { nullptr };
 
-    Scene* scene = nullptr;
-
-    explicit Entity(int id, std::string name = DEFAULT_NAME);
+public:
+    explicit Entity(EntityID id, std::string name = DEFAULT_NAME);
     ~Entity() override;
 
     Entity(const Entity&) = delete;
@@ -130,7 +130,7 @@ public:
 private:
     template <Components::IsComponent TComponent>
     void RegisterParents(Components::Component* component) {
-        using Base = Components::BaseOf_t<TComponent>;
+        using Base = BaseOf_t<TComponent>;
 
         if constexpr (!std::is_same_v<Base, void> && !std::is_same_v<Base, Components::Component>) {
             LW_ASSERT(!m_Components.contains(typeid(Base)), std::string("Entity '") + name + "' base type already registered: " + typeid(Base).name());

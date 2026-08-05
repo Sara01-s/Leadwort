@@ -225,15 +225,17 @@ private:
 			std::ostringstream coloredMessage{};
 			coloredMessage << color << prefix << message << COLOR_CLEAR << EOL << std::flush;
 			std::cout << coloredMessage.str();
-			assert(LogCallback && "LogCallback is null");
-			LogCallback(coloredMessage.str());
+			if (LogCallback != nullptr) {
+				LogCallback(coloredMessage.str());
+			}
 		}
 		else {
 			std::ostringstream finalMessage{};
 			finalMessage << prefix << message << EOL << std::flush;
 			std::cout << finalMessage.str();
-			assert(LogCallback && "LogCallback is null");
-			LogCallback(finalMessage.str());
+			if (LogCallback != nullptr) {
+				LogCallback(finalMessage.str());
+			}
 		}
 #endif
 	}

@@ -38,6 +38,26 @@ public:
 		}
 
 		ImGui::SameLine();
+
+		if (ImGui::Button("Copy")) {
+			std::string clipboardContent{};
+			size_t totalSize { 0 };
+
+			for (const auto& log : m_LogBuffer) {
+				totalSize += log.size() + 1;
+			}
+
+			clipboardContent.reserve(totalSize);
+
+			for (const auto& log : m_LogBuffer) {
+				clipboardContent += log;
+				clipboardContent += '\n';
+			}
+
+			ImGui::SetClipboardText(clipboardContent.c_str());
+		}
+
+		ImGui::SameLine();
 		ImGui::TextDisabled("| Total Entries: %zu", m_LogBuffer.size());
 
 		ImGui::Separator();

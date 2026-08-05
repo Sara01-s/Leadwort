@@ -37,4 +37,20 @@ template <typename T, typename... Args>
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+template<typename T>
+concept HasBaseClass = requires { typename T::Base; };
+
+template <typename>
+	struct BaseOf {
+	using type = void;
+};
+
+template <typename T>
+requires requires { typename T::Base; }
+struct BaseOf<T> {
+	using type = T::Base;
+};
+
+template <typename T> using BaseOf_t = BaseOf<T>::type;
+
 } // namespace Engine

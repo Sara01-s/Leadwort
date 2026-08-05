@@ -48,6 +48,7 @@ public:
     Model& operator=(const Model&) = delete;
 
     void Instantiate(Entity& parentEntity);
+	[[nodiscard ]] std::size_t GetMeshCount() const noexcept { return m_Meshes.size(); }
 
 private:
     void AttachNodeToEntity(const aiNode* node, Entity& entity);
