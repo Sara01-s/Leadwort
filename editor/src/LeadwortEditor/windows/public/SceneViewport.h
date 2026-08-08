@@ -27,6 +27,7 @@ public:
 			else {
 				m_SceneRenderTexture->Resize(m_PendingWidth, m_PendingHeight);
 			}
+
 			m_PendingResize = false;
 		}
 	}
@@ -34,16 +35,16 @@ public:
 	void OnGuiRender() override {
 		ImGui::Begin(GetName().data());
 
-		const bool isHovered{ImGui::IsWindowHovered()};
+		const bool isHovered { ImGui::IsWindowHovered() };
 		Leadwort::Systems::Input::Mouse::SetViewportHovered(isHovered);
 
-		const ImVec2 availSize = ImGui::GetContentRegionAvail();
-		const ImVec2 renderSize = availSize;
+		const ImVec2 availSize { ImGui::GetContentRegionAvail() };
+		const ImVec2 renderSize { availSize };
 
-		const ImVec2 imagePos = ImGui::GetCursorScreenPos();
+		const ImVec2 imagePos { ImGui::GetCursorScreenPos() };
 
-		const int newWidth = static_cast<int>(renderSize.x);
-		const int newHeight = static_cast<int>(renderSize.y);
+		const int newWidth { static_cast<int>(renderSize.x) };
+		const int newHeight { static_cast<int>(renderSize.y) };
 
 		if (newWidth > 0 && newHeight > 0) {
 			const bool resized{ newWidth != m_SceneRenderTexture->GetWidth()
@@ -75,19 +76,19 @@ private:
 	void HandlePick(const Leadwort::Vec2& normalizedPoint) const {
 		using namespace Leadwort;
 
-		const auto* sceneCam = Systems::CameraSystem::Get().GetSceneCamera();
+		const auto* sceneCam { Systems::CameraSystem::Get().GetSceneCamera() };
 		if (!sceneCam) {
 			return;
 		}
 
-		const Ray ray = sceneCam->ScreenPointToRay(normalizedPoint);
+		const Ray ray { sceneCam->ScreenPointToRay(normalizedPoint) };
 
-		auto* scene = Systems::SceneSystem::Get().GetCurrentScene();
+		const auto* scene { Systems::SceneSystem::Get().GetCurrentScene() };
 		if (!scene) {
 			return;
 		}
 
-		const auto pickedEntity = Rendering::ScenePicker::Pick(ray, *scene);
+		const auto pickedEntity { Rendering::ScenePicker::Pick(ray, *scene) };
 
 		if (pickedEntity != Leadwort::Core::Entity::ROOT_ENTITY_ID) {
 			m_EditorContext.selection = pickedEntity;
@@ -102,9 +103,9 @@ private:
 	ResizeCallback m_OnResize{};
 	EditorContext& m_EditorContext;
 
-	bool m_PendingResize{false};
-	int m_PendingWidth{0};
-	int m_PendingHeight{0};
+	bool m_PendingResize { false };
+	int m_PendingWidth { 0 };
+	int m_PendingHeight { 0 };
 };
 
 } // namespace Editor::Windows
