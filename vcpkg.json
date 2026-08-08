@@ -8,6 +8,7 @@
     "assimp",
     "glm",
     "gtest",
-    "nlohmann-json"
+    "nlohmann-json",
+    "imguizmo"
   ]
 }
