@@ -4,6 +4,7 @@
 #include "../../core/public/Layers.h"
 #include "../../rendering/public/Skybox.h"
 #include "../Component.h"
+#include "Leadwort/core/math/public/Ray.h"
 
 #include <memory>
 #include <variant>
@@ -32,9 +33,10 @@ public:
 
 	[[nodiscard]] Vec3 WorldToCameraSpace(const Vec3& worldPosition) const noexcept;
 
-	[[nodiscard]] bool ShouldRender(const Core::Entity& entity) const;
-	[[nodiscard]] Mat4 GetViewMatrix() const;
-	[[nodiscard]] Mat4 GetProjectionMatrix() const;
+	[[nodiscard]] bool ShouldRender(const Core::Entity& entity) const noexcept;
+	[[nodiscard]] Mat4 GetViewMatrix() const noexcept;
+	[[nodiscard]] Mat4 GetProjectionMatrix() const noexcept;
+	[[nodiscard]] Ray ScreenPointToRay(const Vec2& normalizedScreenPoint) const noexcept;
 };
 
 } // namespace Engine::Components

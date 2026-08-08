@@ -101,6 +101,14 @@ bool Input::Mouse::IsButtonPressed(const Button button) {
 	return glfwGetMouseButton(s_Window, static_cast<int>(button)) == GLFW_PRESS;
 }
 
+bool Input::Mouse::IsViewportHovered() {
+	return s_ViewportHovered;
+}
+
+void Input::Mouse::SetViewportHovered(const bool hovered) {
+	s_ViewportHovered = hovered;
+}
+
 void Input::Mouse::SetCaptured(const bool captured) {
 	LW_ASSERT(s_Window, "Input uninitialized, please call Input::Init(GLFWindow*)");
 
@@ -160,6 +168,7 @@ void Input::Mouse::Reset() {
 	s_MouseDelta = Vec2::Zero();
 	s_MouseScroll = Vec2::Zero();
 	s_MouseFirstFrame = true;
+	s_ViewportHovered = true;
 
 	s_CurrentMouseButtons.fill(false);
 	s_PreviousMouseButtons.fill(false);

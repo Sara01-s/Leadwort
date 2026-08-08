@@ -43,13 +43,15 @@ int main() {
 	   &gameRenderTexture,
 	   [&game](const int width, const int height) { game.ResizeGameView(width, height); }
 	)};
+
 	auto sceneViewportPtr { Leadwort::CreateUnique<Windows::SceneViewport>(
 	   &sceneRenderTexture,
-	   [&game](const int width, const int height) { game.ResizeSceneView(width, height); }
+	   [&game](const int width, const int height) { game.ResizeSceneView(width, height); },
+	   editorContext
 	)};
 
-	Windows::GameViewport* gameViewportRaw   = gameViewportPtr.get();
-	Windows::SceneViewport* sceneViewportRaw = sceneViewportPtr.get();
+	Windows::GameViewport* gameViewportRaw   { gameViewportPtr.get() };
+	Windows::SceneViewport* sceneViewportRaw { sceneViewportPtr.get() };
 
 	windowsContainer.AddWindows(
 		std::move(gameViewportPtr),

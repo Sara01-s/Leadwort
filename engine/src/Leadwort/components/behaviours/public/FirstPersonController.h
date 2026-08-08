@@ -18,17 +18,17 @@ public:
     }
 
     void Update() override {
-    	if (Input::Mouse::IsButtonJustPressed(Input::Mouse::Button::Right)) {
-            Input::Mouse::SetCaptured(true);
+    	if (Input::Mouse::IsButtonJustPressed(Input::Mouse::Button::Right) && Input::Mouse::IsViewportHovered()) {
+    		Input::Mouse::SetCaptured(true);
     	}
 
-        if (Input::Mouse::IsButtonJustReleased(Input::Mouse::Button::Right) && Input::Mouse::IsCaptured()) {
-            Input::Mouse::SetCaptured(false);
-        }
+    	if (Input::Mouse::IsButtonJustReleased(Input::Mouse::Button::Right) && Input::Mouse::IsCaptured()) {
+    		Input::Mouse::SetCaptured(false);
+    	}
 
-        if (!Input::Mouse::IsCaptured()) {
-            return;
-        }
+    	if (!Input::Mouse::IsCaptured()) {
+    		return;
+    	}
 
         // Mouse rotation
         const auto mouseDelta  { Input::Mouse::GetDelta() };

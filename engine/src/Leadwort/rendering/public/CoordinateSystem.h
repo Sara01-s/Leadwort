@@ -47,4 +47,4 @@ inline std::tuple<Mat4, Mat4, Mat4> GetMvpMatrices(
 	return { model, view, proj };
 }
 
-} // namespace Engine::Rendering::MatrixUtils
+} // namespace Engine::Rendering::CoordinateSystem

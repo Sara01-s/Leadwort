@@ -103,6 +103,9 @@ public:
     	static bool IsButtonJustReleased(Button button);
         static bool IsButtonPressed(Button button);
 
+    	static bool IsViewportHovered();
+    	static void SetViewportHovered(bool hovered);
+
         static bool IsCaptured();
         static void SetCaptured(bool captured);
 
@@ -145,6 +148,7 @@ private:
 	static inline Vec2 s_MouseScroll{};
 	static inline bool s_MouseCaptured { false };
 	static inline bool s_MouseFirstFrame { true };
+	static inline bool s_ViewportHovered { true };
 
 	static constexpr int MouseButtonCount { 2 };
 	static inline std::array<bool, MouseButtonCount> s_CurrentMouseButtons{};
