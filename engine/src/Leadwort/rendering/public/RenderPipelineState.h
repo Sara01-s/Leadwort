@@ -75,7 +75,7 @@ struct RenderPipelineState {
     static constexpr RenderPipelineState Grid() {
         return RenderPipelineState {
             .depthTest   = true,
-            .depthWrite  = true,
+            .depthWrite  = false,
             .multisample = true,
             .depthFunc   = DepthFunc::LEqual,
             .cullMode    = CullMode::None,
@@ -111,12 +111,12 @@ struct RenderPipelineState {
             .cullMode    = CullMode::Back,
             .blendMode   = BlendMode::Disabled,
             .stencilTest      = true,
-            .stencilFunc      = DepthFunc::NotEqual,
+            .stencilFunc      = DepthFunc::Always,
             .stencilRef       = 1,
             .stencilReadMask  = 0xFF,
             .stencilWriteMask = 0xFF,
             .stencilFailOp          = StencilOp::Keep,
-            .stencilPassDepthFailOp = StencilOp::Keep,
+            .stencilPassDepthFailOp = StencilOp::Replace,
             .stencilPassDepthPassOp = StencilOp::Replace,
             .colorWrite = false,
         };
@@ -124,7 +124,7 @@ struct RenderPipelineState {
 
     static constexpr RenderPipelineState OutlineDraw() {
         return RenderPipelineState {
-            .depthTest   = true,
+            .depthTest   = false,
             .depthWrite  = false,
         	.multisample = false,
         	.depthFunc  = DepthFunc::LEqual,

@@ -36,18 +36,20 @@ public:
     }
 
     void Execute(const RenderContext& ctx) noexcept override {
+    	GLStateCache::Get().Invalidate();
+
     	glDepthMask(GL_TRUE);
     	glStencilMask(0xFF);
 
         std::visit(overloaded {
             [](const Components::Camera::SkyBox& sky) {
-                glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                sky.skybox->Render();
+            	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+				sky.skybox->Render();
             },
             [](const Components::Camera::SolidColor& solid) {
-                const auto& bg = solid.color;
-                glClearColor(bg.r, bg.g, bg.b, bg.a);
-            	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+                const auto& bg { solid.color };
+            	glClearColor(bg.r, bg.g, bg.b, bg.a);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             }
         }, ctx.camera->background);
     }
@@ -259,8 +261,8 @@ public:
 
     	m_OutlineShader->Bind();
     	m_OutlineShader->SetUniform("_ModelMatrix", modelMatrix);
-    	m_OutlineShader->SetUniform("_OutlineThickness", 0.03f);
-    	m_OutlineShader->SetUniform("_OutlineColor", Vec4(0.2f, 0.75f, 0.9f, 1.0f));
+    	m_OutlineShader->SetUniform("_OutlineThickness", 0.3f);
+    	m_OutlineShader->SetUniform("_OutlineColor", Vec4(0.941f, 0.682f, 0.082f, 1.0f));
 
     	mesh->Bind();
         glDrawElements(mesh->GetTopology(), mesh->GetIndexCount(), GL_UNSIGNED_INT, nullptr);

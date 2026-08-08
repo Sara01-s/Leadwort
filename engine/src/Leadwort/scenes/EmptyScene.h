@@ -16,10 +16,10 @@ public:
 		Core::Entity* sphere = CreateEntity("Default Sphere");
         {
             auto* mr { sphere->AddComponent<Components::MeshRenderer>() };
-			mr->mesh = Utils::PrimitiveMeshes::Get().Sphere();
+			mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
         }
 
-    	sphere->GetTransform().SetLocalScale(Vec3(7.0f));
+    	sphere->GetTransform().SetLocalScale(Vec3(5.0f));
 
 		const auto modelParent { CreateEntity("Model") };
 		const auto model { AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb") };

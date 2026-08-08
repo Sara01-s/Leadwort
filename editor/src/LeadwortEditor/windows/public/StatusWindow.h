@@ -13,7 +13,7 @@ public:
 	}
 
 	void OnGuiRender() override {
-		ImGui::Begin("Leadwort");
+		ImGui::Begin("Status");
 		ImGui::Separator();
 
 		ImGui::Text("Status");

@@ -128,12 +128,13 @@ Shared<Mesh> PrimitiveMeshes::BuildSphere() const {
 			});
 		}
 	}
+
     return RegisterMesh(m_Layout, vertices, indices, "sphere");
 }
 
 Shared<Mesh> PrimitiveMeshes::BuildCube() const {
     constexpr std::array<float, 24 * 8> vertices = {
-        // pos                  normal        uv
+        // pos               normal    uv
         // Front (+Z)
         -0.5f,-0.5f, 0.5f,  0, 0, 1,  0,0,
          0.5f,-0.5f, 0.5f,  0, 0, 1,  1,0,
@@ -166,14 +167,14 @@ Shared<Mesh> PrimitiveMeshes::BuildCube() const {
         -0.5f,-0.5f, 0.5f,  0,-1, 0,  0,1,
     };
 
-	constexpr std::array<Index, 36> indices = {
-		0, 2, 1,  2, 0, 3,
-		4, 6, 5,  6, 4, 7,
-		8, 10, 9, 10, 8, 11,
-	   12, 14, 13, 14, 12, 15,
-	   16, 18, 17, 18, 16, 19,
-	   20, 22, 21, 22, 20, 23,
-   };
+	constexpr std::array<Index, 36> indices {
+		0, 1, 2,  2, 3, 0,
+		4, 5, 6,  6, 7, 4,
+		8, 9, 10, 10, 11, 8,
+		12, 13, 14, 14, 15, 12,
+		16, 17, 18, 18, 19, 16,
+		20, 21, 22, 22, 23, 20,
+	};
 
     return RegisterMesh(m_Layout, vertices, indices, "cube");
 }

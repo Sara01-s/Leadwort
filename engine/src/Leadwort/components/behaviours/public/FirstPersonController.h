@@ -20,12 +20,10 @@ public:
     void Update() override {
     	if (Input::Mouse::IsButtonJustPressed(Input::Mouse::Button::Right)) {
             Input::Mouse::SetCaptured(true);
-    		LW_LOG("RIGHT PRESSEED");
     	}
 
         if (Input::Mouse::IsButtonJustReleased(Input::Mouse::Button::Right) && Input::Mouse::IsCaptured()) {
             Input::Mouse::SetCaptured(false);
-    		LW_LOG("RIGHT RELEASED");
         }
 
         if (!Input::Mouse::IsCaptured()) {
@@ -57,8 +55,8 @@ public:
         moveDirection += forwardFlat * vertical;
         moveDirection += rightFlat   * horizontal;
 
-        if (Input::Keyboard::IsPressed(Systems::Key::Space))     moveDirection.y += 1.0f;
-        if (Input::Keyboard::IsPressed(Systems::Key::LeftShift)) moveDirection.y -= 1.0f;
+        if (Input::Keyboard::IsPressed(Systems::Key::E)) moveDirection.y += 1.0f;
+        if (Input::Keyboard::IsPressed(Systems::Key::Q)) moveDirection.y -= 1.0f;
 
         if (moveDirection.LengthSquared() > 0.0001f) {
            const auto velocity = moveDirection.Normalized() * moveSpeed * Core::Time::GetDeltaTime();

@@ -2,7 +2,6 @@
 #version 450 core
 
 layout(location = 0) in vec3 a_position;
-layout(location = 1) in vec3 a_normal;
 
 uniform mat4 _ModelMatrix;
 uniform float _OutlineThickness;
@@ -15,12 +14,16 @@ layout (std140, binding = 0) uniform CameraData {
 };
 
 void main() {
-	vec3 safe_normal = length(a_normal) > 0.001 ? normalize(a_normal) : vec3(0.0);
+	vec4 worldPos = _ModelMatrix * vec4(a_position, 1.0);
+	vec4 viewPos  = _ViewMatrix * worldPos;
 
-	vec3 extruded_position = a_position + safe_normal * _OutlineThickness;
+	vec4 objectCenterView = _ViewMatrix * (_ModelMatrix * vec4(0.0, 0.0, 0.0, 1.0));
+	vec3 dirFromCenter = normalize(viewPos.xyz - objectCenterView.xyz);
 
-	vec3 world_position = vec3(_ModelMatrix * vec4(extruded_position, 1.0));
-	gl_Position = _ProjectionMatrix * _ViewMatrix * vec4(world_position, 1.0);
+	float scale = -viewPos.z * _OutlineThickness * 0.05;
+	viewPos.xyz += dirFromCenter * scale;
+
+	gl_Position = _ProjectionMatrix * viewPos;
 }
 
 #type fragment

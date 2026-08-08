@@ -34,14 +34,14 @@ struct Quat {
 
 	// To euler angles in degrees
 	[[nodiscard]] Vec3 ToEuler() const {
-		constexpr float rad2deg = 180.0f / glm::pi<float>();
-		const glm::vec3 e = glm::eulerAngles(glm::quat(*this));
+		constexpr float rad2deg { 180.0f / glm::pi<float>() };
+		const glm::vec3 e { glm::eulerAngles(glm::quat(*this)) };
 		return Vec3(e.x * rad2deg, e.y * rad2deg, e.z * rad2deg);
 	}
 
 	// From axis-angle (angle in degrees)
 	static Quat FromAngleAxis(const float degrees, const Vec3& axis) {
-		constexpr float deg2rad = glm::pi<float>() / 180.0f;
+		constexpr float deg2rad { glm::pi<float>() / 180.0f };
 		return Quat(glm::angleAxis(degrees * deg2rad, glm::vec3(axis)));
 	}
 
@@ -60,7 +60,9 @@ struct Quat {
 	[[nodiscard]] Quat  Slerp(const Quat& o, const float t) const { return Quat(glm::slerp(glm::quat(*this), glm::quat(o), t)); }
 	[[nodiscard]] Vec3 operator*(const Vec3& v) const { return Rotate(v); }
 	[[nodiscard]] Vec2 operator*(const Vec2& v) const { const Vec3 v3(v.x, v.y, 0.0f); return Vec2(Rotate(v3).x, Rotate(v3).y); }
-
+	[[nodiscard]] static bool ApproximatelyEqual(const Quat& a, const Quat& b, const float epsilon = 0.0001f) {
+		return std::abs(std::abs(a.Dot(b))) - 1.0f < epsilon;
+	}
 
 	[[nodiscard]] static Quat LookRotation(const Vec3& forward, const Vec3& up = Vec3::Up());
 	[[nodiscard]] static Quat FromMatrix(const Mat4& matrix);

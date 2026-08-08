@@ -22,11 +22,27 @@ public:
 
 		Core::FieldDrawerRegistry::Get().Register(FieldType::Quat, [](const FieldData& f) -> bool {
 			auto* v = static_cast<Leadwort::Quat*>(f.dataPtr);
-			Leadwort::Vec3 eulerAngles { v->ToEuler() };
-			const bool changed = ImGui::DragFloat3(f.displayName.c_str(), &eulerAngles.x, 0.1f);
-			if (changed) {
-				*v = Leadwort::Quat::FromEuler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+			static std::unordered_map<void*, Leadwort::Vec3> s_EulerCache{};
+
+			auto [it, inserted] { s_EulerCache.try_emplace(f.dataPtr) };
+			Leadwort::Vec3& cachedEuler = it->second;
+
+			if (inserted) {
+				cachedEuler = SanitizeZeros(v->ToEuler());
 			}
+
+			const bool changed = ImGui::DragFloat3(f.displayName.c_str(), &cachedEuler.x, 0.1f);
+
+			if (changed) {
+				*v = Leadwort::Quat::FromEuler(cachedEuler.x, cachedEuler.y, cachedEuler.z);
+			}
+			else {
+				const Leadwort::Quat reconstructed { Leadwort::Quat::FromEuler(cachedEuler.x, cachedEuler.y, cachedEuler.z) };
+				if (!Leadwort::Quat::ApproximatelyEqual(reconstructed, *v)) {
+					cachedEuler = v->ToEuler();
+				}
+			}
+
 			return changed;
 		});
 
@@ -43,6 +59,13 @@ public:
 		});
 	}
 
+	static Leadwort::Vec3 SanitizeZeros(Leadwort::Vec3 v) {
+		if (v.x == 0.0f) v.x = 0.0f;
+		if (v.y == 0.0f) v.y = 0.0f;
+		if (v.z == 0.0f) v.z = 0.0f;
+		return v;
+	}
+
 	std::string_view GetName() const noexcept override { return "Inspector"; }
 	
 	void OnGuiRender() override {
@@ -55,6 +78,7 @@ public:
 			}
 			else {
 				ImGui::TextDisabled("Nothing selected");
+				m_CachedModelPath.clear();
 			}
 		}
 		ImGui::End();
@@ -99,23 +123,23 @@ private:
         }
     }
 
-	static void DrawAssetInspector(const AssetSelection& asset) {
-        ImGui::Text("%s", asset.path.filename().string().c_str());
-        ImGui::TextDisabled("%s", asset.path.string().c_str());
-        ImGui::Separator();
+	void DrawAssetInspector(const AssetSelection& asset) {
+		ImGui::Text("%s", asset.path.filename().string().c_str());
+		ImGui::TextDisabled("%s", asset.path.string().c_str());
+		ImGui::Separator();
 
-        switch (asset.type) {
-            case Leadwort::AssetManagement::AssetType::Texture:
-                DrawTexturePreview(asset.path);
-                break;
-            case Leadwort::AssetManagement::AssetType::Model:
-                DrawModelPreview(asset.path);
-                break;
-            default:
-                ImGui::TextDisabled("No preview available for this asset type");
-                break;
-        }
-    }
+		switch (asset.type) {
+			case Leadwort::AssetManagement::AssetType::Texture:
+				DrawTexturePreview(asset.path);
+				break;
+			case Leadwort::AssetManagement::AssetType::Model:
+				DrawModelPreview(asset.path);
+				break;
+			default:
+				ImGui::TextDisabled("No preview available for this asset type");
+				break;
+		}
+	}
 
 	static void DrawTexturePreview(const std::filesystem::path& path) {
 		const auto texture = Leadwort::AssetManagement::EngineAssets::GetTexture(path.string());
@@ -131,19 +155,24 @@ private:
         }
     }
 
-	static void DrawModelPreview(const std::filesystem::path& path) {
-		const auto model { Leadwort::AssetManagement::EngineAssets::GetModel(path.string()) };
+	void DrawModelPreview(const std::filesystem::path& path) {
+		if (m_CachedModelPath != path) {
+			m_CachedModel = Leadwort::AssetManagement::EngineAssets::GetModel(path.string());
+			m_CachedModelPath = path;
+		}
 
-        if (model) {
-            ImGui::Text("Meshes: %zu", model->GetMeshCount());
-        }
-        else {
-            ImGui::TextDisabled("Failed to load model");
-        }
-    }
+		if (m_CachedModel) {
+			ImGui::Text("Meshes: %zu", m_CachedModel->GetMeshCount());
+		}
+		else {
+			ImGui::TextDisabled("Failed to load model");
+		}
+	}
 	
 private:
 	EditorContext& m_EditorContext;
+	std::filesystem::path m_CachedModelPath{};
+	Leadwort::Shared<Leadwort::Core::Model> m_CachedModel{};
 };
 
 }
