@@ -13,7 +13,7 @@ public:
 	void BuildRenderGraphs();
 
 	void Tick() const;
-	void Loop(const std::function<void()>& renderOverlay) const;
+	void Loop(const std::function<void()>& preTick, const std::function<void()>& renderOverlay) const;
 
 	void ResizeGameView(int width, int height);
 	void ResizeSceneView(int width, int height);

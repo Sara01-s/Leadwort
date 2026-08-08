@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ImGuiTheme.h"
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 
 #include <GLFW/glfw3.h>
 

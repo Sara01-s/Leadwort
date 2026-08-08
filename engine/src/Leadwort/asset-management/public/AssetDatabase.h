@@ -20,10 +20,7 @@ namespace Leadwort::AssetManagement {
 
 namespace Bindables = Rendering::Bindables;
 
-// ---------------------------------------------------------------------------
 // ResourceCache
-// ---------------------------------------------------------------------------
-
 template <typename TKey, typename TValue>
 class AssetCache {
 public:
@@ -56,13 +53,9 @@ private:
     std::unordered_map<TKey, Weak<TValue>> m_Cache{};
 };
 
-// ---------------------------------------------------------------------------
-// AssetManager
-// ---------------------------------------------------------------------------
-
-class AssetManager {
+class AssetDatabase {
 public:
-    explicit AssetManager(std::string rootPath);
+    explicit AssetDatabase(std::string rootPath);
 
     [[nodiscard]] std::string          ResolvePath(const std::string& path) const;
     [[nodiscard]] std::string          LoadText   (const std::string& path) const;
@@ -92,10 +85,6 @@ private:
 	AssetCache<Bindables::MeshKey, Bindables::Mesh> m_MeshCache{};
     AssetCache<std::string, Core::Model>            m_ModelCache{};
 };
-
-// ---------------------------------------------------------------------------
-// AssetWrapper / singletons
-// ---------------------------------------------------------------------------
 
 template <typename, const char* RootPath>
 class AssetWrapper {
@@ -149,8 +138,8 @@ public:
     }
 
 private:
-    static AssetManager& Get() {
-        static AssetManager s_Instance(RootPath);
+    static AssetDatabase& Get() {
+        static AssetDatabase s_Instance(RootPath);
         return s_Instance;
     }
 };

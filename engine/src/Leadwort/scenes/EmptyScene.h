@@ -48,9 +48,12 @@ public:
 
             e->AddComponent<Components::Behaviours::FirstPersonController>();
 			auto* a { e->AddComponent<Components::Camera>() };
-			a->background = Components::Camera::SkyBox {
-				.skybox = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_clouds_2k.exr")
+			a->background = Components::Camera::SolidColor {
+				.color = Color::Gray35()
 			};
+			// a->background = Components::Camera::SkyBox {
+			// 	.skybox = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_clouds_2k.exr")
+			// };
         }
 
         // Directional Light

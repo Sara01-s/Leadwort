@@ -1,7 +1,7 @@
 #include <Leadwort/systems/public/RenderSystem.h>
 
 #include "../../core/math/public/Color.h"
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/core/public/Window.h>
 #include <Leadwort/rendering/public/DefaultRenderPasses.h>

@@ -5,7 +5,7 @@
 #include "Leadwort/components/public/MeshRenderer.h"
 #include "RenderPassBuilder.h"
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/Renderer.h>
 #include <Leadwort/rendering/public/GLStateCache.h>
 #include <Leadwort/rendering/public/PostProcess.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Leadwort/asset-management/public/AssetManager.h"
+#include "Leadwort/asset-management/public/AssetDatabase.h"
 #include "Leadwort/asset-management/public/AssetTypes.h"
 #include "LeadwortEditor/core/public/IEditorWindow.h"
 #include "LeadwortEditor/data/EditorContext.h"

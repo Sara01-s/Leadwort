@@ -1,7 +1,7 @@
 #include "../public/Material.h"
 
 #include <Leadwort/asset-management/private/AssetKey.h>
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/asset-management/public/DefaultAssets.h>
 #include <Leadwort/core/math/public/Vec4.h>
 #include <Leadwort/rendering/bindables/public/CubeMap.h>

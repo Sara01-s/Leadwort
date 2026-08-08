@@ -1,5 +1,5 @@
-#include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/asset-management/private/AssetKey.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/public/Path.h>
 
 #include <algorithm>
@@ -11,19 +11,19 @@ namespace Leadwort::AssetManagement {
 
 using namespace Rendering::Bindables;
 
-AssetManager::AssetManager(std::string rootPath) : m_Root(std::move(rootPath)) {
+AssetDatabase::AssetDatabase(std::string rootPath) : m_Root(std::move(rootPath)) {
     LW_ASSERT(!m_Root.empty(), "AssetManager: A Root path cannot be empty.");
 }
 
-std::string AssetManager::ResolvePath(const std::string& path) const {
+std::string AssetDatabase::ResolvePath(const std::string& path) const {
     return Resolve(path).string();
 }
 
-std::filesystem::path AssetManager::Resolve(const std::string& path) const {
+std::filesystem::path AssetDatabase::Resolve(const std::string& path) const {
 	return (Core::Path(m_Root) / path).GetGenericString();
 }
 
-std::string AssetManager::LoadText(const std::string& path) const {
+std::string AssetDatabase::LoadText(const std::string& path) const {
     const auto& fullPath { Resolve(path) };
 
     std::ifstream file(fullPath, std::ios::in | std::ios::binary);
@@ -34,7 +34,7 @@ std::string AssetManager::LoadText(const std::string& path) const {
     };
 }
 
-std::vector<uint8_t> AssetManager::LoadBytes(const std::string& path) const {
+std::vector<uint8_t> AssetDatabase::LoadBytes(const std::string& path) const {
     const auto& fullPath { Resolve(path) };
     std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
     LW_ASSERT(file.is_open(), "AssetManager: Could not open a binary file at: " + fullPath.string());
@@ -50,7 +50,7 @@ std::vector<uint8_t> AssetManager::LoadBytes(const std::string& path) const {
 }
 
 
-Shared<Shader> AssetManager::GetShader(
+Shared<Shader> AssetDatabase::GetShader(
 	const std::string& path,
 	const std::optional<std::set<std::string>>& defines
 ) {
@@ -74,7 +74,7 @@ Shared<Shader> AssetManager::GetShader(
 	return shader;
 }
 
-Shared<Texture> AssetManager::GetTexture(const std::string_view path) {
+Shared<Texture> AssetDatabase::GetTexture(const std::string_view path) {
 	const std::string key { Resolve(std::string(path)).string() };
 
 	if (auto cached = m_TextureCache.Get(key)) {
@@ -96,7 +96,7 @@ Shared<Texture> AssetManager::GetTexture(const std::string_view path) {
 	return texture;
 }
 
-Shared<Texture> AssetManager::GetTextureFromAbsolutePath(const std::string& absolutePath) {
+Shared<Texture> AssetDatabase::GetTextureFromAbsolutePath(const std::string& absolutePath) {
 	if (auto cached = m_TextureCache.Get(absolutePath)) {
 		return cached;
 	}
@@ -117,7 +117,7 @@ Shared<Texture> AssetManager::GetTextureFromAbsolutePath(const std::string& abso
 	return texture;
 }
 
-Shared<Texture> AssetManager::GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
+Shared<Texture> AssetDatabase::GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
 	const std::string key { "*" + std::to_string(index) };
 
 	if (auto cached = m_TextureCache.Get(key)) {
@@ -132,7 +132,7 @@ Shared<Texture> AssetManager::GetEmbeddedTexture(const int index, const uint8_t*
 	return texture;
 }
 
-Shared<CubeMap> AssetManager::GetCubeMap(const std::array<std::string, 6>& paths) {
+Shared<CubeMap> AssetDatabase::GetCubeMap(const std::array<std::string, 6>& paths) {
 	std::string key{};
 
 	for (const auto& path : paths) {
@@ -157,7 +157,7 @@ Shared<CubeMap> AssetManager::GetCubeMap(const std::array<std::string, 6>& paths
 	return cubemap;
 }
 
-Shared<Core::Model> AssetManager::GetModel(const std::string& path) {
+Shared<Core::Model> AssetDatabase::GetModel(const std::string& path) {
 	const std::string key = Resolve(path).string();
 
 	if (auto cached = m_ModelCache.Get(key)) {
@@ -172,7 +172,7 @@ Shared<Core::Model> AssetManager::GetModel(const std::string& path) {
 	return model;
 }
 
-Shared<Material> AssetManager::CreateMaterial(const Shared<Shader>& shader) {
+Shared<Material> AssetDatabase::CreateMaterial(const Shared<Shader>& shader) {
 	LW_LOG("AssetManager: Creating Material for Shader [ptr=", reinterpret_cast<uintptr_t>(shader.get()), "]");
 	auto material = CreateShared<Material>(shader, AssetKey<Material>{});
 	LW_ASSERT(material != nullptr, "AssetManager: Failed to create Material");
@@ -188,7 +188,7 @@ static std::string FormatMeshKey(const MeshKey& key) {
 	return "[file] " + key.modelPath + " #" + std::to_string(key.meshIndex);
 }
 
-Shared<Mesh> AssetManager::GetMesh(const MeshData& meshData) {
+Shared<Mesh> AssetDatabase::GetMesh(const MeshData& meshData) {
 	if (auto cached = m_MeshCache.Get(meshData.key)) {
 		return cached;
 	}
@@ -201,7 +201,7 @@ Shared<Mesh> AssetManager::GetMesh(const MeshData& meshData) {
 	return mesh;
 }
 
-void AssetManager::Cleanup() {
+void AssetDatabase::Cleanup() {
     m_ShaderCache.Cleanup();
     m_TextureCache.Cleanup();
     m_CubeMapCache.Cleanup();
@@ -209,7 +209,7 @@ void AssetManager::Cleanup() {
 	m_MeshCache.Cleanup();
 }
 
-Shared<Texture> AssetManager::CreateTextureFromBytes(const uint8_t* bytes, const size_t size) {
+Shared<Texture> AssetDatabase::CreateTextureFromBytes(const uint8_t* bytes, const size_t size) {
     int width, height, channels;
     stbi_set_flip_vertically_on_load(true);
 

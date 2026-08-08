@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/rendering/bindables/public/Material.h>
 #include <Leadwort/rendering/bindables/public/Shader.h>
 #include <Leadwort/rendering/bindables/public/Texture.h>

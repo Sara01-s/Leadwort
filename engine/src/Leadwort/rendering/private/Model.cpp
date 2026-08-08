@@ -1,7 +1,7 @@
 #include <Leadwort/rendering/public/Model.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/asset-management/public/DefaultAssets.h>
 #include <Leadwort/components/public/MeshRenderer.h>
 #include <Leadwort/components/public/Transform.h>
@@ -10,7 +10,6 @@
 #include <Leadwort/rendering/bindables/public/Mesh.h>
 #include <Leadwort/rendering/bindables/public/VertexLayout.h>
 #include <algorithm>
-#include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
 
@@ -190,6 +189,7 @@ Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const st
 
 	const auto meshKey { MeshKey { path, meshIndex } };
 	auto resultMesh { EngineAssets::GetMesh(MeshData {
+		std::string(mesh->mName.C_Str()),
 		layout,
 		std::as_bytes(std::span<const float> { vertices }),
 		std::as_bytes(std::span<const Index> { indices }),

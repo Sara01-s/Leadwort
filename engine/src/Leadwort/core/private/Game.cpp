@@ -3,7 +3,7 @@
 #include "Leadwort/serialization/SceneSerializer.h"
 #include "Leadwort/systems/public/ShaderWatcher.h"
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/public/Time.h>
 #include <Leadwort/core/public/Window.h>
 #include <Leadwort/rendering/public/DefaultRenderPasses.h>
@@ -98,18 +98,24 @@ void Game::Tick() const {
 	RenderSystem::Get().ClearScreen();
 }
 
-void Game::Loop(const std::function<void()>& renderOverlay = nullptr) const {
+void Game::Loop(const std::function<void()>& preTick, const std::function<void()>& renderOverlay) const {
 	Utils::Log::Header("Hello World!");
 
-    while (Window::Get().IsOpen()) {
-        Window::PollEvents();
-        Tick();
+	while (Window::Get().IsOpen()) {
+		Window::PollEvents();
 
-    	if (renderOverlay) {
-    		renderOverlay();
-    	}
-        Window::Get().SwapBuffers();
-    }
+		if (preTick) {
+			preTick();
+		}
+
+		Tick();
+
+		if (renderOverlay) {
+			renderOverlay();
+		}
+
+		Window::Get().SwapBuffers();
+	}
 
 	Utils::Log::Header("Bye bye!");
 }

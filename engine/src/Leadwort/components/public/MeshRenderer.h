@@ -13,7 +13,13 @@ namespace Leadwort::Components {
 
 class MeshRenderer : public Renderer {
 public:
-	Shared<Rendering::Bindables::Mesh> mesh = Utils::PrimitiveMeshes::Get().Cube();
+	using Mesh = Rendering::Bindables::Mesh;
+
+	LW_REFLECT(MeshRenderer,
+		LW_FIELD(AssetRef, mesh, "Mesh")
+	)
+public:
+	Shared<Mesh> mesh { Utils::PrimitiveMeshes::Get().Cube() };
 
 public:
 	void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const override;

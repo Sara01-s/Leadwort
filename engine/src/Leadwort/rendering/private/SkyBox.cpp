@@ -1,5 +1,5 @@
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/rendering/public/Skybox.h>
-#include <Leadwort/asset-management/public/AssetManager.h>
 
 namespace Leadwort::Rendering {
 

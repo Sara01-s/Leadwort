@@ -66,7 +66,7 @@ private:
             return;
         }
 
-        const auto* entity = m_EditorContext.openedScene->GetEntity(entityID);
+        const auto* entity { m_EditorContext.openedScene->GetEntity(entityID) };
         if (!entity) {
             ImGui::TextDisabled("No entity selected");
             return;
@@ -85,7 +85,7 @@ private:
                     behaviour->SetEnabled(enabled);
                 }
 
-                bool anyFieldChanged = false;
+                bool anyFieldChanged { false };
                 for (auto& field : component->GetFields()) {
                     anyFieldChanged |= Core::FieldDrawerRegistry::Get().Draw(field);
                 }
@@ -118,13 +118,11 @@ private:
     }
 
 	static void DrawTexturePreview(const std::filesystem::path& path) {
-        // Necesita GameAssets/EngineAssets según de qué raíz vino, o pasar
-        // esa info también en AssetSelection si querés evitar ambigüedad
-        // entre "texture.png" existiendo en ambas raíces.
-		const auto texture = Leadwort::AssetManagement::GameAssets::GetTexture(path.string());
+		const auto texture = Leadwort::AssetManagement::EngineAssets::GetTexture(path.string());
 
         if (texture) {
-			const ImTextureID texID = static_cast<ImTextureID>(static_cast<intptr_t>(texture->GetGpuID()));
+			const ImTextureID texID { static_cast<ImTextureID>(static_cast<intptr_t>(texture->GetGpuID())) };
+
             ImGui::Image(texID, ImVec2(200, 200));
             ImGui::Text("Size: %dx%d", texture->GetWidth(), texture->GetHeight());
         }
@@ -134,7 +132,7 @@ private:
     }
 
 	static void DrawModelPreview(const std::filesystem::path& path) {
-		const auto model = Leadwort::AssetManagement::EngineAssets::GetModel(path.string());
+		const auto model { Leadwort::AssetManagement::EngineAssets::GetModel(path.string()) };
 
         if (model) {
             ImGui::Text("Meshes: %zu", model->GetMeshCount());

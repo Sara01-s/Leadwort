@@ -1,6 +1,6 @@
 #include "../public/PostProcess.h"
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/utils/public/PrimitiveMeshes.h>
 
 #include <glad/glad.h>

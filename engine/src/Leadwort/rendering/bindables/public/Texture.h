@@ -6,7 +6,7 @@
 #include "glad/glad.h"
 
 namespace Leadwort::AssetManagement {
-	class AssetManager;
+	class AssetDatabase;
 }
 
 namespace Leadwort::Rendering::Bindables {
@@ -33,7 +33,7 @@ public:
 	[[nodiscard]] int GetChannelCount() const noexcept { return m_Channels; }
 
 private:
-	friend class AssetManagement::AssetManager;
+	friend class AssetManagement::AssetDatabase;
 
 	void UploadRGBA(const uint8_t* pixels, int width, int height, bool generateMipmaps, bool anisotropicFiltering);
 	static void ApplySamplerParams(bool generateMipmaps, bool anisotropicFiltering);

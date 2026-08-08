@@ -1,8 +1,8 @@
 #include "../../utils/public/Logger.h"
 #include <Leadwort/core/public/Window.h>
 
-#include <Leadwort/asset-management/public/AssetManager.h>
 #include "stb/stb_image.h"
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 
 #include <iostream>
 

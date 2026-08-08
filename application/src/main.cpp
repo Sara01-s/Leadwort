@@ -39,15 +39,21 @@ int main() {
 
 	editorContext.openedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
 
+	auto gameViewportPtr { Leadwort::CreateUnique<Windows::GameViewport>(
+	   &gameRenderTexture,
+	   [&game](const int width, const int height) { game.ResizeGameView(width, height); }
+	)};
+	auto sceneViewportPtr { Leadwort::CreateUnique<Windows::SceneViewport>(
+	   &sceneRenderTexture,
+	   [&game](const int width, const int height) { game.ResizeSceneView(width, height); }
+	)};
+
+	Windows::GameViewport* gameViewportRaw   = gameViewportPtr.get();
+	Windows::SceneViewport* sceneViewportRaw = sceneViewportPtr.get();
+
 	windowsContainer.AddWindows(
-		Leadwort::CreateUnique<Windows::GameViewport>(
-			&gameRenderTexture,
-			[&game](const int width, const int height) { game.ResizeGameView(width, height); }
-		),
-		Leadwort::CreateUnique<Windows::SceneViewport>(
-			&sceneRenderTexture,
-			[&game](const int width, const int height) { game.ResizeSceneView(width, height); }
-		),
+		std::move(gameViewportPtr),
+		std::move(sceneViewportPtr),
 		Leadwort::CreateUnique<Core::StatusWindow>(),
 		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext),
@@ -56,21 +62,28 @@ int main() {
 	);
 
 
-	game.Loop([&] {
-		Core::EditorCore::StartFrame();
-		Core::EditorCore::SetupDockSpace();
+	game.Loop(
+		[&] {
+		   gameViewportRaw->ApplyPendingResize();
+		   sceneViewportRaw->ApplyPendingResize();
+		},
+		[&] {
+			Core::EditorCore::StartFrame();
+			Core::EditorCore::SetupDockSpace();
 
-		if (const auto* selectedID = std::get_if<Leadwort::EntityID>(&editorContext.selection)) {
-			game.SetHighlightedEntity(*selectedID);
+			if (const auto* selectedID { std::get_if<Leadwort::EntityID>(&editorContext.selection)}) {
+				game.SetHighlightedEntity(*selectedID);
+			}
+			else {
+				game.SetHighlightedEntity(Leadwort::Core::Entity::ROOT_ENTITY_ID);
+			}
+
+			windowsContainer.RenderAllWindows();
+
+			Core::EditorCore::EndFrame();
 		}
-		else {
-			game.SetHighlightedEntity(Leadwort::Core::Entity::ROOT_ENTITY_ID);
-		}
-
-		windowsContainer.RenderAllWindows();
-
-		Core::EditorCore::EndFrame();
-	});
+	);
 
 	Leadwort::Utils::Log::LogCallback = nullptr;
 }
+

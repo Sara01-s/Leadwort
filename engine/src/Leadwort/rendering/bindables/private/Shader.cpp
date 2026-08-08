@@ -1,6 +1,6 @@
 #include "../public/Shader.h"
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/math/public/Mat4.h>
 #include <Leadwort/core/math/public/Vec4.h>
 #include <Leadwort/systems/public/ShaderWatcher.h>

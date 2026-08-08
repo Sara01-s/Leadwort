@@ -3,7 +3,7 @@
 #include "tinyexr/tinyexr.h"
 
 #include <Leadwort/asset-management/private/AssetKey.h>
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/utils/public/Logger.h>
 
 #include <GL/glext.h>

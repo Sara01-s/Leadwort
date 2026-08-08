@@ -11,7 +11,7 @@ using DrawerFn = std::function<bool(Leadwort::Components::FieldData&)>;
 class FieldDrawerRegistry {
 public:
 	static FieldDrawerRegistry& Get() {
-		static FieldDrawerRegistry instance;
+		static FieldDrawerRegistry instance{};
 		return instance;
 	}
 
@@ -20,7 +20,7 @@ public:
 	}
 
 	bool Draw(Leadwort::Components::FieldData& field) {
-		if (const auto it = m_Drawers.find(field.type); it != m_Drawers.end()) {
+		if (const auto it { m_Drawers.find(field.type) }; it != m_Drawers.end()) {
 			return it->second(field);
 		}
 

@@ -1,6 +1,6 @@
 #include "../public/PrimitiveMeshes.h"
 
-#include <Leadwort/asset-management/public/AssetManager.h>
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/asset-management/public/DefaultAssets.h>
 
 #include <cmath>

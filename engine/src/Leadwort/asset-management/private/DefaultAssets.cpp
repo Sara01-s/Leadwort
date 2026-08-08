@@ -1,5 +1,5 @@
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/asset-management/public/DefaultAssets.h>
-#include <Leadwort/asset-management/public/AssetManager.h>
 #include <Leadwort/core/math/public/Color.h>
 
 namespace Leadwort::AssetManagement {

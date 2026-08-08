@@ -4,19 +4,30 @@
 #include <Leadwort/rendering/public/RenderTexture.h>
 
 namespace Editor::Windows {
-
 class GameViewport final : public Core::IEditorWindow {
 public:
 	using ResizeCallback = std::function<void(int, int)>;
 
 	explicit GameViewport(
-		Leadwort::Rendering::RenderTexture* gameRenderTexture,
-		const ResizeCallback& onResize,
-		const float targetAspectRatio = 16.0f / 9.0f
+	   Leadwort::Rendering::RenderTexture* gameRenderTexture,
+	   const ResizeCallback& onResize,
+	   const float targetAspectRatio = 16.0f / 9.0f
 	) : m_GameRenderTexture(gameRenderTexture), m_OnResize(onResize), m_TargetAspectRatio(targetAspectRatio) {}
 
 	std::string_view GetName() const noexcept override {
 		return "Game";
+	}
+
+	void ApplyPendingResize() {
+		if (m_PendingResize) {
+			if (m_OnResize) {
+				m_OnResize(m_PendingWidth, m_PendingHeight);
+			}
+			else {
+				m_GameRenderTexture->Resize(m_PendingWidth, m_PendingHeight);
+			}
+			m_PendingResize = false;
+		}
 	}
 
 	void OnGuiRender() override {
@@ -49,22 +60,19 @@ public:
 			const bool resized {
 				newWidth != m_GameRenderTexture->GetWidth()
 				|| newHeight != m_GameRenderTexture->GetHeight()
-			};
+			 };
 
 			if (resized) {
-				if (m_OnResize) {
-					m_OnResize(newWidth, newHeight);
-				}
-				else {
-					m_GameRenderTexture->Resize(newWidth, newHeight);
-				}
+				m_PendingResize = true;
+				m_PendingWidth  = newWidth;
+				m_PendingHeight = newHeight;
 			}
 
 			ImGui::Image(
 			   m_GameRenderTexture->GetGpuID(),
 			   renderSize,
-			   /*uv 0*/ ImVec2(0.0f, 1.0f),
-			   /*uv 1*/ ImVec2(1.0f, 0.0f)
+			   ImVec2(0.0f, 1.0f),
+			   ImVec2(1.0f, 0.0f)
 			);
 		}
 
@@ -86,6 +94,10 @@ private:
 	Leadwort::Rendering::RenderTexture* m_GameRenderTexture{};
 	ResizeCallback m_OnResize{};
 	float m_TargetAspectRatio{};
+
+	bool m_PendingResize { false };
+	int  m_PendingWidth { 0 };
+	int  m_PendingHeight { 0 };
 };
 
 }

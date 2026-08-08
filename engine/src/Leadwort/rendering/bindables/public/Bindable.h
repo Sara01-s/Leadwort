@@ -9,6 +9,9 @@ public:
 
 	virtual ~Bindable() = default;
 
+	Bindable(const Bindable&) = delete;
+	Bindable& operator=(const Bindable&) = delete;
+
 	virtual void Bind() const noexcept = 0;
 	virtual void Unbind() const noexcept = 0;
 

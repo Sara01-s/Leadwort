@@ -7,55 +7,68 @@ namespace Editor::Windows {
 
 class SceneViewport final : public Core::IEditorWindow {
 public:
-	using ResizeCallback = std::function<void(int, int)>;
+    using ResizeCallback = std::function<void(int, int)>;
 
-	explicit SceneViewport(
-		Leadwort::Rendering::RenderTexture* sceneRenderTexture,
-		const ResizeCallback& onResize
-	) : m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize) {}
+    explicit SceneViewport(
+       Leadwort::Rendering::RenderTexture* sceneRenderTexture,
+       const ResizeCallback& onResize
+    ) : m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize) {}
 
-	std::string_view GetName() const noexcept override {
-		return "Scene";
-	}
+    std::string_view GetName() const noexcept override {
+       return "Scene";
+    }
 
-	void OnGuiRender() override {
-		ImGui::Begin(GetName().data());
+    void ApplyPendingResize() {
+       if (m_PendingResize) {
+          if (m_OnResize) {
+             m_OnResize(m_PendingWidth, m_PendingHeight);
+          }
+          else {
+             m_SceneRenderTexture->Resize(m_PendingWidth, m_PendingHeight);
+          }
+          m_PendingResize = false;
+       }
+    }
 
-		const ImVec2 availSize = ImGui::GetContentRegionAvail();
-		const ImVec2 renderSize = availSize;
+    void OnGuiRender() override {
+       ImGui::Begin(GetName().data());
 
-		const int newWidth  = static_cast<int>(renderSize.x);
-		const int newHeight = static_cast<int>(renderSize.y);
+       const ImVec2 availSize = ImGui::GetContentRegionAvail();
+       const ImVec2 renderSize = availSize;
 
-		if (newWidth > 0 && newHeight > 0) {
-			const bool resized {
-				newWidth != m_SceneRenderTexture->GetWidth()
-				|| newHeight != m_SceneRenderTexture->GetHeight()
-			};
+       const int newWidth  = static_cast<int>(renderSize.x);
+       const int newHeight = static_cast<int>(renderSize.y);
 
-			if (resized) {
-				if (m_OnResize) {
-					m_OnResize(newWidth, newHeight);
-				}
-				else {
-					m_SceneRenderTexture->Resize(newWidth, newHeight);
-				}
-			}
+       if (newWidth > 0 && newHeight > 0) {
+          const bool resized {
+             newWidth != m_SceneRenderTexture->GetWidth()
+             || newHeight != m_SceneRenderTexture->GetHeight()
+          };
 
-			ImGui::Image(
-			   m_SceneRenderTexture->GetGpuID(),
-			   renderSize,
-			   /*uv 0*/ ImVec2(0.0f, 1.0f),
-			   /*uv 1*/ ImVec2(1.0f, 0.0f)
-			);
-		}
+          if (resized) {
+             m_PendingResize = true;
+             m_PendingWidth  = newWidth;
+             m_PendingHeight = newHeight;
+          }
 
-		ImGui::End();
-	}
+          ImGui::Image(
+             m_SceneRenderTexture->GetGpuID(),
+             renderSize,
+             /*uv 0*/ ImVec2(0.0f, 1.0f),
+             /*uv 1*/ ImVec2(1.0f, 0.0f)
+          );
+       }
+
+       ImGui::End();
+    }
 
 private:
-	Leadwort::Rendering::RenderTexture* m_SceneRenderTexture{};
-	ResizeCallback m_OnResize{};
+    Leadwort::Rendering::RenderTexture* m_SceneRenderTexture{};
+    ResizeCallback m_OnResize{};
+
+    bool m_PendingResize{false};
+    int  m_PendingWidth{0};
+    int  m_PendingHeight{0};
 };
 
 }
