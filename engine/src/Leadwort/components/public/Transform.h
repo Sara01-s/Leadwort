@@ -43,8 +43,8 @@ public:
 	void SetWorldScale(const Vec3& worldScale);
 
 	// Matrices
-	[[nodiscard]] const Mat4& GetLocalMatrix() const;
-	[[nodiscard]] const Mat4& GetWorldMatrix() const;
+	[[nodiscard]] Mat4& GetLocalMatrix() const;
+	[[nodiscard]] Mat4& GetWorldMatrix() const;
 
 	// Hierarchy
 	void AddChild(Transform& child);
@@ -69,6 +69,7 @@ public:
 	void Deserialize(const Json& in) final override;
 
 	void OnFieldsChanged() override { MarkDirty(); }
+	void SetLocalFromWorld(Vec3 translation, Vec3 rotation, Vec3 scale);
 
 private:
 	void MarkDirty() const;

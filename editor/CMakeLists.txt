@@ -3,6 +3,7 @@ project(LeadwortEditorLib)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(imguizmo REQUIRED)
 
 # ImGui
 set(IMGUI_DIR thirdparty/imgui)
@@ -34,6 +35,7 @@ target_include_directories(LeadwortEditorLib
 target_link_libraries(LeadwortEditorLib
         PUBLIC
             imgui
+            imguizmo::imguizmo
 
         PRIVATE
             LeadwortEngineLib

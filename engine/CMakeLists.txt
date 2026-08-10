@@ -8,7 +8,6 @@ find_package(OpenAL CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(imguizmo REQUIRED)
 
 # Glad
 add_library(glad STATIC thirdparty/glad/glad.c)
@@ -57,7 +56,6 @@ target_link_libraries(LeadwortEngineLib
             OpenAL::OpenAL
             OpenGL::GL
             nlohmann_json::nlohmann_json
-            imguizmo::imguizmo
 )
 
 target_precompile_headers(LeadwortEngineLib PRIVATE pch.h)

@@ -109,6 +109,14 @@ void Input::Mouse::SetViewportHovered(const bool hovered) {
 	s_ViewportHovered = hovered;
 }
 
+bool Input::Mouse::IsUIHovered() {
+	return s_UIHovered;
+}
+
+void Input::Mouse::SetUIHovered(const bool hovered) {
+	s_UIHovered = hovered;
+}
+
 void Input::Mouse::SetCaptured(const bool captured) {
 	LW_ASSERT(s_Window, "Input uninitialized, please call Input::Init(GLFWindow*)");
 
@@ -135,12 +143,11 @@ void Input::Mouse::Update() {
 
 	s_PreviousMouseButtons = s_CurrentMouseButtons;
 	for (int b = 0; b < MouseButtonCount; ++b) {
-		s_CurrentMouseButtons[b] = glfwGetMouseButton(s_Window, b) == GLFW_PRESS;
+		s_CurrentMouseButtons[b] = !s_UIHovered && glfwGetMouseButton(s_Window, b) == GLFW_PRESS;
 	}
 
 	double x{}, y{};
 	glfwGetCursorPos(s_Window, &x, &y);
-
 	s_MousePosition = Vec2(static_cast<float>(x), static_cast<float>(y));
 
 	if (s_MouseFirstFrame) {

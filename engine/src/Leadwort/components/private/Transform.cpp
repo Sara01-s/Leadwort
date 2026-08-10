@@ -98,6 +98,16 @@ bool Transform::IsDirty() const {
 	return m_Dirty;
 }
 
+void Transform::SetLocalFromWorld(Vec3 translation, Vec3 rotation, Vec3 scale) {
+	translation = translation / scale;
+	rotation = rotation.Normalized();
+	scale = scale.Normalized();
+
+	m_LocalPosition = translation;
+	m_LocalRotation = Quat::FromEuler(rotation.x, rotation.y, rotation.z);
+	m_LocalScale = scale;
+}
+
 void Transform::MarkDirty() const {
 	if (m_Dirty) {
 		return;
@@ -126,7 +136,7 @@ void Transform::RebuildWorldMatrices() const {
 	}
 }
 
-const Mat4& Transform::GetLocalMatrix() const {
+Mat4& Transform::GetLocalMatrix() const {
     if (m_Dirty) {
 		RebuildLocalMatrix();
 	}
@@ -134,7 +144,7 @@ const Mat4& Transform::GetLocalMatrix() const {
 	return m_LocalMatrix;
 }
 
-const Mat4& Transform::GetWorldMatrix() const {
+Mat4& Transform::GetWorldMatrix() const {
     if (IsDirty()) {
 		RebuildWorldMatrices();
 	}

@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <variant>
+#include "imgui.h"
+#include "ImGuizmo.h"
 
 namespace Leadwort::AssetManagement {
 enum class AssetType;
@@ -17,11 +19,12 @@ struct AssetSelection {
 class EditorContext final {
 public:
 	std::variant<std::monostate, Leadwort::EntityID, AssetSelection> selection{};
-
 	Leadwort::Core::Scene* openedScene{};
-
 	std::vector<std::string> logHistory{};
 	Leadwort::Utils::Event<const std::string&> logCallback{};
+
+	ImGuizmo::OPERATION gizmoOperation = ImGuizmo::TRANSLATE;
+	ImGuizmo::MODE gizmoMode = ImGuizmo::LOCAL;
 
 public:
 	void SelectEntity(Leadwort::EntityID id) {

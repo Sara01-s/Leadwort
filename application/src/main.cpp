@@ -9,6 +9,7 @@
 #include "LeadwortEditor/windows/public/ConsoleWindow.h"
 #include "LeadwortEditor/windows/public/HierarchyWindow.h"
 #include "LeadwortEditor/windows/public/InspectorWindow.h"
+#include "LeadwortEditor/windows/public/SceneTools.h"
 
 #include <LeadwortEditor/core/public/EditorCore.h>
 #include <LeadwortEditor/core/public/EditorWindowsContainer.h>
@@ -60,9 +61,9 @@ int main() {
 		Leadwort::CreateUnique<Windows::HierarchyWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::InspectorWindow>(editorContext),
-		Leadwort::CreateUnique<Windows::AssetsWindow>(editorContext)
+		Leadwort::CreateUnique<Windows::AssetsWindow>(editorContext),
+		Leadwort::CreateUnique<Windows::SceneTools>(editorContext)
 	);
-
 
 	game.Loop(
 		[&] {

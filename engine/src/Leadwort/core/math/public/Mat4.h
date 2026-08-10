@@ -80,6 +80,7 @@ struct Mat4 {
     [[nodiscard]] Vec3 TransformDirection(const Vec3& d) const { return Vec3(glm::vec3(m_Data * glm::vec4(glm::vec3(d), 0.0f))); }
 
     // OpenGL upload
+    [[nodiscard]] float* ToPtr() { return glm::value_ptr(m_Data); }
     [[nodiscard]] const float* ToPtr() const { return glm::value_ptr(m_Data); }
 	int operator*(int _cpp_par_) const;
 

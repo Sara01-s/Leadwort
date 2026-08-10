@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ImGuiTheme.h"
+#include "Leadwort/systems/public/Input.h"
+
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 
 #include <GLFW/glfw3.h>
@@ -9,6 +11,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
+#include <ImGuizmo.h>
 #include <string>
 
 namespace Editor::Core  {
@@ -21,7 +24,6 @@ public:
 
         ImGuiIO& io { ImGui::GetIO() };
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     	io.IniFilename = "editor.ini";
 
         SetupImGuiStyle();
@@ -39,6 +41,7 @@ public:
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	static void EndFrame() {
