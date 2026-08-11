@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Leadwort/asset-management/public/DefaultAssets.h>
-#include <Leadwort/components/public/Renderer.h>
+#include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/rendering/bindables/public/Mesh.h>
 #include <Leadwort/systems/public/RenderSystem.h>
 #include <Leadwort/utils/public/PrimitiveMeshes.h>
@@ -11,7 +10,7 @@ namespace Leadwort::Components::Behaviours { class DirectionalLight; }
 
 namespace Leadwort::Components {
 
-class MeshRenderer : public Renderer {
+class MeshRenderer : public IRenderer {
 public:
 	using Mesh = Rendering::Bindables::Mesh;
 

@@ -1,9 +1,9 @@
 #pragma once
 
+#include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/core/math/public/Ray.h>
 #include <Leadwort/core/public/Entity.h>
 #include <Leadwort/core/public/Scene.h>
-#include <Leadwort/components/public/Renderer.h>
 #include <Leadwort/rendering/public/CoordinateSystem.h>
 
 #include <limits>
@@ -19,7 +19,7 @@ public:
 
 		for (const auto& entity : scene.GetEntityMap() | std::views::values) {
 			for (auto* component : entity->GetAllComponents()) {
-				const auto* renderer { dynamic_cast<Components::Renderer*>(component) };
+				const auto* renderer { dynamic_cast<Components::IRenderer*>(component) };
 				if (!renderer || !renderer->isVisible) {
 					continue;
 				}

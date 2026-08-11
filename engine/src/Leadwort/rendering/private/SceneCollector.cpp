@@ -1,5 +1,5 @@
 #include <Leadwort/components/public/Camera.h>
-#include <Leadwort/components/public/Renderer.h>
+#include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/core/math/public/Frustum.h>
 #include <Leadwort/core/public/Entity.h>
 #include <Leadwort/core/public/Scene.h>
@@ -15,7 +15,7 @@ void SceneCollector::FindRenderersInScene(const Core::Scene& scene) {
 
 	for (const auto& entity : scene.GetEntityMap() | std::views::values) {
 		for (auto* component : entity->GetAllComponents()) {
-			if (auto* renderer = dynamic_cast<Components::Renderer*>(component)) {
+			if (auto* renderer = dynamic_cast<Components::IRenderer*>(component)) {
 				LW_LOG("SceneCollector: Renderer found in the current scene: ", renderer->GetEntity().name);
 				m_Renderers.push_back(renderer);
 			}
@@ -46,7 +46,7 @@ RenderQueues SceneCollector::BuildRenderQueues(const Components::Camera& camera)
 			}
 		}
 
-		result[static_cast<std::uint8_t>(renderer->renderQueue)].push_back(renderer);
+		result[renderer->renderQueue].push_back(renderer);
 	}
 
 	return result;

@@ -4,7 +4,7 @@
 
 #include <glad/glad.h>
 
-namespace Leadwort::Rendering {
+namespace Leadwort::Rendering::RG {
 
 // Possesses one GPU texture (for color or depth).
 // It does not possess an FBO; use Framebuffer to combine textures into a render target.

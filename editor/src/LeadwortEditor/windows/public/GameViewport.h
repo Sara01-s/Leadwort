@@ -1,7 +1,5 @@
 #pragma once
-#include "../../core/public/IEditorWindow.h"
 #include "imgui.h"
-#include <Leadwort/rendering/public/RenderTexture.h>
 
 namespace Editor::Windows {
 class GameViewport final : public Core::IEditorWindow {
@@ -9,7 +7,7 @@ public:
 	using ResizeCallback = std::function<void(int, int)>;
 
 	explicit GameViewport(
-	   Leadwort::Rendering::RenderTexture* gameRenderTexture,
+	   Leadwort::Rendering::RG::RenderTexture* gameRenderTexture,
 	   const ResizeCallback& onResize,
 	   const float targetAspectRatio = 16.0f / 9.0f
 	) : m_GameRenderTexture(gameRenderTexture), m_OnResize(onResize), m_TargetAspectRatio(targetAspectRatio) {}
@@ -91,7 +89,7 @@ public:
 	void SetTargetAspectRatio(const float targetAspectRatio) noexcept { m_TargetAspectRatio = targetAspectRatio; }
 
 private:
-	Leadwort::Rendering::RenderTexture* m_GameRenderTexture{};
+	Leadwort::Rendering::RG::RenderTexture* m_GameRenderTexture{};
 	ResizeCallback m_OnResize{};
 	float m_TargetAspectRatio{};
 

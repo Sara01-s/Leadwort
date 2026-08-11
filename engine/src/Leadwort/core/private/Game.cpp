@@ -1,12 +1,18 @@
 #include <Leadwort/core/public/Game.h>
 
+#include "Leadwort/rendering/public/rendergraph/passes/AlphaTestPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/BackgroundPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/GridPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/OpaquePass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/TransparentPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/PostProcessPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/OutlinePass.h"
 #include "Leadwort/serialization/SceneSerializer.h"
 #include "Leadwort/systems/public/ShaderWatcher.h"
 
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/public/Time.h>
 #include <Leadwort/core/public/Window.h>
-#include <Leadwort/rendering/public/DefaultRenderPasses.h>
 #include <Leadwort/systems/public/BehaviourSystem.h>
 #include <Leadwort/systems/public/CameraSystem.h>
 #include <Leadwort/systems/public/Input.h>
@@ -17,7 +23,7 @@
 
 namespace Leadwort::Core {
 
-using namespace Rendering;
+using namespace Rendering::RG;
 using namespace Systems;
 
 Game::Game() {
@@ -45,27 +51,27 @@ Game::Game() {
 }
 
 void Game::BuildRenderGraphs() {
-	using namespace Rendering::Passes;
+	using namespace Rendering::RG::Passes;
 
-	auto* gameColor { m_GameColorTex.get() };
-	auto* gameDepth { m_GameDepthTex.get() };
-	auto* postColor { m_PostProcessTex.get() };
-	auto* sceneColor { m_SceneColorTex.get() };
-	auto* sceneDepth { m_SceneDepthTex.get() };
+	RenderTexture& gameColor{ *m_GameColorTex};
+	RenderTexture& gameDepth { *m_GameDepthTex };
+	RenderTexture& postColor { *m_PostProcessTex };
+	RenderTexture& sceneColor { *m_SceneColorTex };
+	RenderTexture& sceneDepth { *m_SceneDepthTex };
 
-	m_GameRenderGraph.AddPass(CreateUnique<BackgroundPass>(gameColor, gameDepth));
-	m_GameRenderGraph.AddPass(CreateUnique<OpaquePass>(gameColor, gameDepth));
-	m_GameRenderGraph.AddPass(CreateUnique<AlphaTestPass>(gameColor, gameDepth));
-	m_GameRenderGraph.AddPass(CreateUnique<TransparentPass>(gameColor, gameDepth));
-	m_GameRenderGraph.AddPass(CreateUnique<PostProcessPass>(gameColor, postColor));
+	m_GameRenderGraph.AddPass<BackgroundPass>(gameColor, gameDepth);
+	m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth);
+	m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
+	m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
+	m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor);
 	m_GameRenderGraph.Compile();
 
-	m_SceneRenderGraph.AddPass(CreateUnique<BackgroundPass>(sceneColor, sceneDepth));
-	m_SceneRenderGraph.AddPass(CreateUnique<OpaquePass>(sceneColor, sceneDepth));
-	m_SceneRenderGraph.AddPass(CreateUnique<AlphaTestPass>(sceneColor, sceneDepth));
-	m_SceneRenderGraph.AddPass(CreateUnique<GridPass>(sceneColor, sceneDepth));
-	m_SceneRenderGraph.AddPass(CreateUnique<TransparentPass>(sceneColor, sceneDepth));
-	m_SceneRenderGraph.AddPass(CreateUnique<OutlinePass>(sceneColor, sceneDepth));
+	m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);
+	m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth);
+	m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth);
+	m_SceneRenderGraph.AddPass<GridPass>(sceneColor, sceneDepth);
+	m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth);
+	m_SceneRenderGraph.AddPass<OutlinePass>(sceneColor, sceneDepth);
 	m_SceneRenderGraph.Compile();
 }
 

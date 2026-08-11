@@ -11,9 +11,9 @@ namespace Leadwort::Components {
 
 class Camera;
 
-class Renderer : public Component {
+class IRenderer : public Component {
 public:
-	~Renderer() override = default;
+	~IRenderer() override = default;
 
 	Rendering::RenderQueue renderQueue = Rendering::RenderQueue::Opaque;
 	bool isVisible = true;

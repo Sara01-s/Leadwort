@@ -33,8 +33,8 @@ int main() {
 
     Core::EditorCore::Initialize(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
-	Leadwort::Rendering::RenderTexture& gameRenderTexture { game.GetGameOutputTexture() };
-    Leadwort::Rendering::RenderTexture& sceneRenderTexture { game.GetSceneOutputTexture() };
+	Leadwort::Rendering::RG::RenderTexture& gameRenderTexture { game.GetGameOutputTexture() };
+    Leadwort::Rendering::RG::RenderTexture& sceneRenderTexture { game.GetSceneOutputTexture() };
 
 	Core::EditorWindowsContainer windowsContainer{};
 

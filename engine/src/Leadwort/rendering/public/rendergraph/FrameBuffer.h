@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Leadwort/core/public/Core.h"
 #include "RenderTexture.h"
 
 #include <glad/glad.h>
@@ -7,7 +8,7 @@
 #include <span>
 #include <vector>
 
-namespace Leadwort::Rendering {
+namespace Leadwort::Rendering::RG {
 
 // Owns a FBO that assembles N RenderTextures as color attachments
 // and an optional depth/stencil attachment.
@@ -38,16 +39,13 @@ public:
     [[nodiscard]] Vec2   GetResolution() const noexcept;
     [[nodiscard]] GLuint GetFboID()      const noexcept { return m_FBO; }
 
-    // Returns the color texture at the given attachment index.
     [[nodiscard]] RenderTexture* GetColorAttachment(std::size_t index) const noexcept;
-
-    // Returns the depth texture, or nullptr if none was provided.
     [[nodiscard]] RenderTexture* GetDepthAttachment() const noexcept { return m_Depth.has_value() ? *m_Depth : nullptr; }
 
     [[nodiscard]] bool IsValid() const noexcept { return m_FBO != 0; }
 
 private:
-    GLuint m_FBO { 0 };
+    GpuID m_FBO { 0 };
     std::vector<RenderTexture*> m_ColorAttachments{};
     std::optional<RenderTexture*> m_Depth { nullptr };
 };

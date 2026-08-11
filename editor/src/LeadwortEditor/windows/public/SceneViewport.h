@@ -2,7 +2,6 @@
 #include "../../core/public/IEditorWindow.h"
 #include "LeadwortEditor/data/EditorContext.h"
 #include "imgui.h"
-#include <Leadwort/rendering/public/RenderTexture.h>
 #include <Leadwort/rendering/public/ScenePicker.h>
 #include <Leadwort/systems/public/CameraSystem.h>
 #include <Leadwort/systems/public/Input.h>
@@ -14,7 +13,7 @@ class SceneViewport final : public Core::IEditorWindow {
 public:
 	using ResizeCallback = std::function<void(int, int)>;
 
-	explicit SceneViewport(Leadwort::Rendering::RenderTexture* sceneRenderTexture, const ResizeCallback& onResize, EditorContext& editorContext)
+	explicit SceneViewport(Leadwort::Rendering::RG::RenderTexture* sceneRenderTexture, const ResizeCallback& onResize, EditorContext& editorContext)
 		: m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize), m_EditorContext(editorContext)
 	{
 		ImGuizmo::SetOrthographic(false);
@@ -62,17 +61,10 @@ public:
 			ImGui::Image(m_SceneRenderTexture->GetGpuID(), renderSize, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
 			// Guizmo
-			// Guizmo
 			bool guizmoActive { false };
 			if (const auto* entityID { std::get_if<Leadwort::EntityID>(&m_EditorContext.selection) }) {
 				ImGuizmo::SetDrawlist();
 				ImGuizmo::SetRect(imagePos.x, imagePos.y, renderSize.x, renderSize.y);
-
-				LW_LOG("Rect: pos(" + std::to_string(imagePos.x) + "," + std::to_string(imagePos.y) +
-						 ") size(" + std::to_string(renderSize.x) + "," + std::to_string(renderSize.y) + ")");
-
-				const ImVec2 mousePos = ImGui::GetMousePos();
-				LW_LOG("Mouse: (" + std::to_string(mousePos.x) + "," + std::to_string(mousePos.y) + ")");
 
 				DrawGuizmo(*entityID);
 			}
@@ -97,7 +89,6 @@ public:
 private:
 	void DrawGuizmo(const Leadwort::EntityID entityID) const {
 		using namespace Leadwort;
-		LW_LOG(":V");
 
 		const auto* scene { Systems::SceneSystem::Get().GetCurrentScene() };
 		const auto* sceneCamera { Systems::CameraSystem::Get().GetSceneCamera() };
@@ -159,7 +150,7 @@ private:
 	}
 
 private:
-	Leadwort::Rendering::RenderTexture* m_SceneRenderTexture{};
+	Leadwort::Rendering::RG::RenderTexture* m_SceneRenderTexture{};
 	ResizeCallback m_OnResize{};
 	EditorContext& m_EditorContext;
 

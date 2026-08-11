@@ -1,6 +1,6 @@
-#include "../public/RenderTexture.h"
+#include "../public/rendergraph/RenderTexture.h"
 
-namespace Leadwort::Rendering {
+namespace Leadwort::Rendering::RG {
 
 RenderTexture::RenderTexture(const int width, const int height, const Format format)
     : m_Width(width), m_Height(height), m_Format(format)

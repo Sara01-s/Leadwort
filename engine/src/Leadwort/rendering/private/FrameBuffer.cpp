@@ -1,9 +1,8 @@
-#include "../public/FrameBuffer.h"
+#include "../public/rendergraph/FrameBuffer.h"
 
-#include <Leadwort/core/public/Core.h>
 #include <Leadwort/utils/public/Logger.h>
 
-namespace Leadwort::Rendering {
+namespace Leadwort::Rendering::RG {
 
 FrameBuffer::FrameBuffer(
 	const std::span<RenderTexture* const> colorAttachments,
@@ -18,31 +17,33 @@ FrameBuffer::FrameBuffer(
     glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
     // Color attachments
-    std::vector<GLenum> draw_buffers;
-    draw_buffers.reserve(colorAttachments.size());
+    std::vector<GLenum> drawBuffers{};
+    drawBuffers.reserve(colorAttachments.size());
 
-    for (GLuint i = 0; i < static_cast<GLuint>(colorAttachments.size()); i++) {
-        RenderTexture* renderTexture = colorAttachments[i];
+    for (GLuint i = 0; i < static_cast<GpuID>(colorAttachments.size()); i++) {
+        RenderTexture* renderTexture { colorAttachments[i] };
         LW_ASSERT(renderTexture && renderTexture->IsValid(), "Framebuffer: null or invalid RenderTexture.");
         LW_ASSERT(!renderTexture->IsDepth(), "Framebuffer: depth texture passed as color attachment.");
 
         glFramebufferTexture2D(GL_FRAMEBUFFER,
             GL_COLOR_ATTACHMENT0 + i,
             GL_TEXTURE_2D,
-            renderTexture->GetGpuID(), 0);
+            renderTexture->GetGpuID(),
+            0
+        );
 
-        draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+        drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
         m_ColorAttachments.push_back(renderTexture);
     }
 
-    if (!draw_buffers.empty()) {
-        glDrawBuffers(static_cast<GLsizei>(draw_buffers.size()), draw_buffers.data());
+    if (!drawBuffers.empty()) {
+        glDrawBuffers(static_cast<GLsizei>(drawBuffers.size()), drawBuffers.data());
     }
 
     // Depth / stencil attachment
-	if (const auto* depth_ptr = depth.value_or(nullptr)) {
-		LW_ASSERT(depth_ptr->IsDepth(), "Framebuffer: non-depth texture passed as depth attachment.");
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth_ptr->GetGpuID(), 0);
+	if (const auto* depthPtr { depth.value_or(nullptr) }) {
+		LW_ASSERT(depthPtr->IsDepth(), "Framebuffer: non-depth texture passed as depth attachment.");
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthPtr->GetGpuID(), 0);
 	}
 
     LW_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer: incomplete framebuffer object.");
@@ -59,6 +60,7 @@ FrameBuffer::~FrameBuffer() {
 
 void FrameBuffer::Bind() const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+    glViewport(0, 0, this->GetWidth(), this->GetHeight());
 }
 
 void FrameBuffer::Unbind() noexcept {
@@ -66,14 +68,26 @@ void FrameBuffer::Unbind() noexcept {
 }
 
 int FrameBuffer::GetWidth() const noexcept {
-    if (!m_ColorAttachments.empty()) return m_ColorAttachments[0]->GetWidth();
-    if (m_Depth.has_value()) return m_Depth.value()->GetWidth();
+    if (!m_ColorAttachments.empty()) {
+	    return m_ColorAttachments[0]->GetWidth();
+    }
+
+    if (m_Depth.has_value()) {
+	    return m_Depth.value()->GetWidth();
+    }
+
     return 0;
 }
 
 int FrameBuffer::GetHeight() const noexcept {
-    if (!m_ColorAttachments.empty()) return m_ColorAttachments[0]->GetHeight();
-    if (m_Depth.has_value()) return m_Depth.value()->GetHeight();
+    if (!m_ColorAttachments.empty()) {
+	    return m_ColorAttachments[0]->GetHeight();
+    }
+
+    if (m_Depth.has_value()) {
+	    return m_Depth.value()->GetHeight();
+    }
+
     return 0;
 }
 

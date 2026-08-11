@@ -2,11 +2,9 @@
 
 #include "../../core/math/public/Color.h"
 #include <Leadwort/asset-management/public/AssetDatabase.h>
-#include <Leadwort/components/public/Camera.h>
+#include <Leadwort/components/public/MeshRenderer.h>
 #include <Leadwort/core/public/Window.h>
-#include <Leadwort/rendering/public/DefaultRenderPasses.h>
 #include <Leadwort/rendering/public/GLStateCache.h>
-#include <Leadwort/rendering/public/RenderPass.h>
 #include <Leadwort/systems/public/LightingSystem.h>
 #include <Leadwort/systems/public/SceneSystem.h>
 
@@ -21,7 +19,6 @@ using namespace Rendering;
 using namespace Components;
 using namespace Bindables;
 using namespace Core;
-using namespace Passes;
 
 void RenderSystem::Initialize() {
     glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
@@ -43,14 +40,18 @@ void RenderSystem::Initialize() {
 //  Main render
 // ----------------------------------------------
 
-void RenderSystem::Render(Camera& camera, const RenderGraph& graph) const {
+void RenderSystem::Render(Camera& camera, const RG::RenderGraph& graph) const {
 	GLStateCache::Get().Invalidate();
 
-	auto queues = m_SceneCollector.BuildRenderQueues(camera);
+	auto queues { m_SceneCollector.BuildRenderQueues(camera) };
 	m_CameraUBO.Update(camera);
 	m_LightingUBO.Update(LightingSystem::Get().GetDirectionalLight());
 
-	graph.Execute(camera, queues, m_HighlightedEntity);
+	MeshRenderer* highlightedMeshRenderer {
+		m_HighlightedEntity == nullptr ? nullptr : m_HighlightedEntity->GetComponent<MeshRenderer>()
+	};
+
+	graph.Execute(camera, queues, highlightedMeshRenderer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());

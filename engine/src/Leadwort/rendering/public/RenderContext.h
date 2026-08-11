@@ -1,8 +1,9 @@
 #pragma once
-#include "../../components/public/Camera.h"
+
 #include "RenderQueue.h"
 
 namespace Leadwort::Components {
+	class Camera;
 	class MeshRenderer;
 }
 

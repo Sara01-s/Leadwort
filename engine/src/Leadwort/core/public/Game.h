@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../rendering/public/RenderGraph.h"
-#include "Core.h"
+#include <Leadwort/rendering/public/rendergraph/RenderGraph.h>
+#include <Leadwort/core/public/Core.h>
 
 #include <memory>
 
@@ -19,21 +19,21 @@ public:
 	void ResizeSceneView(int width, int height);
 	static void SetHighlightedEntity(EntityID entityID);
 
-	[[nodiscard]] Rendering::RenderTexture& GetGameColorTexture()  const noexcept { return *m_GameColorTex; }
-	[[nodiscard]] Rendering::RenderTexture& GetGameDepthTexture()  const noexcept { return *m_GameDepthTex; }
-	[[nodiscard]] Rendering::RenderTexture& GetGameOutputTexture() const noexcept { return *m_PostProcessTex; }
-	[[nodiscard]] Rendering::RenderTexture& GetSceneOutputTexture() const noexcept { return *m_SceneColorTex; }
-	[[nodiscard]] Rendering::RenderTexture& GetSceneDepthTexture() const noexcept { return *m_SceneDepthTex; }
+	[[nodiscard]] Rendering::RG::RenderTexture& GetGameColorTexture()   const noexcept { return *m_GameColorTex; }
+	[[nodiscard]] Rendering::RG::RenderTexture& GetGameDepthTexture()   const noexcept { return *m_GameDepthTex; }
+	[[nodiscard]] Rendering::RG::RenderTexture& GetGameOutputTexture()  const noexcept { return *m_PostProcessTex; }
+	[[nodiscard]] Rendering::RG::RenderTexture& GetSceneOutputTexture() const noexcept { return *m_SceneColorTex; }
+	[[nodiscard]] Rendering::RG::RenderTexture& GetSceneDepthTexture()  const noexcept { return *m_SceneDepthTex; }
 
 private:
-	Unique<Rendering::RenderTexture> m_GameColorTex{};
-	Unique<Rendering::RenderTexture> m_GameDepthTex{};
-	Unique<Rendering::RenderTexture> m_PostProcessTex{};
-	Unique<Rendering::RenderTexture> m_SceneColorTex{};
-	Unique<Rendering::RenderTexture> m_SceneDepthTex{};
+	Unique<Rendering::RG::RenderTexture> m_GameColorTex{};
+	Unique<Rendering::RG::RenderTexture> m_GameDepthTex{};
+	Unique<Rendering::RG::RenderTexture> m_PostProcessTex{};
+	Unique<Rendering::RG::RenderTexture> m_SceneColorTex{};
+	Unique<Rendering::RG::RenderTexture> m_SceneDepthTex{};
 
-	Rendering::RenderGraph m_GameRenderGraph{};
-	Rendering::RenderGraph m_SceneRenderGraph{};
+	Rendering::RG::RenderGraph m_GameRenderGraph{};
+	Rendering::RG::RenderGraph m_SceneRenderGraph{};
 };
 
 } // namespace Engine::Core
