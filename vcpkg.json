@@ -9,6 +9,11 @@
     "glm",
     "gtest",
     "nlohmann-json",
+    {
+      "name": "imgui",
+      "default-features": false,
+      "features": ["docking-experimental", "glfw-binding", "opengl3-binding"]
+    },
     "imguizmo"
   ]
 }

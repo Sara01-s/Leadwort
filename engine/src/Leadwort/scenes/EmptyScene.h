@@ -13,7 +13,7 @@ class EmptyScene final : public Core::Scene {
 public:
     void Create() override {
         // Default Cube
-		Core::Entity* sphere = CreateEntity("Default Sphere");
+		Core::Entity* sphere = CreateEntity("Default Cube");
         {
             auto* mr { sphere->AddComponent<Components::MeshRenderer>() };
 			mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
