@@ -42,4 +42,8 @@ namespace Leadwort::Components {
 		return Ray { nearWorld, direction };
 	}
 
-} // namespace Engine::Components
+	std::vector<Utils::GizmoShapes::DebugLine> Camera::GetGizmoLines() const noexcept {
+		return Utils::GizmoShapes::Frustum(GetEntity().GetTransform().GetWorldMatrix(), fov, aspect, nearPlane, farPlane);
+	}
+
+	} // namespace Engine::Components

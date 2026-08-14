@@ -8,18 +8,18 @@
 
 namespace Leadwort::Components::Behaviours {
 
-inline Transform& Behaviour::GetTransform() const {
-	return GetEntity().GetTransform();
-}
+	inline Transform& Behaviour::GetTransform() const {
+		return GetEntity().GetTransform();
+	}
 
-template <typename T>
-T* Behaviour::GetComponent() const {
-	return GetEntity().GetComponent<T>();
-}
+	template <typename T>
+	T* Behaviour::GetComponent() const {
+		return GetEntity().GetComponent<T>();
+	}
 
-template <typename T>
-bool Behaviour::HasComponent() const {
-	return GetEntity().HasComponent<T>();
-}
+	template <typename T>
+	bool Behaviour::HasComponent() const {
+		return GetEntity().HasComponent<T>();
+	}
 
 } // namespace Engine::Components::Behaviours

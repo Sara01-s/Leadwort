@@ -31,13 +31,13 @@ int main() {
 	EditorContext editorContext{};
 
 	Leadwort::Utils::Log::LogCallback = [&editorContext](const std::string& message) {
-		editorContext.logHistory.push_back(message);
-		editorContext.logCallback.Execute(message);
+		editorContext.LogHistory.push_back(message);
+		editorContext.LogCallback.Execute(message);
 	};
 
     Leadwort::Core::Game game{};
 
-	const auto& window = Leadwort::Core::Window::Get();
+	const auto& window { Leadwort::Core::Window::Get() };
 
     Core::EditorCore::Initialize(reinterpret_cast<std::uint64_t>(window.GetHandle()));
 
@@ -46,7 +46,7 @@ int main() {
 
 	Core::EditorWindowsContainer windowsContainer{};
 
-	editorContext.openedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
+	editorContext.OpenedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
 
 	auto gameViewportPtr { Leadwort::CreateUnique<Windows::GameViewport>(
 	   &gameRenderTexture,
@@ -75,14 +75,14 @@ int main() {
 
 	game.Loop(
 		[&] {
-		   gameViewportRaw->ApplyPendingResize();
-		   sceneViewportRaw->ApplyPendingResize();
+			gameViewportRaw->ApplyPendingResize();
+			sceneViewportRaw->ApplyPendingResize();
 		},
 		[&] {
 			Core::EditorCore::StartFrame();
 			Core::EditorCore::SetupDockSpace();
 
-			if (const auto* selectedID { std::get_if<Leadwort::EntityID>(&editorContext.selection)}) {
+			if (const auto* selectedID { std::get_if<Leadwort::EntityID>(&editorContext.Selection)}) {
 				game.SetHighlightedEntity(*selectedID);
 			}
 			else {

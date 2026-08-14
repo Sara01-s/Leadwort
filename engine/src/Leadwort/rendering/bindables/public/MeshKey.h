@@ -7,18 +7,18 @@
 #include <vector>
 
 namespace Leadwort::Rendering::Bindables {
-struct MeshKey {
-	std::string modelPath;
-	std::uint32_t meshIndex;
-	bool isCreatedAtRuntime = false;
+	struct MeshKey {
+		std::string modelPath;
+		std::uint32_t meshIndex;
+		bool isCreatedAtRuntime = false;
 
-	static MeshKey CreateAtRuntime(const std::string& name) {
-		return MeshKey { "runtime://" + name, 0, true };
-	}
+		static MeshKey CreateAtRuntime(const std::string& name) {
+			return MeshKey { "runtime://" + name, 0, true };
+		}
 
-	bool operator==(const MeshKey& other) const { return meshIndex == other.meshIndex && modelPath == other.modelPath; }
-	bool operator!=(const MeshKey& other) const { return !(*this == other); }
-};
+		bool operator==(const MeshKey& other) const { return meshIndex == other.meshIndex && modelPath == other.modelPath; }
+		bool operator!=(const MeshKey& other) const { return !(*this == other); }
+	};
 }
 
 template <>

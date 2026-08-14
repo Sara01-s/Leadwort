@@ -9,17 +9,17 @@ namespace Leadwort::Rendering { class DrawCommandBuffer; }
 
 namespace Leadwort::Components {
 
-class Camera;
+	class Camera;
 
-class IRenderer : public Component {
-public:
-	~IRenderer() override = default;
+	class IRenderer : public Component {
+	public:
+		~IRenderer() override = default;
 
-	Rendering::RenderQueue renderQueue = Rendering::RenderQueue::Opaque;
-	bool isVisible = true;
+		Rendering::RenderQueue renderQueue = Rendering::RenderQueue::Opaque;
+		bool isVisible = true;
 
-	virtual void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const = 0;
-	[[nodiscard]] virtual std::optional<AABB> GetAABB() const { return std::nullopt; }
-};
+		virtual void EmitDrawCommand(Rendering::DrawCommandBuffer& drawCmdBuffer, const Camera& camera) const = 0;
+		[[nodiscard]] virtual std::optional<AABB> GetAABB() const { return std::nullopt; }
+	};
 
 } // namespace Engine::Components

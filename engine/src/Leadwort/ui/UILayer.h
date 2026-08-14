@@ -4,13 +4,13 @@
 
 namespace Leadwort::UI {
 
-class UILayer {
-public:
-	virtual ~UILayer() = default;
+	class UILayer {
+	public:
+		virtual ~UILayer() = default;
 
-	virtual void Initialize(std::uint64_t windowHandle) = 0;
-	virtual void StartFrame() = 0;
-	virtual void EndFrame() = 0;
-};
+		virtual void Initialize(std::uint64_t windowHandle) = 0;
+		virtual void StartFrame() = 0;
+		virtual void EndFrame() = 0;
+	};
 
 } // namespace Engine::UI

@@ -16,54 +16,58 @@ namespace Leadwort::Rendering::Bindables {
 
 namespace Leadwort::Core {
 
-enum class PBRWorkflow {
-	MetallicRoughness,
-	SpecularGlossiness
-};
+	enum class PBRWorkflow {
+		MetallicRoughness,
+		SpecularGlossiness
+	};
 
-struct MaterialFeatures {
-    bool hasDiffuse   { false };
-    bool hasNormals   { false };
-    bool hasSpecular  { false };
-    bool hasOpacity   { false };
-    bool hasEmissive  { false };
-    bool hasRoughness { false };
-    bool hasMetallic  { false };
-    bool hasAO        { false };
-	PBRWorkflow pbrWorkflow { PBRWorkflow::MetallicRoughness };
+	struct MaterialFeatures {
+	    bool hasDiffuse   { false };
+	    bool hasNormals   { false };
+	    bool hasSpecular  { false };
+	    bool hasOpacity   { false };
+	    bool hasEmissive  { false };
+	    bool hasRoughness { false };
+	    bool hasMetallic  { false };
+	    bool hasAO        { false };
+		PBRWorkflow pbrWorkflow { PBRWorkflow::MetallicRoughness };
 
-    float specularIntensity  { 1.0f };
-    float specularPower      { 1.0f };
-	float roughnessIntensity { 0.5f };
-	float metallicIntensity  { 0.0f };
+	    float specularIntensity  { 1.0f };
+	    float specularPower      { 1.0f };
+		float roughnessIntensity { 0.5f };
+		float metallicIntensity  { 0.0f };
 
-    Color color = Color::White();
-};
+	    Color color = Color::White();
+	};
 
-class Model {
-public:
-    explicit Model(const std::string& path, AssetManagement::AssetKey<Model>);
+	class Model {
+	public:
+	    explicit Model(const std::string& path, AssetManagement::AssetKey<Model>);
 
-    Model(const Model&) = delete;
-    Model& operator=(const Model&) = delete;
+	    Model(const Model&) = delete;
+	    Model& operator=(const Model&) = delete;
 
-    void Instantiate(Entity& parentEntity);
-	[[nodiscard ]] std::size_t GetMeshCount() const noexcept { return m_Meshes.size(); }
+	    void Instantiate(Entity& parentEntity);
+		[[nodiscard ]] std::size_t GetMeshCount() const noexcept { return m_Meshes.size(); }
+		[[nodiscard]] const Shared<Rendering::Bindables::Mesh>& GetMesh(const std::size_t index) const {
+			LW_ASSERT(index < m_Meshes.size(), "Model::GetMesh: index out of range");
+			return m_Meshes[index];
+		}
 
-private:
-    void AttachNodeToEntity(const aiNode* node, Entity& entity);
+	private:
+	    void AttachNodeToEntity(const aiNode* node, Entity& entity);
 
-    Shared<Rendering::Bindables::Mesh> ParseMesh(const aiMesh* mesh, const aiScene* scene, const std::string& path) const;
+	    Shared<Rendering::Bindables::Mesh> ParseMesh(const aiMesh* mesh, const aiScene* scene, const std::string& path) const;
 
-	static MaterialFeatures ParseMaterialFeatures(const aiMaterial* material);
-    void BindTextures(Rendering::Bindables::Material& material, const aiMaterial* aiMat, const MaterialFeatures& features) const;
-	static Mat4 AssimpToMat4(const aiMatrix4x4& matrix);
+		static MaterialFeatures ParseMaterialFeatures(const aiMaterial* material);
+	    void BindTextures(Rendering::Bindables::Material& material, const aiMaterial* aiMat, const MaterialFeatures& features) const;
+		static Mat4 AssimpToMat4(const aiMatrix4x4& matrix);
 
-private:
-    Assimp::Importer m_Importer{};
-    const aiScene* m_AiScene { nullptr };
-    std::string m_ResourceBaseDir{};
-    std::vector<Shared<Rendering::Bindables::Mesh>> m_Meshes{};
-};
+	private:
+	    Assimp::Importer m_Importer{};
+	    const aiScene* m_AiScene { nullptr };
+	    std::string m_ResourceBaseDir{};
+	    std::vector<Shared<Rendering::Bindables::Mesh>> m_Meshes{};
+	};
 
 } // namespace Engine::Game

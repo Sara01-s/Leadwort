@@ -62,20 +62,15 @@ namespace Editor::Windows {
 
 				// Guizmo
 				bool guizmoActive { false };
-				if (const auto* entityID { std::get_if<Leadwort::EntityID>(&m_EditorContext.selection) }) {
+				if (const auto* entityID { std::get_if<Leadwort::EntityID>(&m_EditorContext.Selection) }) {
 					ImGuizmo::SetDrawlist();
 					ImGuizmo::SetRect(imagePos.x, imagePos.y, renderSize.x, renderSize.y);
-
-					const ImVec2 mp = ImGui::GetIO().MousePos;
-					LW_LOG("mousePos=" + std::to_string(mp.x) + "," + std::to_string(mp.y) +
-						   " rect=" + std::to_string(imagePos.x) + "," + std::to_string(imagePos.y) +
-						   "," + std::to_string(renderSize.x) + "," + std::to_string(renderSize.y) +
-						   " displaySize=" + std::to_string(ImGui::GetIO().DisplaySize.x) + "," + std::to_string(ImGui::GetIO().DisplaySize.y) +
-						   " captured=" + std::to_string(Leadwort::Systems::Input::Mouse::IsCaptured()));
 
 					DrawGuizmo(*entityID);
 
 					guizmoActive = ImGuizmo::IsOver() || ImGuizmo::IsUsing();
+
+					DrawComponentGizmos(*entityID, imagePos, renderSize);
 				}
 				Leadwort::Systems::Input::Mouse::SetUIHovered(guizmoActive);
 
@@ -96,6 +91,30 @@ namespace Editor::Windows {
 		}
 
 	private:
+		static bool ProjectToScreen(
+			const Leadwort::Vec3& worldPos,
+			const Leadwort::Mat4& view,
+			const Leadwort::Mat4& projection,
+			const ImVec2& viewportPos,
+			const ImVec2& viewportSize,
+			ImVec2& outScreen
+		) {
+			using namespace Leadwort;
+
+			const Leadwort::Vec4 clip { projection * view * Leadwort::Vec4(worldPos.x, worldPos.y, worldPos.z, 1.0f) };
+
+			if (clip.w <= 0.0001f) {
+				return false;
+			}
+
+			const Vec3 ndc { Vec3(clip.x, clip.y, clip.z) / clip.w };
+
+			outScreen.x = viewportPos.x + (ndc.x * 0.5f + 0.5f) * viewportSize.x;
+			outScreen.y = viewportPos.y + (1.0f - (ndc.y * 0.5f + 0.5f)) * viewportSize.y;
+
+			return true;
+		}
+
 		void DrawGuizmo(const Leadwort::EntityID entityID) const {
 			using namespace Leadwort;
 
@@ -105,30 +124,24 @@ namespace Editor::Windows {
 				return;
 			}
 
+			const auto& entity { scene->GetEntity(entityID) };
+
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::Enable(true);
 
-			auto& transform { scene->GetEntity(entityID)->GetTransform() };
+			auto& transform { entity->GetTransform() };
 			Mat4 transformMatrix { transform.GetWorldMatrix() };
 
 			Mat4 viewMatrix { sceneCamera->GetViewMatrix() };
 			Mat4 projectionMatrix { sceneCamera->GetProjectionMatrix() };
 
-
 			ImGuizmo::Manipulate(
 				viewMatrix.ToPtr(),
 				projectionMatrix.ToPtr(),
-				m_EditorContext.gizmoOperation,
-				m_EditorContext.gizmoMode,
+				m_EditorContext.GizmoOperation,
+				m_EditorContext.GizmoMode,
 				transformMatrix.ToPtr()
 			);
-
-			if (ImGuizmo::IsOver()) {
-				LW_LOG("Guizmo IsOver = true");
-			}
-			if (ImGuizmo::IsUsing()) {
-				LW_LOG("Guizmo IsUsing = true");
-			}
 
 			if (ImGuizmo::IsUsing()) {
 				Vec3 translation{}, rotation{}, scale{};
@@ -155,10 +168,44 @@ namespace Editor::Windows {
 			const auto pickedEntity { Rendering::ScenePicker::Pick(ray, *scene) };
 
 			if (pickedEntity != Leadwort::Core::Entity::ROOT_ENTITY_ID) {
-				m_EditorContext.selection = pickedEntity;
+				m_EditorContext.Selection = pickedEntity;
 			}
 			else {
 				m_EditorContext.ClearSelection();
+			}
+		}
+
+		static void DrawComponentGizmos(const Leadwort::EntityID entityID, const ImVec2& viewportPos, const ImVec2& viewportSize) {
+			using namespace Leadwort;
+
+			const auto* scene { Systems::SceneSystem::Get().GetCurrentScene() };
+			const auto* sceneCamera { Systems::CameraSystem::Get().GetSceneCamera() };
+			if (!scene || !sceneCamera) {
+				return;
+			}
+
+			const auto* entity { scene->GetEntity(entityID) };
+			if (!entity) {
+				return;
+			}
+
+			const Mat4 viewMatrix { sceneCamera->GetViewMatrix() };
+			const Mat4 projectionMatrix { sceneCamera->GetProjectionMatrix() };
+
+			ImDrawList* drawList { ImGui::GetWindowDrawList() };
+			constexpr ImU32 gizmoColor { IM_COL32(255, 220, 80, 255) };
+
+			for (const auto* component : entity->GetAllComponents()) {
+				for (const auto& line : component->GetGizmoLines()) {
+					ImVec2 screenStart{}, screenEnd{};
+
+					const bool startVisible { ProjectToScreen(line.start, viewMatrix, projectionMatrix, viewportPos, viewportSize, screenStart) };
+					const bool endVisible   { ProjectToScreen(line.end,   viewMatrix, projectionMatrix, viewportPos, viewportSize, screenEnd) };
+
+					if (startVisible && endVisible) {
+						drawList->AddLine(screenStart, screenEnd, gizmoColor, 1.5f);
+					}
+				}
 			}
 		}
 

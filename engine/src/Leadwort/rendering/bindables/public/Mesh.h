@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Bindable.h"
+#include "IBindable.h"
 #include "Material.h"
 #include "MeshKey.h"
 #include "VertexLayout.h"
@@ -20,7 +20,7 @@ struct MeshData {
 	GLenum usage { GL_DYNAMIC_DRAW };
 };
 
-class Mesh : public Bindable {
+class Mesh : public IBindable {
 public:
 	explicit Mesh(const MeshData& meshData, AssetManagement::AssetKey<Mesh>&& key) noexcept;
 	~Mesh() override;

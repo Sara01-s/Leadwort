@@ -6,45 +6,45 @@
 
 namespace Leadwort::Rendering {
 
-// Caches the currently applied GL state and only issues
-// glEnable/glDisable/etc calls when something actually changes.
-//
-// Single source of truth: every pass calls ApplyState(...)
-// instead of poking GL directly.
-class GLStateCache {
-public:
-	static GLStateCache& Get() {
-		static GLStateCache instance;
-		return instance;
-	}
+	// Caches the currently applied GL state and only issues
+	// glEnable/glDisable/etc calls when something actually changes.
+	//
+	// Single source of truth: every pass calls ApplyState(...)
+	// instead of poking GL directly.
+	class GLStateCache {
+	public:
+		static GLStateCache& Get() {
+			static GLStateCache instance;
+			return instance;
+		}
 
-	// Forces the next ApplyState to re-issue everything.
-	// Call this once at frame start (or after external code
-	// that pokes GL directly, e.g., ImGui).
-	void Invalidate();
-	void ApplyState(const RenderPipelineState& state);
+		// Forces the next ApplyState to re-issue everything.
+		// Call this once at frame start (or after external code
+		// that pokes GL directly, e.g., ImGui).
+		void Invalidate();
+		void ApplyState(const RenderPipelineState& state);
 
-	[[nodiscard]] const RenderPipelineState& CurrentRenderPipelineState() const { return m_CurrentRenderPipelineState; }
+		[[nodiscard]] const RenderPipelineState& CurrentRenderPipelineState() const { return m_CurrentRenderPipelineState; }
 
-private:
-	GLStateCache() = default;
+	private:
+		GLStateCache() = default;
 
-	static void ApplyDepthTest(bool enabled);
-	static void ApplyDepthWrite(bool enabled);
-	static void ApplyDepthFunc(DepthFunc func);
-	static void ApplyCullMode(CullMode mode);
-	static void ApplyBlendMode(BlendMode mode);
-	static void ApplyMultisample(bool enabled);
+		static void ApplyDepthTest(bool enabled);
+		static void ApplyDepthWrite(bool enabled);
+		static void ApplyDepthFunc(DepthFunc func);
+		static void ApplyCullMode(CullMode mode);
+		static void ApplyBlendMode(BlendMode mode);
+		static void ApplyMultisample(bool enabled);
 
-	static void ApplyStencilTest(bool enabled);
-	static void ApplyStencilFunc(DepthFunc func, uint8_t ref, uint8_t mask);
-	static void ApplyStencilOp(StencilOp fail, StencilOp passDepthFail, StencilOp passDepthPass);
-	static void ApplyStencilWriteMask(uint8_t mask);
-	static void ApplyColorWrite(bool enabled);
+		static void ApplyStencilTest(bool enabled);
+		static void ApplyStencilFunc(DepthFunc func, uint8_t ref, uint8_t mask);
+		static void ApplyStencilOp(StencilOp fail, StencilOp passDepthFail, StencilOp passDepthPass);
+		static void ApplyStencilWriteMask(uint8_t mask);
+		static void ApplyColorWrite(bool enabled);
 
-private:
-	RenderPipelineState m_CurrentRenderPipelineState{};
-	bool m_Initialized { false };
-};
+	private:
+		RenderPipelineState m_CurrentRenderPipelineState{};
+		bool m_Initialized { false };
+	};
 
 } // namespace Engine::Rendering

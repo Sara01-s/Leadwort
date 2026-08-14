@@ -2,19 +2,19 @@
 
 namespace Leadwort::Utils {
 
-template <typename T>
-class Singleton {
-public:
-	Singleton(const Singleton&) = delete;
-	Singleton& operator=(const Singleton&) = delete;
+	template <typename T>
+	class Singleton {
+	public:
+		Singleton(const Singleton&) = delete;
+		Singleton& operator=(const Singleton&) = delete;
 
-	static T& Get() {
-		static T instance;
-		return instance;
-	}
+		static T& Get() {
+			static T instance;
+			return instance;
+		}
 
-protected:
-	Singleton() = default;
-};
+	protected:
+		Singleton() = default;
+	};
 
 }

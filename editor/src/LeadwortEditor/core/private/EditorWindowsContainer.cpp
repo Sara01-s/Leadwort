@@ -4,14 +4,14 @@
 
 namespace Editor::Core {
 
-EditorWindowsContainer::~EditorWindowsContainer() {
-	m_Windows.clear();
-}
-
-void EditorWindowsContainer::RenderAllWindows() const {
-	for (auto const& window : m_Windows) {
-		window->OnGuiRender();
+	EditorWindowsContainer::~EditorWindowsContainer() {
+		m_Windows.clear();
 	}
-}
+
+	void EditorWindowsContainer::RenderAllWindows() const {
+		for (auto const& window : m_Windows) {
+			window->OnGuiRender();
+		}
+	}
 
 } // namespace Editor::Core

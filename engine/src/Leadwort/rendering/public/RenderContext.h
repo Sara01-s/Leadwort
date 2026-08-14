@@ -9,13 +9,13 @@ namespace Leadwort::Components {
 
 namespace Leadwort::Rendering {
 
-class RenderPassBuilder;
+	class RenderPassBuilder;
 
-class RenderContext {
-public:
-	Components::Camera* camera { nullptr };
-	RenderQueues* renderQueues { nullptr };
-	Components::MeshRenderer* highlightedMeshRenderer { nullptr };
-};
+	class RenderContext {
+	public:
+		Components::Camera* camera { nullptr };
+		RenderQueues* renderQueues { nullptr };
+		Components::MeshRenderer* highlightedMeshRenderer { nullptr };
+	};
 
 }

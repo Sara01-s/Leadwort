@@ -19,17 +19,17 @@ namespace Leadwort {
 //  Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-inline constexpr float Pi        = std::numbers::pi_v<float>;
-inline constexpr float Tau       = Pi * 2.0f;
-inline constexpr float HalfPi    = Pi * 0.5f;
-inline constexpr float InvPi     = 1.0f / Pi;
+inline constexpr float PI        = std::numbers::pi_v<float>;
+inline constexpr float Tau       = PI * 2.0f;
+inline constexpr float HalfPI    = PI * 0.5f;
+inline constexpr float InvPI     = 1.0f / PI;
 inline constexpr float Sqrt2     = std::numbers::sqrt2_v<float>;
 inline constexpr float Sqrt3     = std::numbers::sqrt3_v<float>;
 inline constexpr float Epsilon   = std::numeric_limits<float>::epsilon();
 inline constexpr float Infinity  = std::numeric_limits<float>::infinity();
 inline constexpr float NegInfinity = -std::numeric_limits<float>::infinity();
-inline constexpr float Deg2Rad   = Pi / 180.0f;
-inline constexpr float Rad2Deg   = 180.0f / Pi;
+inline constexpr float Deg2Rad   = PI / 180.0f;
+inline constexpr float Rad2Deg   = 180.0f / PI;
 inline constexpr float GoldenRatio = std::numbers::phi_v<float>;
 inline constexpr int IntInfinity = std::numeric_limits<int>::infinity();
 
@@ -138,11 +138,11 @@ template<typename... Args>
 [[nodiscard]] inline bool IsApproximately(const float a, const float b, const float eps = Epsilon) { return Abs(a - b) <= eps; }
 // Wraps an angle to the [-Pi, Pi] range to prevent infinite accumulation
 [[nodiscard]] inline float WrapAngle(float angle) {
-	angle = Mod(angle + Pi, Tau);
+	angle = Mod(angle + PI, Tau);
 	if (angle < 0.0f) {
 		angle += Tau;
 	}
-	return angle - Pi;
+	return angle - PI;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -341,9 +341,9 @@ template<typename... Args>
 [[nodiscard]] inline float EaseOutQuart(const float t)   { return 1.0f - Pow(1.0f - t, 4.0f); }
 [[nodiscard]] inline float EaseInOutQuart(const float t) { return t < 0.5f ? 8.0f * t * t * t * t : 1.0f - Pow(-2.0f * t + 2.0f, 4.0f) * 0.5f; }
 
-[[nodiscard]] inline float EaseInSine(const float t)    { return 1.0f - Cos(t * HalfPi); }
-[[nodiscard]] inline float EaseOutSine(const float t)   { return Sin(t * HalfPi); }
-[[nodiscard]] inline float EaseInOutSine(const float t) { return -(Cos(Pi * t) - 1.0f) * 0.5f; }
+[[nodiscard]] inline float EaseInSine(const float t)    { return 1.0f - Cos(t * HalfPI); }
+[[nodiscard]] inline float EaseOutSine(const float t)   { return Sin(t * HalfPI); }
+[[nodiscard]] inline float EaseInOutSine(const float t) { return -(Cos(PI * t) - 1.0f) * 0.5f; }
 
 [[nodiscard]] inline float EaseInExpo(const float t)    { return t < Epsilon ? 0.0f : Pow(2.0f, 10.0f * t - 10.0f); }
 [[nodiscard]] inline float EaseOutExpo(const float t)   { return IsApproximately(t, 1.0f) ? 1.0f : 1.0f - Pow(2.0f, -10.0f * t); }

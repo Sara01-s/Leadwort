@@ -23,144 +23,144 @@
 
 namespace Leadwort::Core {
 
-using namespace Rendering::RG;
-using namespace Systems;
+	using namespace Rendering::RG;
+	using namespace Systems;
 
-Game::Game() {
-	if (!Window::Get().Initialize(1920, 1080, "Leadwort")) {
-		LW_ERROR("Error to initialize Engine");
-	}
-
-    Utils::Log::Initialize();
-    Input::Init(Window::Get().GetHandle());
-
-    RenderSystem::Get().Initialize();
-    SceneSystem::Get().LoadEmptyScene();
-    SceneSystem::Get().LoadPendingScene();
-
-	const int windowWidth = Window::Get().GetWidth();
-	const int windowHeight = Window::Get().GetHeight();
-
-	m_GameColorTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
-	m_GameDepthTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
-	m_PostProcessTex = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
-	m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8);
-	m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
-
-	BuildRenderGraphs();
-}
-
-void Game::BuildRenderGraphs() {
-	using namespace Rendering::RG::Passes;
-
-	RenderTexture& gameColor{ *m_GameColorTex};
-	RenderTexture& gameDepth { *m_GameDepthTex };
-	RenderTexture& postColor { *m_PostProcessTex };
-	RenderTexture& sceneColor { *m_SceneColorTex };
-	RenderTexture& sceneDepth { *m_SceneDepthTex };
-
-	m_GameRenderGraph.AddPass<BackgroundPass>(gameColor, gameDepth);
-	m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth);
-	m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
-	m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
-	m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor);
-	m_GameRenderGraph.Compile();
-
-	m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.AddPass<GridPass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.AddPass<OutlinePass>(sceneColor, sceneDepth);
-	m_SceneRenderGraph.Compile();
-}
-
-void Game::Tick() const {
-    SceneSystem::Get().LoadPendingScene();
-
-	if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::R)) {
-		ShaderWatcher::Get().MarkAllShaderAsPending();
-		ShaderWatcher::Get().RecompilePendingShaders();
-	}
-
-	if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::S)) {
-		const std::string path = AssetManagement::EngineAssets::ResolvePath("scenes/") + "/empty-scene.json";
-		Serialization::SceneSerializer::SaveToFile(*SceneSystem::Get().GetCurrentScene(), path);
-	}
-
-    Time::Update(glfwGetTime());
-    Input::Update(Time::GetDeltaTime());
-
-    while (Time::ShouldRunFixedUpdate()) {
-        BehaviourSystem::Get().FixedUpdate();
-        Time::ConsumeFixedUpdate();
-    }
-
-    BehaviourSystem::Get().Update();
-
-	RenderSystem::Get().Render(*CameraSystem::Get().GetMainCamera(), m_GameRenderGraph);
-	RenderSystem::Get().Render(*CameraSystem::Get().GetSceneCamera(), m_SceneRenderGraph);
-
-	RenderSystem::Get().ClearScreen();
-}
-
-void Game::Loop(const std::function<void()>& preTick, const std::function<void()>& renderOverlay) const {
-	Utils::Log::Header("Hello World!");
-
-	while (Window::Get().IsOpen()) {
-		Window::PollEvents();
-
-		if (preTick) {
-			preTick();
+	Game::Game() {
+		if (!Window::Get().Initialize(1920, 1080, "Leadwort")) {
+			LW_ERROR("Error to initialize Engine");
 		}
 
-		Tick();
+	    Utils::Log::Initialize();
+	    Input::Init(Window::Get().GetHandle());
 
-		if (renderOverlay) {
-			renderOverlay();
+	    RenderSystem::Get().Initialize();
+	    SceneSystem::Get().LoadEmptyScene();
+	    SceneSystem::Get().LoadPendingScene();
+
+		const int windowWidth = Window::Get().GetWidth();
+		const int windowHeight = Window::Get().GetHeight();
+
+		m_GameColorTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
+		m_GameDepthTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
+		m_PostProcessTex = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
+		m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8);
+		m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
+
+		BuildRenderGraphs();
+	}
+
+	void Game::BuildRenderGraphs() {
+		using namespace Rendering::RG::Passes;
+
+		RenderTexture& gameColor{ *m_GameColorTex};
+		RenderTexture& gameDepth { *m_GameDepthTex };
+		RenderTexture& postColor { *m_PostProcessTex };
+		RenderTexture& sceneColor { *m_SceneColorTex };
+		RenderTexture& sceneDepth { *m_SceneDepthTex };
+
+		m_GameRenderGraph.AddPass<BackgroundPass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor);
+		m_GameRenderGraph.Compile();
+
+		m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<GridPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<OutlinePass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.Compile();
+	}
+
+	void Game::Tick() const {
+	    SceneSystem::Get().LoadPendingScene();
+
+		if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::R)) {
+			ShaderWatcher::Get().MarkAllShaderAsPending();
+			ShaderWatcher::Get().RecompilePendingShaders();
 		}
 
-		Window::Get().SwapBuffers();
+		if (Input::Keyboard::IsOrderedCombo(Key::LeftControl, Key::S)) {
+			const std::string path = AssetManagement::EngineAssets::ResolvePath("scenes/") + "/empty-scene.json";
+			Serialization::SceneSerializer::SaveToFile(*SceneSystem::Get().GetCurrentScene(), path);
+		}
+
+	    Time::Update(glfwGetTime());
+	    Input::Update(Time::GetDeltaTime());
+
+	    while (Time::ShouldRunFixedUpdate()) {
+	        BehaviourSystem::Get().FixedUpdate();
+	        Time::ConsumeFixedUpdate();
+	    }
+
+	    BehaviourSystem::Get().Update();
+
+		RenderSystem::Get().Render(*CameraSystem::Get().GetMainCamera(), m_GameRenderGraph);
+		RenderSystem::Get().Render(*CameraSystem::Get().GetSceneCamera(), m_SceneRenderGraph);
+
+		RenderSystem::Get().ClearScreen();
 	}
 
-	Utils::Log::Header("Bye bye!");
-}
+	void Game::Loop(const std::function<void()>& preTick, const std::function<void()>& renderOverlay) const {
+		Utils::Log::Header("Hello World!");
 
-void Game::ResizeGameView(const int width, const int height) {
-	m_GameColorTex->Resize(width, height);
-	m_GameDepthTex->Resize(width, height);
-	m_PostProcessTex->Resize(width, height);
+		while (Window::Get().IsOpen()) {
+			Window::PollEvents();
 
-	m_GameRenderGraph.Compile();
+			if (preTick) {
+				preTick();
+			}
 
-	if (auto* gameCam = CameraSystem::Get().GetMainCamera()) {
-		gameCam->aspect = static_cast<float>(width) / static_cast<float>(height);
-	}
-}
+			Tick();
 
-void Game::ResizeSceneView(const int width, const int height) {
-	m_SceneColorTex->Resize(width, height);
-	m_SceneDepthTex->Resize(width, height);
+			if (renderOverlay) {
+				renderOverlay();
+			}
 
-	m_SceneRenderGraph.Compile();
+			Window::Get().SwapBuffers();
+		}
 
-	if (auto* sceneCam = CameraSystem::Get().GetSceneCamera()) {
-		sceneCam->aspect = static_cast<float>(width) / static_cast<float>(height);
-	}
-}
-
-void Game::SetHighlightedEntity(const EntityID entityID) {
-	if (entityID == Entity::ROOT_ENTITY_ID) {
-		return;
+		Utils::Log::Header("Bye bye!");
 	}
 
-	auto const& entity { SceneSystem::Get().GetCurrentScene()->GetEntity(entityID) };
+	void Game::ResizeGameView(const int width, const int height) {
+		m_GameColorTex->Resize(width, height);
+		m_GameDepthTex->Resize(width, height);
+		m_PostProcessTex->Resize(width, height);
 
-	if (!entity->HasComponent<Components::MeshRenderer>()) {
-		return;
+		m_GameRenderGraph.Compile();
+
+		if (auto* gameCam = CameraSystem::Get().GetMainCamera()) {
+			gameCam->aspect = static_cast<float>(width) / static_cast<float>(height);
+		}
 	}
 
-	RenderSystem::Get().SetHighlightedEntity(entity);
-}
+	void Game::ResizeSceneView(const int width, const int height) {
+		m_SceneColorTex->Resize(width, height);
+		m_SceneDepthTex->Resize(width, height);
+
+		m_SceneRenderGraph.Compile();
+
+		if (auto* sceneCam = CameraSystem::Get().GetSceneCamera()) {
+			sceneCam->aspect = static_cast<float>(width) / static_cast<float>(height);
+		}
+	}
+
+	void Game::SetHighlightedEntity(const EntityID entityID) {
+		if (entityID == Entity::ROOT_ENTITY_ID) {
+			return;
+		}
+
+		auto const& entity { SceneSystem::Get().GetCurrentScene()->GetEntity(entityID) };
+
+		if (!entity->HasComponent<Components::MeshRenderer>()) {
+			return;
+		}
+
+		RenderSystem::Get().SetHighlightedEntity(entity);
+	}
 
 } // namespace Engine::Core

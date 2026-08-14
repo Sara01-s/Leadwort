@@ -8,46 +8,46 @@
 
 namespace Leadwort::Core {
 
-class Scene : public Serialization::ISerializable {
-public:
-	Scene();
-	~Scene() override;
+	class Scene : public Serialization::ISerializable {
+	public:
+		Scene();
+		~Scene() override;
 
-	Scene& operator=(const Scene&) = delete;
+		Scene& operator=(const Scene&) = delete;
 
-	virtual void Create() = 0;
+		virtual void Create() = 0;
 
-	[[nodiscard]] std::size_t GetEntityCount() const { return m_EntityMap.size(); }
-	[[nodiscard]] Entity* GetRootEntity() const { return m_RootEntity.get(); }
-	[[nodiscard]] Entity* GetEntity(EntityID entityID) const;
+		[[nodiscard]] std::size_t GetEntityCount() const { return m_EntityMap.size(); }
+		[[nodiscard]] Entity* GetRootEntity() const { return m_RootEntity.get(); }
+		[[nodiscard]] Entity* GetEntity(EntityID entityID) const;
 
-	[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntityMap() const { return m_EntityMap; }
-	[[nodiscard]] const std::unordered_map<std::string, Entity*>& GetNamedRefs() const { return m_NamedRefs; }
+		[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntityMap() const { return m_EntityMap; }
+		[[nodiscard]] const std::unordered_map<std::string, Entity*>& GetNamedRefs() const { return m_NamedRefs; }
 
-	Entity* CreateEntity(const std::string& name = Entity::DEFAULT_NAME);
+		Entity* CreateEntity(const std::string& name = Entity::DEFAULT_NAME);
 
-	static int GenerateNextEntityID();
+		static int GenerateNextEntityID();
 
-public:
-	void Serialize(Json& out) const override;
-	void Deserialize(const Json& in) override;
-	std::string_view GetTypeName() const override { return "Scene"; }
+	public:
+		void Serialize(Json& out) const override;
+		void Deserialize(const Json& in) override;
+		std::string_view GetTypeName() const override { return "Scene"; }
 
-protected:
-	Entity* AddEntity(
-		const std::string& name,
-		const std::function<void(Entity*)>& configure = {}
-	);
+	protected:
+		Entity* AddEntity(
+			const std::string& name,
+			const std::function<void(Entity*)>& configure = {}
+		);
 
-private:
-	static int s_IdSequence;
+	private:
+		static int s_IdSequence;
 
-	static void ResetSequence();
+		static void ResetSequence();
 
-private:
-	Unique<Entity> m_RootEntity { nullptr };
-	std::unordered_map<int, Unique<Entity>>  m_EntityMap{};
-	std::unordered_map<std::string, Entity*> m_NamedRefs{};
-};
+	private:
+		Unique<Entity> m_RootEntity { nullptr };
+		std::unordered_map<int, Unique<Entity>>  m_EntityMap{};
+		std::unordered_map<std::string, Entity*> m_NamedRefs{};
+	};
 
 } // namespace Engine::Core

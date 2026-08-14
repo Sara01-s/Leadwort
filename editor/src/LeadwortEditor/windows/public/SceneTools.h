@@ -15,17 +15,17 @@ namespace Editor::Windows {
 			if (ImGui::BeginTabBar(GetName().data(), ImGuiTabBarFlags_None)) {
 
 				if (ImGui::BeginTabItem("Translate")) {
-					m_EditorContext.gizmoOperation = ImGuizmo::TRANSLATE;
+					m_EditorContext.GizmoOperation = ImGuizmo::TRANSLATE;
 					ImGui::EndTabItem();
 				}
 
 				if (ImGui::BeginTabItem("Rotate")) {
-					m_EditorContext.gizmoOperation = ImGuizmo::ROTATE;
+					m_EditorContext.GizmoOperation = ImGuizmo::ROTATE;
 					ImGui::EndTabItem();
 				}
 
 				if (ImGui::BeginTabItem("Scale")) {
-					m_EditorContext.gizmoOperation = ImGuizmo::SCALE;
+					m_EditorContext.GizmoOperation = ImGuizmo::SCALE;
 					ImGui::EndTabItem();
 				}
 
@@ -34,14 +34,14 @@ namespace Editor::Windows {
 
 			ImGui::Separator();
 
-			if (ImGui::RadioButton("Local", m_EditorContext.gizmoMode == ImGuizmo::LOCAL)) {
-				m_EditorContext.gizmoMode = ImGuizmo::LOCAL;
+			if (ImGui::RadioButton("Local", m_EditorContext.GizmoMode == ImGuizmo::LOCAL)) {
+				m_EditorContext.GizmoMode = ImGuizmo::LOCAL;
 			}
 
 			ImGui::SameLine();
 
-			if (ImGui::RadioButton("World", m_EditorContext.gizmoMode == ImGuizmo::WORLD)) {
-				m_EditorContext.gizmoMode = ImGuizmo::WORLD;
+			if (ImGui::RadioButton("World", m_EditorContext.GizmoMode == ImGuizmo::WORLD)) {
+				m_EditorContext.GizmoMode = ImGuizmo::WORLD;
 			}
 		}
 

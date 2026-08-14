@@ -9,6 +9,11 @@ namespace Leadwort::AssetManagement {
 	enum class AssetType;
 }
 
+namespace Leadwort::Rendering::Bindables {
+	class Mesh;
+	class Material;
+}
+
 namespace Editor {
 
 	struct AssetSelection {
@@ -16,27 +21,54 @@ namespace Editor {
 		Leadwort::AssetManagement::AssetType type{};
 	};
 
+	struct EmbeddedMeshSelection {
+		Leadwort::Shared<Leadwort::Rendering::Bindables::Mesh> mesh{};
+	};
+
+	struct EmbeddedMaterialSelection {
+		Leadwort::Shared<Leadwort::Rendering::Bindables::Material> material{};
+	};
+
 	class EditorContext final {
 	public:
-		std::variant<std::monostate, Leadwort::EntityID, AssetSelection> selection{};
-		Leadwort::Core::Scene* openedScene{};
-		std::vector<std::string> logHistory{};
-		Leadwort::Utils::Event<const std::string&> logCallback{};
+		std::variant<
+			std::monostate,
+			Leadwort::EntityID,
+			AssetSelection,
+			EmbeddedMeshSelection,
+			EmbeddedMaterialSelection
+		> Selection{};
 
-		ImGuizmo::OPERATION gizmoOperation { ImGuizmo::TRANSLATE };
-		ImGuizmo::MODE gizmoMode { ImGuizmo::LOCAL };
+		Leadwort::Core::Scene* OpenedScene{};
+		std::vector<std::string> LogHistory{};
+		Leadwort::Utils::Event<const std::string&> LogCallback{};
+
+		ImGuizmo::OPERATION GizmoOperation { ImGuizmo::TRANSLATE };
+		ImGuizmo::MODE GizmoMode { ImGuizmo::LOCAL };
 
 	public:
 		void SelectEntity(Leadwort::EntityID id) {
-			selection = id;
+			Selection = id;
 		}
 
-		void SelectAsset(const std::filesystem::path& path, Leadwort::AssetManagement::AssetType type) {
-			selection = AssetSelection { path, type };
+		void SelectAsset(const std::filesystem::path& path, const Leadwort::AssetManagement::AssetType type) {
+			Selection = AssetSelection { path, type };
+		}
+
+		void SelectEmbeddedMesh(const Leadwort::Shared<Leadwort::Rendering::Bindables::Mesh>& mesh) {
+			Selection = EmbeddedMeshSelection { mesh };
+		}
+
+		void SelectEmbeddedMaterial(const Leadwort::Shared<Leadwort::Rendering::Bindables::Material>& material) {
+			Selection = EmbeddedMaterialSelection { material };
 		}
 
 		void ClearSelection() {
-			selection = std::monostate{};
+			Selection = std::monostate{};
+		}
+
+		[[nodiscard]] bool HasSelection() const noexcept {
+			return !std::holds_alternative<std::monostate>(Selection);
 		}
 	};
 

@@ -2,9 +2,9 @@
 
 namespace Leadwort::AssetManagement {
 
-template <typename>
-struct AssetKey {
-	explicit AssetKey() = default;
-};
+	template <typename>
+	struct AssetKey {
+		explicit AssetKey() = default;
+	};
 
 }
