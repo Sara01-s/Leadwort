@@ -33,9 +33,6 @@ struct AssetSerializer<Bindables::Material> {
 
         if (json.contains("textures")) {
             for (const auto& [uniformName, texEntry] : json.at("textures").items()) {
-                // NOTA: asume texturas de archivo únicamente por ahora.
-                // Texturas embebidas (desde modelos importados) necesitan TextureKey
-                // con Source::File/Embedded/Runtime antes de que esto sea correcto en todos los casos.
                 const std::string texPath { texEntry.get<std::string>() };
                 if (!texPath.empty()) {
                     material->SetTexture(uniformName, db.GetTexture(texPath));
@@ -78,7 +75,7 @@ struct AssetSerializer<Bindables::Material> {
         json["shader"] = material.GetShader().GetPath();
 
         for (const auto& [name, slot] : material.GetTextures()) {
-			const bool isEmbeddedTexture { !slot.texture->GetPath().starts_with("*") };
+			const bool isEmbeddedTexture { slot.texture->GetPath().starts_with("*") };
         	if (slot.texture && !isEmbeddedTexture) {
         		json["textures"][name] = slot.texture->GetPath();
         	}

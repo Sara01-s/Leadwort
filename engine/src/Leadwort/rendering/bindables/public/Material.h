@@ -76,6 +76,7 @@ namespace Leadwort::Rendering::Bindables {
 		std::string m_Name{};
 		Shared<Shader> m_Shader{};
 		mutable uint32_t m_LastShaderVersion { IntInfinity };
+		mutable bool m_UniformsDirty { true };
 
 	    std::unordered_map<std::string, float> m_Floats{};
 	    std::unordered_map<std::string, int>   m_Ints{};

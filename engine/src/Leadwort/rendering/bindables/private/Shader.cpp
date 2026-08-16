@@ -149,7 +149,7 @@ namespace Leadwort::Rendering::Bindables {
 
 	uint32_t Shader::LinkProgram(const uint32_t vs, const uint32_t fs) {
 		const uint32_t program = glCreateProgram();
-		LW_ASSERT(program != 0, "Shader: Failed to create linking program.");
+		LW_ASSERT(program != 0, "Shader: Failed to create a linking program.");
 
 		glAttachShader(program, vs);
 		glAttachShader(program, fs);

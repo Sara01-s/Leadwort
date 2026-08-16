@@ -94,7 +94,7 @@ std::string PrettifyUniformName(const std::string_view rawName) {
         result += name[i];
     }
 
-	std::erase(result, ' ');
+	std::erase(result, '_');
 
     return result.empty() ? std::string{ rawName } : result;
 }
@@ -105,7 +105,6 @@ void DrawMaterialInspector(Leadwort::Rendering::Bindables::Material& material) {
     ImGui::Separator();
 
     if (ImGui::CollapsingHeader("Texture Maps", ImGuiTreeNodeFlags_DefaultOpen)) {
-        // ordenamos por nombre para que la UI sea determinística entre frames
         auto samplers = material.GetShader().GetSamplers();
         std::vector<std::pair<std::string, Shader::SamplerInfo>> sorted(samplers.begin(), samplers.end());
         std::ranges::sort(sorted, [](const auto& a, const auto& b) { return a.first < b.first; });

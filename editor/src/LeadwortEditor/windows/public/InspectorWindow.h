@@ -28,7 +28,7 @@ namespace Editor::Windows {
 				else if (const auto* embeddedMesh = std::get_if<EmbeddedMeshSelection>(&m_EditorContext.Selection)) {
 					if (embeddedMesh->mesh) {
 						ImGui::Text("Mesh: %s", embeddedMesh->mesh->GetName().c_str());
-						ImGui::TextDisabled("Embedded in model");
+						ImGui::TextDisabled("Embedded in a model");
 					}
 				}
 				else if (const auto* embeddedMat = std::get_if<EmbeddedMaterialSelection>(&m_EditorContext.Selection)) {
@@ -98,7 +98,7 @@ namespace Editor::Windows {
 					DrawModelPreview(asset.path);
 					break;
 				case Leadwort::AssetManagement::AssetType::Material: {
-					const auto material = Leadwort::AssetManagement::EngineAssets::GetMaterial(asset.path.string());
+					const auto material { Leadwort::AssetManagement::EngineAssets::GetMaterial(asset.path.string()) };
 					if (material) {
 						DrawMaterialInspector(*material);
 					}

@@ -175,14 +175,6 @@ namespace Leadwort::AssetManagement {
 		return model;
 	}
 
-	Shared<Material> AssetDatabase::CreateMaterial(const Shared<Shader>& shader) {
-		LW_LOG("AssetManager: Creating Material for Shader [ptr=", reinterpret_cast<uintptr_t>(shader.get()), "]");
-		auto material { CreateShared<Material>(shader, AssetKey<Material>{}) };
-		LW_ASSERT(material != nullptr, "AssetManager: Failed to create Material");
-
-		return material;
-	}
-
 	static std::string FormatMeshKey(const MeshKey& key) {
 		if (key.isCreatedAtRuntime) {
 			return "[runtime] " + key.modelPath;
@@ -208,6 +200,24 @@ namespace Leadwort::AssetManagement {
 		return m_MeshCache.GetAllValues();
 	}
 
+	Shared<Material> AssetDatabase::CreateMaterial(const Shared<Shader>& shader) {
+		LW_LOG("AssetManager: Creating Material for Shader [ptr=", reinterpret_cast<uintptr_t>(shader.get()), "]");
+		auto material { CreateShared<Material>(shader, AssetKey<Material>{}) };
+		LW_ASSERT(material != nullptr, "AssetManager: Failed to create Material");
+		return material;
+	}
+
+	Shared<Material> AssetDatabase::GetOrCreateMaterial(const MeshKey& key, const Shared<Shader>& shader) {
+		if (auto cached { m_EmbeddedMaterialCache.Get(key) }) {
+			return cached;
+		}
+
+		LW_LOG("AssetManager: Creating embedded Material for key='", FormatMeshKey(key), "'");
+		auto material { CreateMaterial(shader) };
+		m_EmbeddedMaterialCache.Set(key, material);
+		return material;
+	}
+
 	Shared<Material> AssetDatabase::GetMaterial(const std::string& path) {
 		const std::string key { Resolve(path).string() };
 
@@ -216,13 +226,13 @@ namespace Leadwort::AssetManagement {
 		}
 
 		LW_LOG("AssetManager: Loading Material: ", key);
-		const std::string text { LoadText(path) };
-		const Json json { Json::parse(text) };
+		const Json json { LoadJson(path) };
 		auto material { AssetSerializer<Material>::Deserialize(json, *this) };
 
 		m_MaterialCache.Set(key, material);
 		return material;
 	}
+
 	void AssetDatabase::SaveMaterial(const std::string& path, const Material& material) const {
 		const Json json { AssetSerializer<Material>::Serialize(material) };
 		SaveJson(path, json);
@@ -241,12 +251,13 @@ namespace Leadwort::AssetManagement {
 	}
 
 	void AssetDatabase::Cleanup() {
-	    m_ShaderCache.Cleanup();
-	    m_TextureCache.Cleanup();
-	    m_CubeMapCache.Cleanup();
-	    m_ModelCache.Cleanup();
+		m_ShaderCache.Cleanup();
+		m_TextureCache.Cleanup();
+		m_CubeMapCache.Cleanup();
+		m_ModelCache.Cleanup();
 		m_MeshCache.Cleanup();
 		m_MaterialCache.Cleanup();
+		m_EmbeddedMaterialCache.Cleanup();
 	}
 
 	Shared<Texture> AssetDatabase::CreateTextureFromBytes(const uint8_t* bytes, const size_t size, const std::string& path) {

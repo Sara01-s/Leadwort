@@ -20,39 +20,50 @@ namespace Leadwort::Rendering::Bindables {
 	//  Setters
 	// ─────────────────────────────────────────────
 
-	void Material::SetInt(const std::string& name, const int value)     { m_Ints[name]    = value; }
-	void Material::SetFloat(const std::string& name, const float value) { m_Floats[name]  = value; }
-	void Material::SetVec3(const std::string& name, const Vec3& value)  { m_Vec3s[name]   = value; }
-	void Material::SetVec4(const std::string& name, const Vec4& value)  { m_Vec4s[name]   = value; }
-	void Material::SetMat3(const std::string& name, const Mat3& value)  { m_Mat3s[name]   = value; }
-	void Material::SetMat4(const std::string& name, const Mat4& value)  { m_Mat4s[name]   = value; }
+	void Material::SetInt(const std::string& name, const int value)     { m_Ints[name]    = value; m_UniformsDirty = true; }
+void Material::SetFloat(const std::string& name, const float value) {
+		m_Floats[name] = value;
+		m_UniformsDirty = true;
+		LW_LOG("SetFloat '", name, "' = ", value, " on material ptr=", reinterpret_cast<uintptr_t>(this));
+	}
+	void Material::SetVec3(const std::string& name, const Vec3& value)  { m_Vec3s[name]   = value; m_UniformsDirty = true; }
+	void Material::SetVec4(const std::string& name, const Vec4& value)  { m_Vec4s[name]   = value; m_UniformsDirty = true; }
+	void Material::SetMat3(const std::string& name, const Mat3& value)  { m_Mat3s[name]   = value; m_UniformsDirty = true; }
+	void Material::SetMat4(const std::string& name, const Mat4& value)  { m_Mat4s[name]   = value; m_UniformsDirty = true; }
 
 	void Material::SetTexture(const std::string& name, const Shared<Texture>& texture) {
 	    m_Textures[name] = TextureSlot { texture, 0, GL_TEXTURE_2D, -1 };
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetTexture(const std::string& name, const Shared<Texture>& texture, const int slot) {
 	    m_Textures[name] = TextureSlot { texture, 0, GL_TEXTURE_2D, slot };
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetTexture(const std::string& name, const uint32_t gpuID, const int slot, const uint32_t target) {
 	    m_Textures[name] = TextureSlot { nullptr, gpuID, target, slot };
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetCubeMap(const std::string& name, const CubeMap* cubeMap) {
 		m_Textures[name] = TextureSlot { nullptr, cubeMap->GetGpuID(), GL_TEXTURE_CUBE_MAP, -1 };
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetCubeMap(const std::string& name, const CubeMap* cubeMap, const int slot) {
 		m_Textures[name] = TextureSlot { nullptr, cubeMap->GetGpuID(), GL_TEXTURE_CUBE_MAP, slot };
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetColor3(const std::string& name, const Color& color) {
 	    SetVec3(name, Vec3(color.r, color.g, color.b));
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetColor4(const std::string& name, const Color& color) {
 	    SetVec4(name, Vec4(color.r, color.g, color.b, color.a));
+		m_UniformsDirty = true;
 	}
 
 	void Material::SetMainColor(const Color& color) { SetColor4("_Color", color); }
@@ -68,7 +79,9 @@ namespace Leadwort::Rendering::Bindables {
 
 		m_Shader->Bind();
 
-		if (m_Shader->GetVersion() != m_LastShaderVersion) {
+		const bool shaderChanged = m_Shader->GetVersion() != m_LastShaderVersion;
+
+		if (shaderChanged || m_UniformsDirty) {
 			for (const auto& [name, value] : m_Ints)   m_Shader->SetUniform(name, value);
 			for (const auto& [name, value] : m_Floats) m_Shader->SetUniform(name, value);
 			for (const auto& [name, value] : m_Vec3s)  m_Shader->SetUniform(name, value);
@@ -77,6 +90,7 @@ namespace Leadwort::Rendering::Bindables {
 			for (const auto& [name, value] : m_Mat4s)  m_Shader->SetUniform(name, value);
 
 			m_LastShaderVersion = m_Shader->GetVersion();
+			m_UniformsDirty = false;
 		}
 
 		static const Shared<Texture> s_Fallback = AssetManagement::DefaultAssets::GetTexture();
@@ -97,7 +111,8 @@ namespace Leadwort::Rendering::Bindables {
 					glBindTexture(textureSlot.target, textureSlot.gpuID);
 				}
 				else {
-					LW_ASSERT(false, "Material::Bind: Invalid TextureSlot for: " + name);
+					const GLenum target = samplerInfo.type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+					glBindTexture(target, s_Fallback->GetGpuID());
 				}
 			}
 			else {
@@ -133,7 +148,7 @@ namespace Leadwort::Rendering::Bindables {
 
 	void Material::Unbind() const noexcept {
 		for (const auto& slot: m_Textures | std::views::values) {
-			const int targetSlot = slot.slot >= 0 ? slot.slot : 0;
+			const int targetSlot { slot.slot >= 0 ? slot.slot : 0 };
 
 			glActiveTexture(GL_TEXTURE0 + targetSlot);
 			glBindTexture(slot.target, 0);

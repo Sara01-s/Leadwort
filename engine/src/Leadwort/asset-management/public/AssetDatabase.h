@@ -89,6 +89,7 @@ namespace Leadwort::AssetManagement {
 	    [[nodiscard]] Shared<Bindables::CubeMap>  GetCubeMap                (const std::array<std::string, 6>& paths);
 	    [[nodiscard]] Shared<Core::Model>         GetModel                  (const std::string& path);
 		[[nodiscard]] Shared<Bindables::Mesh>	  GetMesh(const Bindables::MeshData& meshData);
+		[[nodiscard]] Shared<Bindables::Material> GetOrCreateMaterial(const Bindables::MeshKey& key, const Shared<Bindables::Shader>& shader);
 		[[nodiscard]] static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader);
 		[[nodiscard]] const std::string& GetRootPath() const noexcept { return m_Root; }
 
@@ -113,6 +114,7 @@ namespace Leadwort::AssetManagement {
 		AssetCache<Bindables::MeshKey, Bindables::Mesh> m_MeshCache{};
 	    AssetCache<std::string, Core::Model>            m_ModelCache{};
 		AssetCache<std::string, Bindables::Material>    m_MaterialCache{};
+		AssetCache<Bindables::MeshKey, Bindables::Material> m_EmbeddedMaterialCache{};
 	};
 
 	template <typename, const char* RootPath>
@@ -132,7 +134,7 @@ namespace Leadwort::AssetManagement {
 	    }
 
 	    [[nodiscard]]
-	    static Shared<Bindables::Texture> GetTexture(std::string_view path) {
+	    static Shared<Bindables::Texture> GetTexture(const std::string_view path) {
 	        return Get().GetTexture(path);
 	    }
 
@@ -147,8 +149,8 @@ namespace Leadwort::AssetManagement {
 	    }
 
 		[[nodiscard]]
-		static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader) {
-		    return Get().CreateMaterial(shader);
+		static Shared<Bindables::Material> GetOrCreateMaterial(const Bindables::MeshKey& key, const Shared<Bindables::Shader>& shader) {
+		    return Get().GetOrCreateMaterial(key, shader);
 	    }
 
 	    [[nodiscard]]
@@ -172,8 +174,13 @@ namespace Leadwort::AssetManagement {
 	    }
 
 		[[nodiscard]]
+		static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader) {
+	    	return Get().CreateMaterial(shader);
+	    }
+
+		[[nodiscard]]
 		static Shared<Bindables::Material> GetMaterial(const std::string& path) {
-		    return Get().GetMaterial(path);
+	    	return Get().GetMaterial(path);
 	    }
 
 	private:

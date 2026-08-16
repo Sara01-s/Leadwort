@@ -25,7 +25,7 @@ namespace Leadwort::Rendering {
 
 	    uint64_t sortKey { 0ULL };
 
-		static DrawCommand Create(
+		static DrawCommand		Create(
 			const Bindables::Mesh& mesh,
 			const Mat4& modelMatrix,
 			const float linearDepth
@@ -68,9 +68,9 @@ namespace Leadwort::Rendering {
 			const bool invertDepth
 		) noexcept {
 	        // Normalize depth [0, 1] to 24 bits
-	        const float    clampedDepth = Clamp01(depth);
-	        const uint32_t depthBits    = static_cast<uint32_t>(clampedDepth * 0x00FFFFFFu);
-	        const uint32_t sortedDepth  = invertDepth ? (0x00FFFFFFu - depthBits) : depthBits;
+	        const float    clampedDepth { Clamp01(depth) };
+	        const uint32_t depthBits    { static_cast<uint32_t>(clampedDepth * 0x00FFFFFFu) };
+	        const uint32_t sortedDepth  { invertDepth ? (0x00FFFFFFu - depthBits) : depthBits };
 
 	        return (static_cast<uint64_t>(shaderID)    << 48)
 	             | (static_cast<uint64_t>(materialID)  << 32)

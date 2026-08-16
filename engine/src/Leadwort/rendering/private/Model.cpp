@@ -23,9 +23,10 @@ namespace Leadwort::Core {
 	// ---------------------------------------------------------------------------
 
 	Model::Model(const std::string& path, AssetKey<Model>) {
-	    std::string sanitizedPath = path;
-	    std::ranges::replace(sanitizedPath, '\\', '/');
-	    m_ResourceBaseDir = sanitizedPath.substr(0, sanitizedPath.find_last_of('/'));
+		std::string sanitizedPath = path;
+		std::ranges::replace(sanitizedPath, '\\', '/');
+		m_ResourceBaseDir = sanitizedPath.substr(0, sanitizedPath.find_last_of('/'));
+		m_FullPath = sanitizedPath;
 
 	    m_AiScene = m_Importer.ReadFile(path,
 	        aiProcess_Triangulate
@@ -40,9 +41,9 @@ namespace Leadwort::Core {
 	        throw std::runtime_error("Assimp Error: " + std::string(m_Importer.GetErrorString()));
 	    }
 
-	    for (unsigned int i = 0; i < m_AiScene->mNumMeshes; i++) {
-	        m_Meshes.push_back(ParseMesh(m_AiScene->mMeshes[i], m_AiScene, m_ResourceBaseDir));
-	    }
+		for (unsigned int i = 0; i < m_AiScene->mNumMeshes; i++) {
+			m_Meshes.push_back(ParseMesh(m_AiScene->mMeshes[i], m_AiScene, m_ResourceBaseDir));
+		}
 	}
 
 	// ---------------------------------------------------------------------------
@@ -176,8 +177,10 @@ namespace Leadwort::Core {
 		if (features.hasMetallic)  defines.insert("HAS_METALLIC");
 		if (features.hasAO)        defines.insert("HAS_AO");
 
+		const auto meshKey { MeshKey { m_FullPath, meshIndex } };
+
 		const Shared<Shader> shader { EngineAssets::GetShader("shaders/shd_lit.glsl", defines) };
-		const Shared<Material> material { EngineAssets::CreateMaterial(shader) };
+		const Shared<Material> material { EngineAssets::GetOrCreateMaterial(meshKey, shader) };
 
 		material->SetName(scene->mMaterials[meshIndex]->GetName().C_Str());
 
@@ -189,7 +192,6 @@ namespace Leadwort::Core {
 
 	    BindTextures(*material, scene->mMaterials[meshIndex], features);
 
-		const auto meshKey { MeshKey { path, meshIndex } };
 		auto resultMesh { EngineAssets::GetMesh(MeshData {
 			std::string(mesh->mName.C_Str()),
 			layout,

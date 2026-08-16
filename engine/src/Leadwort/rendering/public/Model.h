@@ -68,6 +68,7 @@ namespace Leadwort::Core {
 	    const aiScene* m_AiScene { nullptr };
 	    std::string m_ResourceBaseDir{};
 	    std::vector<Shared<Rendering::Bindables::Mesh>> m_Meshes{};
+		std::string m_FullPath{};
 	};
 
 } // namespace Engine::Game

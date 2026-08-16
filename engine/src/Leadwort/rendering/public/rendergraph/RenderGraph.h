@@ -30,7 +30,7 @@ namespace Leadwort::Rendering::RG {
     	}
 
     	void Compile() {
-    		Print();
+    		// Print();
     		m_IsCompiled = false;
     		m_FrameBuffers.clear();
 
@@ -41,7 +41,7 @@ namespace Leadwort::Rendering::RG {
     		}
 
     		BuildFrameBuffers();
-    		PrintSortedPasses();
+    		// PrintSortedPasses();
     	}
 
     	void Execute(Components::Camera& camera, RenderQueues& queues, Components::MeshRenderer* highlightedMeshRenderer) const {

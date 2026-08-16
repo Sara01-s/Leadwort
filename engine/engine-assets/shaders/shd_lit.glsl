@@ -138,8 +138,9 @@ float sampleRoughness(vec2 uv) {
         #ifdef HAS_SPECULAR
             roughness = max(1.0 - texture(_SpecularTexture, uv).a, 0.05);
         #endif
-        #else
-            roughness = max(_RoughnessIntensity, 0.05);
+    #else
+        roughness = max(_RoughnessIntensity, 0.05);
+
         #ifdef HAS_ROUGHNESS
             roughness *= texture(_RoughnessTexture, uv).g;
         #endif
@@ -191,8 +192,9 @@ vec3 sampleBaseReflectivity(vec2 uv, vec3 albedo, float metallic) {
         #ifdef HAS_SPECULAR
             F0 = linearColorSpace(texture(_SpecularTexture, uv).rgb);
         #endif
-        #else
-            F0 = mix(vec3(0.04), albedo, metallic);
+    #else
+        F0 = mix(vec3(0.04), albedo, metallic);
+
         #ifdef HAS_SPECULAR
             vec3 specularSample = linearColorSpace(texture(_SpecularTexture, uv).rgb);
             F0 = mix(specularSample, albedo * specularSample, metallic);
