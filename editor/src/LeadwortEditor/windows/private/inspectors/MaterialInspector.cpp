@@ -35,16 +35,10 @@ bool DrawTextureSlot(const char* label, Leadwort::Shared<Leadwort::Rendering::Bi
             ImGui::Dummy(ImVec2(thumbSize, thumbSize));
         }
         ImGui::EndGroup();
-
-        ImGui::SameLine();
-        ImGui::BeginGroup();
-        ImGui::Text("%s", texture ? texture->GetName().c_str() : "None");
-        ImGui::TextDisabled("Texture");
-        ImGui::EndGroup();
     }
-    ImGui::EndChild();
 
-    // Drag & drop: aceptar un asset de textura arrastrado desde el Content Browser
+	ImGui::EndChild();
+
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload { ImGui::AcceptDragDropPayload("ASSET_TEXTURE") }) {
             const auto* path { static_cast<const std::filesystem::path*>(payload->Data) };
@@ -55,7 +49,6 @@ bool DrawTextureSlot(const char* label, Leadwort::Shared<Leadwort::Rendering::Bi
         ImGui::EndDragDropTarget();
     }
 
-    // Clic derecho -> limpiar el slot
     if (ImGui::BeginPopupContextItem("##slotContext")) {
         if (ImGui::MenuItem("Clear")) {
             texture = nullptr;

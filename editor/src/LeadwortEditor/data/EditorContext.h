@@ -16,7 +16,7 @@ namespace Leadwort::Rendering::Bindables {
 
 namespace Editor {
 
-	struct AssetSelection {
+	struct EditorSelection {
 		std::filesystem::path path{};
 		Leadwort::AssetManagement::AssetType type{};
 	};
@@ -34,7 +34,7 @@ namespace Editor {
 		std::variant<
 			std::monostate,
 			Leadwort::EntityID,
-			AssetSelection,
+			EditorSelection,
 			EmbeddedMeshSelection,
 			EmbeddedMaterialSelection
 		> Selection{};
@@ -52,7 +52,7 @@ namespace Editor {
 		}
 
 		void SelectAsset(const std::filesystem::path& path, const Leadwort::AssetManagement::AssetType type) {
-			Selection = AssetSelection { path, type };
+			Selection = EditorSelection { path, type };
 		}
 
 		void SelectEmbeddedMesh(const Leadwort::Shared<Leadwort::Rendering::Bindables::Mesh>& mesh) {

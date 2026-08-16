@@ -289,7 +289,7 @@ namespace Leadwort::Core {
 	            }
 
 	            const std::string fullPath = m_ResourceBaseDir + "/" + pathStr;
-	            const Shared<Texture> texture = EngineAssets::GetTextureAbsolute(fullPath);
+	            const Shared<Texture> texture = EngineAssets::GetTextureFromAbsolutePath(fullPath);
 
 	            LW_ASSERT(texture, "Failed to load texture at path: " + fullPath);
 	            material.SetTexture(uniform, texture, slot);

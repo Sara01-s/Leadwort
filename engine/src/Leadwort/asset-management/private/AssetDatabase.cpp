@@ -200,6 +200,10 @@ namespace Leadwort::AssetManagement {
 		return m_MeshCache.GetAllValues();
 	}
 
+	std::vector<Shared<Texture>> AssetDatabase::GetAllTextures() const noexcept {
+		return m_TextureCache.GetAllValues();
+	}
+
 	Shared<Material> AssetDatabase::CreateMaterial(const Shared<Shader>& shader) {
 		LW_LOG("AssetManager: Creating Material for Shader [ptr=", reinterpret_cast<uintptr_t>(shader.get()), "]");
 		auto material { CreateShared<Material>(shader, AssetKey<Material>{}) };

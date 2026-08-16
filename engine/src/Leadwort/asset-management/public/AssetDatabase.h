@@ -94,6 +94,7 @@ namespace Leadwort::AssetManagement {
 		[[nodiscard]] const std::string& GetRootPath() const noexcept { return m_Root; }
 
 		[[nodiscard]] std::vector<Shared<Bindables::Mesh>> GetAllMeshes() const noexcept;
+		[[nodiscard]] std::vector<Shared<Bindables::Texture>> GetAllTextures() const noexcept;
 
 		[[nodiscard]] Shared<Bindables::Material> GetMaterial(const std::string& path);
 		void SaveMaterial(const std::string& path, const Bindables::Material& material) const;
@@ -139,8 +140,13 @@ namespace Leadwort::AssetManagement {
 	    }
 
 	    [[nodiscard]]
-	    static Shared<Bindables::Texture> GetTextureAbsolute(const std::string& path) {
+	    static Shared<Bindables::Texture> GetTextureFromAbsolutePath(const std::string& path) {
 	        return Get().GetTextureFromAbsolutePath(path);
+	    }
+
+		[[nodiscard]]
+		static std::vector<Shared<Bindables::Texture>> GetAllTextures() {
+	    	return Get().GetAllTextures();
 	    }
 
 	    [[nodiscard]]

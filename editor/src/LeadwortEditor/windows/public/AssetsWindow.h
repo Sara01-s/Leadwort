@@ -128,20 +128,37 @@ namespace Editor::Windows {
 	    }
 
 		void DrawFileEntry(const std::filesystem::path& relativePath) {
-		    const auto type { Leadwort::AssetManagement::InferAssetType(relativePath) };
+	    	const auto type { Leadwort::AssetManagement::InferAssetType(relativePath) };
 
-		    if (type == Leadwort::AssetManagement::AssetType::Model) {
-		        DrawModelEntry(relativePath);
-		        return;
-		    }
+	    	if (type == Leadwort::AssetManagement::AssetType::Model) {
+	    		DrawModelEntry(relativePath);
+	    		return;
+	    	}
 
-		    ImGui::TreeNodeEx(relativePath.filename().string().c_str(),
-		        ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+	    	ImGui::TreeNodeEx(relativePath.filename().string().c_str(),
+				ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
 
-		    if (ImGui::IsItemClicked()) {
-		        m_EditorContext.SelectAsset(relativePath, type);
-		    }
-		}
+	    	if (ImGui::IsItemClicked()) {
+	    		m_EditorContext.SelectAsset(relativePath, type);
+	    	}
+
+	    	if (ImGui::BeginDragDropSource()) {
+	    		if (const char* payloadID { GetPayloadIDFor(type) }) {
+	    			ImGui::SetDragDropPayload(payloadID, &relativePath, sizeof(std::filesystem::path));
+	    			ImGui::Text("%s", relativePath.filename().string().c_str());
+	    		}
+	    		ImGui::EndDragDropSource();
+	    	}
+	    }
+
+		static const char* GetPayloadIDFor(const Leadwort::AssetManagement::AssetType type) {
+	    	switch (type) {
+	    		case Leadwort::AssetManagement::AssetType::Texture:  return "ASSET_TEXTURE";
+	    		case Leadwort::AssetManagement::AssetType::Material: return "ASSET_MATERIAL";
+				case Leadwort::AssetManagement::AssetType::Shader:   return "ASSET_SHADER";
+	    		default: return nullptr;
+	    	}
+	    }
 
 		void DrawModelEntry(const std::filesystem::path& relativePath) {
 	    	using namespace Leadwort;
