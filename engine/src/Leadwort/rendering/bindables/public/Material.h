@@ -21,10 +21,11 @@ namespace Leadwort::Rendering::Bindables {
 	class Material : public IBindable {
 	public:
 		struct TextureSlot {
-			Shared<Texture> texture { nullptr };
-			uint32_t gpuID { 0 };
-			uint32_t target { GL_TEXTURE_2D };
-			int slot { -1 }; // -1 = auto
+			Shared<Texture> Texture { nullptr };
+			uint32_t GpuID { 0 };
+			uint32_t Target { GL_TEXTURE_2D };
+			int Slot { -1 }; // -1 = auto
+			Vec4 ST { 1.0f, 1.0f, 0.0f, 0.0f }; // xy = tiling, zw = offset
 		};
 
 		RenderPipelineState pipelineState { RenderPipelineState::Opaque() };
@@ -44,6 +45,7 @@ namespace Leadwort::Rendering::Bindables {
 	    void SetVec4(const std::string& name, const Vec4& value);
 	    void SetMat3(const std::string& name, const Mat3& value);
 	    void SetMat4(const std::string& name, const Mat4& value);
+		void SetTextureST(const std::string& name, const Vec4& st);
 
 	    void SetTexture(const std::string& name, const Shared<Texture>& texture);
 	    void SetTexture(const std::string& name, const Shared<Texture>& texture, int slot);

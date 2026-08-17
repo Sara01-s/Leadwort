@@ -19,12 +19,10 @@ namespace Editor::Windows {
 
     void OnGuiRender() override {
         if (ImGui::Begin("Inspector")) {
-            // Actualiza la selección "vista" solo si no está lockeado
             if (!m_Locked) {
                 m_LockedSelection = m_EditorContext.Selection;
             }
 
-            // Botón de lock, estilo Unity (candado arriba a la derecha)
             const float lockButtonWidth { ImGui::GetFrameHeight() };
             ImGui::SameLine(ImGui::GetWindowWidth() - lockButtonWidth - ImGui::GetStyle().WindowPadding.x);
             if (ImGui::Checkbox("##Lock", &m_Locked)) {

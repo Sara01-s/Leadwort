@@ -75,9 +75,9 @@ struct AssetSerializer<Bindables::Material> {
         json["shader"] = material.GetShader().GetPath();
 
         for (const auto& [name, slot] : material.GetTextures()) {
-			const bool isEmbeddedTexture { slot.texture->GetPath().starts_with("*") };
-        	if (slot.texture && !isEmbeddedTexture) {
-        		json["textures"][name] = slot.texture->GetPath();
+			const bool isEmbeddedTexture { slot.Texture->GetPath().starts_with("*") };
+        	if (slot.Texture && !isEmbeddedTexture) {
+        		json["textures"][name] = slot.Texture->GetPath();
         	}
         }
 

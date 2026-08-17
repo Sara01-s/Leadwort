@@ -30,6 +30,17 @@ void Material::SetFloat(const std::string& name, const float value) {
 	void Material::SetVec4(const std::string& name, const Vec4& value)  { m_Vec4s[name]   = value; m_UniformsDirty = true; }
 	void Material::SetMat3(const std::string& name, const Mat3& value)  { m_Mat3s[name]   = value; m_UniformsDirty = true; }
 	void Material::SetMat4(const std::string& name, const Mat4& value)  { m_Mat4s[name]   = value; m_UniformsDirty = true; }
+	void Material::SetTextureST(const std::string& name, const Vec4& st) {
+		const auto it = m_Textures.find(name);
+		if (it != m_Textures.end()) {
+			it->second.ST = st;
+		}
+		else {
+			m_Textures[name] = TextureSlot { nullptr, 0, GL_TEXTURE_2D, -1, st };
+		}
+
+		m_UniformsDirty = true;
+	}
 
 	void Material::SetTexture(const std::string& name, const Shared<Texture>& texture) {
 	    m_Textures[name] = TextureSlot { texture, 0, GL_TEXTURE_2D, -1 };
@@ -100,15 +111,17 @@ void Material::SetFloat(const std::string& name, const float value) {
 			glActiveTexture(GL_TEXTURE0 + slot);
 
 			const auto it = m_Textures.find(name);
+			Vec4 st { 1.0f, 1.0f, 0.0f, 0.0f };
 
 			if (it != m_Textures.end()) {
 				const auto& textureSlot = it->second;
+				st = textureSlot.ST;
 
-				if (textureSlot.texture) {
-					glBindTexture(textureSlot.target, textureSlot.texture->GetGpuID());
+				if (textureSlot.Texture) {
+					glBindTexture(textureSlot.Target, textureSlot.Texture->GetGpuID());
 				}
-				else if (textureSlot.gpuID != 0) {
-					glBindTexture(textureSlot.target, textureSlot.gpuID);
+				else if (textureSlot.GpuID != 0) {
+					glBindTexture(textureSlot.Target, textureSlot.GpuID);
 				}
 				else {
 					const GLenum target = samplerInfo.type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
@@ -122,6 +135,7 @@ void Material::SetFloat(const std::string& name, const float value) {
 			}
 
 			m_Shader->SetUniform(name, slot);
+			m_Shader->SetUniform(name + "_ST", st);
 			slot++;
 		}
 
@@ -148,10 +162,10 @@ void Material::SetFloat(const std::string& name, const float value) {
 
 	void Material::Unbind() const noexcept {
 		for (const auto& slot: m_Textures | std::views::values) {
-			const int targetSlot { slot.slot >= 0 ? slot.slot : 0 };
+			const int targetSlot { slot.Slot >= 0 ? slot.Slot : 0 };
 
 			glActiveTexture(GL_TEXTURE0 + targetSlot);
-			glBindTexture(slot.target, 0);
+			glBindTexture(slot.Target, 0);
 		}
 
 		m_Shader->Unbind();
