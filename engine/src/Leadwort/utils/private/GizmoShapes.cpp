@@ -7,7 +7,7 @@
 namespace Leadwort::Utils::GizmoShapes {
 
     static void GetOrthonormalBasis(const Vec3& normal, Vec3& outTangent, Vec3& outBitangent) {
-        const Vec3 reference = (std::abs(Dot(normal, Vec3::Up())) > 0.99f) ? Vec3::Right() : Vec3::Up();
+        const Vec3 reference { (std::abs(Dot(normal, Vec3::Up())) > 0.99f) ? Vec3::Right() : Vec3::Up() };
 
         outTangent = Cross(normal, reference).Normalized();
         outBitangent = Cross(normal, outTangent).Normalized();
@@ -136,7 +136,7 @@ namespace Leadwort::Utils::GizmoShapes {
         for (int i = 0; i < 4; i++) {
             lines.push_back({ worldCorners[i], worldCorners[(i + 1) % 4] });                  // near rect
             lines.push_back({ worldCorners[4 + i], worldCorners[4 + (i + 1) % 4] });          // far rect
-            lines.push_back({ worldCorners[i], worldCorners[4 + i] });                        // conectores
+            lines.push_back({ worldCorners[i], worldCorners[4 + i] });                        // connectors
         }
 
         return lines;

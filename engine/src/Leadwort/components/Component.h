@@ -66,13 +66,13 @@ namespace Leadwort::Components {
 			}
 
 		#define LW_FIELD_ENUM(member, displayName, ...) \
-				FieldData {								\
-					.Name = #member,                    \
-					.Type = FieldType::Enum,			\
-					.DataPtr = &member,                 \
-					.DisplayName = displayName,         \
-					.EnumNames = { __VA_ARGS__ }        \
-				}
+			FieldData {									\
+				.Name = #member,                    	\
+				.Type = FieldType::Enum,				\
+				.DataPtr = &member,                 	\
+				.DisplayName = displayName,         	\
+				.EnumNames = { __VA_ARGS__ }        	\
+			}
 
 		#define LW_FIELD_ASSET(member, displayName, assetType)  \
 			FieldData {											\
