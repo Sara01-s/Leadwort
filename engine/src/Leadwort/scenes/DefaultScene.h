@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Leadwort/asset-management/public/DefaultAssets.h>
-#include <Leadwort/components/behaviours/public/DirectionaLight.h>
 #include <Leadwort/components/behaviours/public/FirstPersonController.h>
+#include <Leadwort/components/behaviours/public/Light.h>
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/components/public/MeshRenderer.h>
 #include <Leadwort/core/public/IScene.h>
@@ -36,7 +36,7 @@ namespace Leadwort::Scenes {
 	            e->GetTransform().LookAt(sphere->GetTransform());
 
 	            auto* cam = e->AddComponent<Components::Camera>();
-	            cam->cullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;
+	            cam->CullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;
 	        }
 
 	        // Scene Camera
@@ -48,8 +48,8 @@ namespace Leadwort::Scenes {
 
 	            e->AddComponent<Components::Behaviours::FirstPersonController>();
 				auto* a { e->AddComponent<Components::Camera>() };
-				a->background = Components::Camera::SolidColor {
-					.color = Color::Gray35()
+				a->Background = Components::Camera::SolidColor {
+					.Color = Color::Gray35()
 				};
 				// a->background = Components::Camera::SkyBox {
 				// 	.skybox = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_clouds_2k.exr")
@@ -59,7 +59,7 @@ namespace Leadwort::Scenes {
 	        // Directional Light
 	        {
 				Core::Entity* e { CreateEntity("Directional Light") };
-	            e->AddComponent<Components::Behaviours::DirectionalLight>();
+	            e->AddComponent<Components::Behaviours::Light>();
 				e->GetTransform().SetLocalRotation(Quat::FromEuler(135.0f, -45.0f, -45.0f));
 	        }
 	    }

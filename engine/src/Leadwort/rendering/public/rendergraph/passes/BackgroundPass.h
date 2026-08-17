@@ -29,14 +29,14 @@ namespace Leadwort::Rendering::RG::Passes {
 			std::visit(overloaded {
 				[](const Components::Camera::SkyBox& sky) {
 					glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-					sky.skybox->Render();
+					sky.Sky->Render();
 				},
 				[](const Components::Camera::SolidColor& solid) {
-					const auto& bg { solid.color };
+					const auto& bg { solid.Color };
 					glClearColor(bg.r, bg.g, bg.b, bg.a);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 				}
-			}, renderContext.camera->background);
+			}, renderContext.camera->Background);
 		}
 
     private:

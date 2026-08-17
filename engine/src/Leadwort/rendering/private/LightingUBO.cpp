@@ -1,17 +1,12 @@
 #include <Leadwort/rendering/public/LightingUBO.h>
-#include <Leadwort/components/behaviours/public/DirectionaLight.h>
+
+#include "Leadwort/components/public/Transform.h"
+
+#include <Leadwort/components/behaviours/public/Light.h>
 #include <Leadwort/core/public/Entity.h>
-#include <Leadwort/components/public/Transform.h>
+#include <cmath>
 
 namespace Leadwort::Rendering {
-
-	static constexpr GLuint LIGHTING_UBO_BINDING { 1 };
-	static constexpr GLuint LIGHTING_UBO_SIZE_BYTES { 32 };
-
-	// std140 layout:
-	//   offset  0 → vec4 direction  (vec3 + 4 bytes padding)
-	//   offset 16 → vec3 color      (12 bytes)
-	//   offset 28 → float intensity (4 bytes, packed into color's padding slot)
 
 	void LightingUBO::Initialize() {
 		glGenBuffers(1, &m_UBO);
@@ -27,25 +22,60 @@ namespace Leadwort::Rendering {
 		}
 	}
 
-	void LightingUBO::Update(const Components::Behaviours::DirectionalLight* light) const {
-		if (!light) {
-			// Upload zeroed data so shaders don't read garbage
-			constexpr float zeroes[LIGHTING_UBO_SIZE_BYTES / sizeof(float)] = {};
-			glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, LIGHTING_UBO_SIZE_BYTES, zeroes);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			return;
+	void LightingUBO::Update(const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights) const {
+		LightingDataGPU data;
+
+		int pointIndex { 0 };
+		int spotIndex { 0 };
+
+		for (const auto* light: lights) {
+			if (!light) {
+				continue;
+			}
+
+			const auto& transform = light->GetEntity().GetTransform();
+			const Vec3 pos = transform.GetLocalPosition();
+			const Vec3 dir = transform.GetForward();
+
+			switch (light->Type) {
+				case Components::Behaviours::Light::LightType::Directional: {
+					data.Direction = Vec4(dir.x, dir.y, dir.z, 0.0f);
+					data.ColorIntensity = Vec4(light->Color.r, light->Color.g, light->Color.b, light->Intensity);
+					break;
+				}
+				case Components::Behaviours::Light::LightType::Point: {
+					if (pointIndex < MAX_POINT_LIGHTS) {
+						auto& p = data.PointLights[pointIndex++];
+						p.Position = Vec4(pos.x, pos.y, pos.z, 1.0f);
+						p.Color = Vec4(light->Color.r, light->Color.g, light->Color.b, light->Intensity);
+						p.Attenuation = Vec4(light->Attenuation.x, light->Attenuation.y, light->Attenuation.z, 1.0f);
+					}
+					break;
+				}
+				case Components::Behaviours::Light::LightType::Spot: {
+					if (spotIndex < MAX_SPOT_LIGHTS) {
+						auto& s = data.SpotLights[spotIndex++];
+						s.Position = Vec4(pos.x, pos.y, pos.z, 1.0f);
+						s.Direction = Vec4(dir.x, dir.y, dir.z, 0.0f);
+						s.Color = Vec4(light->Color.r, light->Color.g, light->Color.b, light->Intensity);
+						s.Attenuation = Vec4(light->Attenuation.x, light->Attenuation.y, light->Attenuation.z, 1.0f);
+						s.Cutoffs = Vec4(
+							std::cos(light->InnerCutoff * DegToRad),
+							std::cos(light->OuterCutoff * DegToRad),
+							0.0f, 0.0f
+						);
+					}
+					break;
+				}
+			}
 		}
 
-		const Vec4 direction  = light->GetEntity().GetTransform().GetForward().ToVec4();
-		const auto color      = Vec3(light->color.r, light->color.g, light->color.b);
-		const float intensity = light->intensity;
+		data.LightCounts[0] = pointIndex;
+		data.LightCounts[1] = spotIndex;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-		glBufferSubData(GL_UNIFORM_BUFFER,  0, sizeof(Vec4),  direction.ToPtr());
-		glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(Vec3),  &color.x);
-		glBufferSubData(GL_UNIFORM_BUFFER, 28, sizeof(float), &intensity);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, LIGHTING_UBO_SIZE_BYTES, &data);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
-} // namespace Engine::Rendering
+} // namespace Leadwort::Rendering

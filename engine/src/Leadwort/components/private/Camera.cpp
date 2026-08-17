@@ -9,7 +9,7 @@ namespace Leadwort::Components {
 	}
 
 	bool Camera::ShouldRender(const Core::Entity& entity) const noexcept {
-		return (entity.layerMask & cullingMask) != 0;
+		return (entity.layerMask & CullingMask) != 0;
 	}
 
 	Mat4 Camera::GetViewMatrix() const noexcept {
@@ -17,7 +17,7 @@ namespace Leadwort::Components {
 	}
 
 	Mat4 Camera::GetProjectionMatrix() const noexcept {
-		return Rendering::CoordinateSystem::CalculateProjectionMatrix({fov, nearPlane, farPlane, aspect});
+		return Rendering::CoordinateSystem::CalculateProjectionMatrix({Fov, NearPlane, FarPlane, Aspect});
 	}
 
 	Ray Camera::ScreenPointToRay(const Vec2& normalizedScreenPoint) const noexcept {
@@ -43,7 +43,7 @@ namespace Leadwort::Components {
 	}
 
 	std::vector<Utils::GizmoShapes::DebugLine> Camera::GetGizmoLines() const noexcept {
-		return Utils::GizmoShapes::Frustum(GetEntity().GetTransform().GetWorldMatrix(), fov, aspect, nearPlane, farPlane);
+		return Utils::GizmoShapes::Frustum(GetEntity().GetTransform().GetWorldMatrix(), Fov, Aspect, NearPlane, FarPlane);
 	}
 
 	} // namespace Engine::Components

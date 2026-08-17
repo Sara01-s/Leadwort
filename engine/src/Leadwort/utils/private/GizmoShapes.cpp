@@ -23,7 +23,7 @@ namespace Leadwort::Utils::GizmoShapes {
         Vec3 prevPoint { center + tangent * radius };
 
         for (int i = 1; i <= segments; i++) {
-            const float t { (static_cast<float>(i) / static_cast<float>(segments)) * Tau };
+            const float t { (static_cast<float>(i) / static_cast<float>(segments)) * TAU };
             const Vec3 point { center + (tangent * std::cos(t) + bitangent * std::sin(t)) * radius };
 
             lines.push_back({ prevPoint, point });
@@ -109,7 +109,7 @@ namespace Leadwort::Utils::GizmoShapes {
         std::vector<DebugLine> lines{};
         lines.reserve(12);
 
-        const float halfVFov { (fovY * 0.5f) * Deg2Rad };
+        const float halfVFov { (fovY * 0.5f) * DegToRad };
         const float tanHalfVFov { std::tan(halfVFov) };
 
         const float nearHeight { tanHalfVFov * nearPlane };

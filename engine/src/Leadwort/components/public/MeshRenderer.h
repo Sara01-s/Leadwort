@@ -9,7 +9,7 @@
 #include <Leadwort/utils/public/PrimitiveMeshes.h>
 
 namespace Leadwort::Components { class Camera; }
-namespace Leadwort::Components::Behaviours { class DirectionalLight; }
+namespace Leadwort::Components::Behaviours { class Light; }
 
 namespace Leadwort::Components {
 

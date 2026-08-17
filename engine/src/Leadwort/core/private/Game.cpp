@@ -134,7 +134,7 @@ namespace Leadwort::Core {
 		m_GameRenderGraph.Compile();
 
 		if (auto* gameCam = CameraSystem::Get().GetMainCamera()) {
-			gameCam->aspect = static_cast<float>(width) / static_cast<float>(height);
+			gameCam->Aspect = static_cast<float>(width) / static_cast<float>(height);
 		}
 	}
 
@@ -145,7 +145,7 @@ namespace Leadwort::Core {
 		m_SceneRenderGraph.Compile();
 
 		if (auto* sceneCam = CameraSystem::Get().GetSceneCamera()) {
-			sceneCam->aspect = static_cast<float>(width) / static_cast<float>(height);
+			sceneCam->Aspect = static_cast<float>(width) / static_cast<float>(height);
 		}
 	}
 

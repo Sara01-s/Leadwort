@@ -19,26 +19,26 @@ namespace Leadwort {
 //  Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-inline constexpr float PI        = std::numbers::pi_v<float>;
-inline constexpr float Tau       = PI * 2.0f;
-inline constexpr float HalfPI    = PI * 0.5f;
-inline constexpr float InvPI     = 1.0f / PI;
-inline constexpr float Sqrt2     = std::numbers::sqrt2_v<float>;
-inline constexpr float Sqrt3     = std::numbers::sqrt3_v<float>;
-inline constexpr float Epsilon   = std::numeric_limits<float>::epsilon();
-inline constexpr float Infinity  = std::numeric_limits<float>::infinity();
-inline constexpr float NegInfinity = -std::numeric_limits<float>::infinity();
-inline constexpr float Deg2Rad   = PI / 180.0f;
-inline constexpr float Rad2Deg   = 180.0f / PI;
-inline constexpr float GoldenRatio = std::numbers::phi_v<float>;
-inline constexpr int IntInfinity = std::numeric_limits<int>::infinity();
+inline constexpr float PI        { std::numbers::pi_v<float> };
+inline constexpr float TAU       { PI * 2.0f };
+inline constexpr float HalfPI    { PI * 0.5f };
+inline constexpr float InvPI     { 1.0f / PI };
+inline constexpr float Sqrt2     { std::numbers::sqrt2_v<float> };
+inline constexpr float Sqrt3     { std::numbers::sqrt3_v<float> };
+inline constexpr float Epsilon   { std::numeric_limits<float>::epsilon() };
+inline constexpr float Infinity  { std::numeric_limits<float>::infinity() };
+inline constexpr float NegInfinity { -std::numeric_limits<float>::infinity() };
+inline constexpr float DegToRad    { PI / 180.0f };
+inline constexpr float RadToDeg    { 180.0f / PI };
+inline constexpr float GoldenRatio { std::numbers::phi_v<float> };
+inline constexpr int IntInfinity { std::numeric_limits<int>::infinity() };
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Scalar
 // ─────────────────────────────────────────────────────────────────────────────
 
-[[nodiscard]] inline float ToRadians(const float degrees) { return degrees * Deg2Rad; }
-[[nodiscard]] inline float ToDegrees(const float radians) { return radians * Rad2Deg; }
+[[nodiscard]] inline float ToRadians(const float degrees) { return degrees * DegToRad; }
+[[nodiscard]] inline float ToDegrees(const float radians) { return radians * RadToDeg; }
 
 [[nodiscard]] inline float Clamp(const float v, const float lo, const float hi)  { return std::clamp(v, lo, hi); }
 [[nodiscard]] inline float Clamp01(const float v)                                { return Clamp(v, 0.0f, 1.0f); }
@@ -138,9 +138,9 @@ template<typename... Args>
 [[nodiscard]] inline bool IsApproximately(const float a, const float b, const float eps = Epsilon) { return Abs(a - b) <= eps; }
 // Wraps an angle to the [-Pi, Pi] range to prevent infinite accumulation
 [[nodiscard]] inline float WrapAngle(float angle) {
-	angle = Mod(angle + PI, Tau);
+	angle = Mod(angle + PI, TAU);
 	if (angle < 0.0f) {
-		angle += Tau;
+		angle += TAU;
 	}
 	return angle - PI;
 }
@@ -358,13 +358,13 @@ template<typename... Args>
 [[nodiscard]] inline float EaseInElastic(const float t) {
     if (t < Epsilon) return 0.0f;
     if (IsApproximately(t, 1.0f)) return 1.0f;
-    return -Pow(2.0f, 10.0f * t - 10.0f) * Sin((t * 10.0f - 10.75f) * (Tau / 3.0f));
+    return -Pow(2.0f, 10.0f * t - 10.0f) * Sin((t * 10.0f - 10.75f) * (TAU / 3.0f));
 }
 
 [[nodiscard]] inline float EaseOutElastic(const float t) {
     if (t < Epsilon) return 0.0f;
     if (IsApproximately(t, 1.0f)) return 1.0f;
-    return Pow(2.0f, -10.0f * t) * Sin((t * 10.0f - 0.75f) * (Tau / 3.0f)) + 1.0f;
+    return Pow(2.0f, -10.0f * t) * Sin((t * 10.0f - 0.75f) * (TAU / 3.0f)) + 1.0f;
 }
 
 [[nodiscard]] inline float EaseOutBounce(float t) {

@@ -18,26 +18,29 @@ namespace Leadwort::Components {
 	class Camera : public Component {
 	public:
 		LW_REFLECT(Camera,
-			LW_FIELD(Float, fov, "Fov"),
-			LW_FIELD(Float, nearPlane, "Near"),
-			LW_FIELD(Float, farPlane, "Far"),
+			LW_FIELD(Float, Fov, "Fov"),
+			LW_FIELD(Float, NearPlane, "Near"),
+			LW_FIELD(Float, FarPlane, "Far"),
 		)
 
 		struct SolidColor {
-			Color color;
+			Color Color;
 		};
 
 		struct SkyBox {
-			Unique<Rendering::Skybox> skybox;
+			Unique<Rendering::Skybox> Sky;
 		};
 
-		std::variant<SolidColor, SkyBox> background = SolidColor(Color::Gray20());
-		float fov         { 60.0f };
-		float nearPlane   { 0.1f };
-		float farPlane    { 1000.0f };
-		float aspect	  { 16.0f / 9.0f };
-		uint32_t cullingMask { Utils::Layers::EVERYTHING };
+	public:
+		std::variant<SolidColor, SkyBox> Background = SolidColor(Color::Gray20());
 
+		float Fov         { 60.0f };
+		float NearPlane   { 0.1f };
+		float FarPlane    { 1000.0f };
+		float Aspect	  { 16.0f / 9.0f };
+		uint32_t CullingMask { Utils::Layers::EVERYTHING };
+
+	public:
 		[[nodiscard]] Vec3 WorldToCameraSpace(const Vec3& worldPosition) const noexcept;
 
 		[[nodiscard]] bool ShouldRender(const Core::Entity& entity) const noexcept;

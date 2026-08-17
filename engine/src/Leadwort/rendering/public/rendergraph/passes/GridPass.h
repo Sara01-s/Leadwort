@@ -24,7 +24,7 @@ public:
 	}
 
 	void Execute(const RenderContext& renderContext) noexcept override {
-		if ((renderContext.camera->cullingMask & Utils::Layers::SCENE) == 0) {
+		if ((renderContext.camera->CullingMask & Utils::Layers::SCENE) == 0) {
 			return;
 		}
 

@@ -12,6 +12,7 @@ namespace Leadwort::Core { class Entity; }
 namespace Leadwort::Components {
 
 	enum class FieldType {
+		Enum,
 		Float,
 		Vec3,
 		Quat,
@@ -24,11 +25,12 @@ namespace Leadwort::Components {
 	};
 
 	struct FieldData {
-		std::string name{};
-		FieldType type{};
-		void* dataPtr{};
-		std::string displayName{};
-		std::string_view assetTypeName{}; // Relevant only if type is AssetRef
+		std::string Name{};
+		FieldType Type{};
+		void* DataPtr{};
+		std::string DisplayName{};
+		std::string_view AssetTypeName{}; // Relevant only if type is AssetRef
+		std::vector<const char*> EnumNames{}; // Relevant only if type is Enum
 	};
 
 	class Component : public Serialization::ISerializable {
@@ -55,7 +57,32 @@ namespace Leadwort::Components {
 		[[nodiscard]] virtual std::vector<FieldData> GetOwnFields() { return {}; }
 		[[nodiscard]] virtual std::vector<FieldData> GetFields() { return {}; }
 
-		#define LW_FIELD(type, member, displayName) FieldData { #member, FieldType::type, &member, displayName }
+		#define LW_FIELD(type, member, displayName)	\
+			FieldData {								\
+				.Name = #member,                    \
+				.Type = FieldType::type,			\
+				.DataPtr = &member,                 \
+				.DisplayName = displayName          \
+			}
+
+		#define LW_FIELD_ENUM(member, displayName, ...) \
+				FieldData {								\
+					.Name = #member,                    \
+					.Type = FieldType::Enum,			\
+					.DataPtr = &member,                 \
+					.DisplayName = displayName,         \
+					.EnumNames = { __VA_ARGS__ }        \
+				}
+
+		#define LW_FIELD_ASSET(member, displayName, assetType)  \
+			FieldData {											\
+				.Name = #member,                                \
+				.Type = FieldType::AssetRef,					\
+				.DataPtr = &member,                             \
+				.DisplayName = displayName,                     \
+				.AssetTypeName = assetType                      \
+			}
+
 		#define LW_REFLECT(TypeNameIdentifier, ...)									\
 			[[nodiscard]] std::string_view GetTypeName() const final override {   	\
 				return #TypeNameIdentifier;                                       	\

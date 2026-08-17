@@ -46,7 +46,7 @@ void RenderSystem::Render(Camera& camera, const RG::RenderGraph& graph) const {
 
 	auto queues { m_SceneCollector.BuildRenderQueues(camera) };
 	m_CameraUBO.Update(camera);
-	m_LightingUBO.Update(LightingSystem::Get().GetDirectionalLight());
+	m_LightingUBO.Update(LightingSystem::Get().GetLights());
 
 	MeshRenderer* highlightedMeshRenderer {
 		m_HighlightedEntity == nullptr ? nullptr : m_HighlightedEntity->GetComponent<MeshRenderer>()

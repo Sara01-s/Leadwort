@@ -1,27 +1,55 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "Leadwort/core/math/public/Vec2.h"
+#include "Leadwort/core/math/public/Vec4.h"
 
-namespace Leadwort::Components::Behaviours { class DirectionalLight; }
+#include <glad/glad.h>
+#include <array>
+
+namespace Leadwort::Components::Behaviours { class Light; }
 
 namespace Leadwort::Rendering {
 
-	// std140 layout, 32 bytes total:
-	//
-	// offset  0 → vec4 direction  (12 bytes + 4 padding)
-	// offset 16 → vec4 color      (12 bytes + 4 padding)
-	// offset 28 → float intensity (4 bytes, packed into color's padding)
-	//
+static constexpr int MAX_POINT_LIGHTS { 8 };
+static constexpr int MAX_SPOT_LIGHTS { 8 };
+// (+1) because that accounts for 1 directional light
+static constexpr int MAX_LIGHTS { MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS + 1 };
 
-	class LightingUBO {
-	public:
-		void Initialize();
-		void Update(const Components::Behaviours::DirectionalLight* light) const;
+struct alignas(16) PointLightGPU {
+	Vec4 Position;
+	Vec4 Color;       // rgb = color, a = intensity
+	Vec4 Attenuation; // xyz = attenuation
+};
 
-		~LightingUBO();
+struct alignas(16) SpotLightGPU {
+	Vec4 Position;
+	Vec4 Direction;
+	Vec4 Color;       // rgb = color, a = intensity
+	Vec4 Attenuation;
+	Vec4 Cutoffs;     // x = cos(inner), y = cos(outer)
+};
 
-	private:
-		GLuint m_UBO { 0 };
-	};
+// Must match shd_lighting.glsl LightingData declaration
+struct alignas(16) LightingDataGPU {
+	Vec4 Direction{};
+	Vec4 ColorIntensity{};
+	std::array<PointLightGPU, MAX_POINT_LIGHTS> PointLights;
+	std::array<SpotLightGPU, MAX_SPOT_LIGHTS> SpotLights;
+	alignas(16) int LightCounts[4]{}; // x = numPointLights, y = numSpotLights (INTEGERS)
+};
 
-} // namespace Engine::Rendering
+static constexpr GLuint LIGHTING_UBO_BINDING { 1 };
+static constexpr GLuint LIGHTING_UBO_SIZE_BYTES { sizeof(LightingDataGPU) };
+
+class LightingUBO {
+public:
+	void Initialize();
+	void Update(const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights) const;
+
+	~LightingUBO();
+
+private:
+	GLuint m_UBO { 0 };
+};
+
+}

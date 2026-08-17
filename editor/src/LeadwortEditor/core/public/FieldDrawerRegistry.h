@@ -21,11 +21,11 @@ using DrawerFn = std::function<bool(Leadwort::Components::FieldData&)>;
 		}
 
 		bool Draw(Leadwort::Components::FieldData& field) {
-			if (const auto it { m_Drawers.find(field.type) }; it != m_Drawers.end()) {
+			if (const auto it { m_Drawers.find(field.Type) }; it != m_Drawers.end()) {
 				return it->second(field);
 			}
 
-			ImGui::TextDisabled("%s (no drawer)", field.name.c_str());
+			ImGui::TextDisabled("%s (no drawer)", field.Name.c_str());
 			return false;
 		}
 
@@ -40,22 +40,22 @@ using DrawerFn = std::function<bool(Leadwort::Components::FieldData&)>;
 			using namespace Leadwort::Components;
 
 			Get().Register(FieldType::Vec3, [](const FieldData& f) -> bool {
-				auto* v = static_cast<Leadwort::Vec3*>(f.dataPtr);
-				return ImGui::DragFloat3(f.displayName.c_str(), &v->x, 0.1f);
+				auto* v = static_cast<Leadwort::Vec3*>(f.DataPtr);
+				return ImGui::DragFloat3(f.DisplayName.c_str(), &v->x, 0.1f);
 			});
 
 			Get().Register(FieldType::Quat, [](const FieldData& f) -> bool {
-				auto* v = static_cast<Leadwort::Quat*>(f.dataPtr);
+				auto* v = static_cast<Leadwort::Quat*>(f.DataPtr);
 				static std::unordered_map<void*, Leadwort::Vec3> s_EulerCache{};
 
-				auto [it, inserted] { s_EulerCache.try_emplace(f.dataPtr) };
+				auto [it, inserted] { s_EulerCache.try_emplace(f.DataPtr) };
 				Leadwort::Vec3& cachedEuler = it->second;
 
 				if (inserted) {
 					cachedEuler = SanitizeZeros(v->ToEuler());
 				}
 
-				const bool changed = ImGui::DragFloat3(f.displayName.c_str(), &cachedEuler.x, 0.1f);
+				const bool changed = ImGui::DragFloat3(f.DisplayName.c_str(), &cachedEuler.x, 0.1f);
 
 				if (changed) {
 					*v = Leadwort::Quat::FromEuler(cachedEuler.x, cachedEuler.y, cachedEuler.z);
@@ -71,25 +71,25 @@ using DrawerFn = std::function<bool(Leadwort::Components::FieldData&)>;
 			});
 
 			Get().Register(FieldType::Float, [](const FieldData& f) -> bool {
-				return ImGui::DragFloat(f.displayName.c_str(), static_cast<float*>(f.dataPtr), 0.1f);
+				return ImGui::DragFloat(f.DisplayName.c_str(), static_cast<float*>(f.DataPtr), 0.1f);
 			});
 
 			Get().Register(FieldType::Bool, [](const FieldData& f) -> bool {
-				return ImGui::Checkbox(f.displayName.c_str(), static_cast<bool*>(f.dataPtr));
+				return ImGui::Checkbox(f.DisplayName.c_str(), static_cast<bool*>(f.DataPtr));
 			});
 
 			Get().Register(FieldType::Color, [](const FieldData& f) -> bool {
-				return ImGui::ColorEdit4(f.displayName.c_str(), static_cast<float*>(f.dataPtr), ImGuiColorEditFlags_DisplayHSV);
+				return ImGui::ColorEdit4(f.DisplayName.c_str(), static_cast<float*>(f.DataPtr), ImGuiColorEditFlags_DisplayHSV);
 			});
 
 			Get().Register(FieldType::AssetRef, [](const FieldData& f) -> bool {
 
-				auto* meshRef { static_cast<Leadwort::Shared<Leadwort::Rendering::Bindables::Mesh>*>(f.dataPtr) };
+				auto* meshRef { static_cast<Leadwort::Shared<Leadwort::Rendering::Bindables::Mesh>*>(f.DataPtr) };
 
 				const std::string currentLabel { *meshRef ? (*meshRef)->GetName() : "(None)" };
 
 				bool changed{false};
-				if (ImGui::BeginCombo(f.displayName.empty() ? "##AssetRef" : f.displayName.c_str(), currentLabel.c_str())) {
+				if (ImGui::BeginCombo(f.DisplayName.empty() ? "##AssetRef" : f.DisplayName.c_str(), currentLabel.c_str())) {
 					if (ImGui::Selectable("(None)", !*meshRef)) {
 						*meshRef = Leadwort::Utils::PrimitiveMeshes::Get().Empty();
 						changed = true;
@@ -119,6 +119,25 @@ using DrawerFn = std::function<bool(Leadwort::Components::FieldData&)>;
 				}
 
 				return changed;
+			});
+
+			Get().Register(FieldType::Enum, [](const FieldData& f) -> bool {
+			   if (f.EnumNames.empty() || !f.DataPtr) return false;
+
+			   auto* enumPtr = static_cast<int*>(f.DataPtr);
+			   int currentItem = *enumPtr;
+
+			   const int maxItems = static_cast<int>(f.EnumNames.size());
+			   if (currentItem < 0 || currentItem >= maxItems) {
+				  currentItem = 0;
+			   }
+
+			   if (ImGui::Combo(f.DisplayName.c_str(), &currentItem, f.EnumNames.data(), maxItems)) {
+				  *enumPtr = currentItem;
+				  return true;
+			   }
+
+			   return false;
 			});
 		}
 

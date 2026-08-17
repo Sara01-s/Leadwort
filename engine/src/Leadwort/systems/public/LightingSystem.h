@@ -1,27 +1,26 @@
 #pragma once
 
 #include <Leadwort/utils/public/Singleton.h>
+#include <Leadwort/rendering/public/LightingUBO.h>
 
 namespace Leadwort::Components::Behaviours {
-	class DirectionalLight;
+	class Light;
 }
 
 namespace Leadwort::Systems {
 
 class LightingSystem : public Utils::Singleton<LightingSystem> {
 	friend class Singleton;
-
 public:
-	void Register(Components::Behaviours::DirectionalLight* light);
-	void Unregister();
+	using Lights = std::array<Components::Behaviours::Light*, Rendering::MAX_LIGHTS>;
+	void Register(Components::Behaviours::Light* light);
+	void Unregister(const Components::Behaviours::Light* light);
 
-	Components::Behaviours::DirectionalLight* GetDirectionalLight() const;
-	bool IsEnabled() const;
+	[[nodiscard]] Lights GetLights() const noexcept { return m_Lights; }
 
 private:
 	LightingSystem() = default;
-
-	Components::Behaviours::DirectionalLight* m_DirectionalLight = nullptr;
+	Lights m_Lights{};
 };
 
 } // namespace Engine::Systems

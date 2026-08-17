@@ -52,179 +52,10 @@ void main() {
 #type fragment
 #version 450 core
 #include "include/shd_pbr.glsl"
+#include "include/shd_lighting.glsl"
 
 layout(location = 0) out vec4 fragColor;
 
-in vec3 v_worldPosition;
-in vec3 v_worldNormal;
-in vec2 v_uv;
-in vec3 v_cameraPosition;
-
-#ifdef HAS_TANGENTS
-    in mat3 v_tbn;
-#endif
-
-layout(std140, binding = 1) uniform LightingData {
-    vec4  _LightDirection; // w ignored
-    vec3  _LightColor;
-    float _LightIntensity;
-};
-
-uniform vec4  _Color;
-uniform float _MetallicIntensity;
-uniform float _RoughnessIntensity;
-
-#ifdef HAS_DIFFUSE
-    uniform sampler2D _DiffuseTexture;
-    uniform vec4 _DiffuseTexture_ST;
-#endif
-#ifdef HAS_SPECULAR
-    uniform sampler2D _SpecularTexture;
-    uniform vec4 _SpecularTexture_ST;
-#endif
-#if defined(HAS_NORMAL) && defined(HAS_TANGENTS)
-    uniform sampler2D _NormalTexture;
-    uniform vec4 _NormalTexture_ST;
-#endif
-#ifdef HAS_OPACITY
-    uniform sampler2D _OpacityTexture;
-    uniform vec4 _OpacityTexture_ST;
-#endif
-#ifdef HAS_EMISSIVE
-    uniform sampler2D _EmissiveTexture;
-    uniform vec4 _EmissiveTexture_ST;
-#endif
-#ifdef HAS_ROUGHNESS
-    uniform sampler2D _RoughnessTexture;
-    uniform vec4 _RoughnessTexture_ST;
-#endif
-#ifdef HAS_METALLIC
-    uniform sampler2D _MetallicTexture;
-    uniform vec4 _MetallicTexture_ST;
-#endif
-#ifdef HAS_AO
-    uniform sampler2D _AmbientOcclusionTexture;
-    uniform vec4 _AmbientOcclusionTexture_ST;
-#endif
-
-vec2 applyST(vec2 uv, vec4 st) {
-    return uv * st.xy + st.zw;
-}
-
-const vec3 AMBIENT_LIGHT = vec3(0.03, 0.03, 0.04);
-
-vec3 linearColorSpace(vec3 color) {
-    return pow(color, vec3(2.2));
-}
-
-// ----------------------------------------------------------------
-
-vec3 sampleAlbedo(vec2 uv) {
-    vec3 albedo = linearColorSpace(_Color.rgb);
-
-    #ifdef HAS_DIFFUSE
-        albedo *= linearColorSpace(texture(_DiffuseTexture, applyST(uv, _DiffuseTexture_ST)).rgb);
-    #endif
-
-    return albedo;
-}
-
-
-float sampleAlpha(vec2 uv) {
-    float alpha = _Color.a;
-
-    #if defined(HAS_DIFFUSE) && !defined(HAS_OPACITY)
-        alpha *= texture(_DiffuseTexture, applyST(uv, _DiffuseTexture_ST)).a;
-    #endif
-
-    #ifdef HAS_OPACITY
-        alpha *= texture(_OpacityTexture, applyST(uv, _OpacityTexture_ST)).a;
-    #endif
-
-    return alpha;
-}
-
-float sampleRoughness(vec2 uv) {
-    float roughness = 0.5;
-
-    #ifdef SPECULAR_GLOSSINESS
-        #ifdef HAS_SPECULAR
-            roughness = max(1.0 - texture(_SpecularTexture, applyST(uv, _SpecularTexture_ST)).a, 0.05);
-        #endif
-    #else
-        roughness = max(_RoughnessIntensity, 0.05);
-
-        #ifdef HAS_ROUGHNESS
-            roughness *= texture(_RoughnessTexture, applyST(uv, _RoughnessTexture_ST)).g;
-        #endif
-    #endif
-
-    return roughness;
-}
-
-float sampleMetallic(vec2 uv) {
-    float metallic = 0.0;
-
-    #ifndef SPECULAR_GLOSSINESS
-        metallic = _MetallicIntensity;
-
-        #ifdef HAS_METALLIC
-            metallic *= texture(_MetallicTexture, applyST(uv, _MetallicTexture_ST)).b;
-        #endif
-    #endif
-
-    return metallic;
-}
-
-vec3 sampleNormal(vec2 uv) {
-    vec3 N = normalize(v_worldNormal);
-
-    #if defined(HAS_NORMAL) && defined(HAS_TANGENTS)
-        vec3 tangentNormal = texture(_NormalTexture, applyST(uv, _NormalTexture_ST)).xyz * 2.0 - 1.0;
-        N = normalize(v_tbn * tangentNormal);
-    #endif
-
-    return N;
-}
-
-vec3 sampleEmission(vec2 uv) {
-    vec3 emission = vec3(0.0);
-
-    #ifdef HAS_EMISSIVE
-        emission = texture(_EmissiveTexture, applyST(uv, _EmissiveTexture_ST)).rgb;
-    #endif
-
-    return emission;
-}
-
-vec3 sampleBaseReflectivity(vec2 uv, vec3 albedo, float metallic) {
-    vec3 F0 = vec3(0.04);
-
-    #ifdef SPECULAR_GLOSSINESS
-        #ifdef HAS_SPECULAR
-        F0 = linearColorSpace(texture(_SpecularTexture, applyST(uv, _SpecularTexture_ST)).rgb);
-        #endif
-    #else
-        F0 = mix(vec3(0.04), albedo, metallic);
-
-        #ifdef HAS_SPECULAR
-            vec3 specularSample = linearColorSpace(texture(_SpecularTexture, applyST(uv, _SpecularTexture_ST)).rgb);
-            F0 = mix(specularSample, albedo * specularSample, metallic);
-        #endif
-    #endif
-
-    return F0;
-}
-
-float sampleAO(vec2 uv) {
-    float ao = 1.0;
-
-    #ifdef HAS_AO
-    ao = texture(_AmbientOcclusionTexture, applyST(uv, _AmbientOcclusionTexture_ST)).r;
-    #endif
-
-    return ao;
-}
 void main() {
     vec2 uv = v_uv;
 
@@ -243,12 +74,31 @@ void main() {
     float ao       = sampleAO(uv);
 
     vec3 V = normalize(v_cameraPosition - v_worldPosition);
-    vec3 L = normalize(-_LightDirection.xyz);
-    vec3 sum = V + L;
-    vec3 H = dot(sum, sum) > 1e-6 ? normalize(sum) : N;
 
-    vec3 lightColor = _LightColor * _LightIntensity;
-    vec3 color = PBR(F0, albedo, N, V, L, H, roughness, metallic, lightColor, emission, ao, AMBIENT_LIGHT);
+    vec3 directLighting = vec3(0.0);
+
+    // Directional light
+    {
+        vec3 L = normalize(-_LightDirection.xyz);
+        vec3 sum = V + L;
+        vec3 H = dot(sum, sum) > 1e-6 ? normalize(sum) : N;
+
+        vec3 lightColor = _LightColorIntensity.rgb * _LightColorIntensity.a;
+        directLighting += PBR_Direct(F0, albedo, N, V, L, H, roughness, metallic, lightColor);
+    }
+
+    // Point lights
+    for (int i = 0; i < _LightCounts.x; i++) {
+        directLighting += calcPointLight(_PointLights[i], F0, albedo, N, V, roughness, metallic, v_worldPosition);
+    }
+
+    // Spot lights
+    for (int i = 0; i < _LightCounts.y; i++) {
+        directLighting += calcSpotLight(_SpotLights[i], F0, albedo, N, V, roughness, metallic, v_worldPosition);
+    }
+
+    vec3 ambientLight = AMBIENT_LIGHT * albedo * ao;
+    vec3 color = emission + ambientLight + directLighting;
 
     color = pow(color, vec3(1.0 / 2.2));
 
