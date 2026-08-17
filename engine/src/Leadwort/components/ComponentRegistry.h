@@ -27,7 +27,12 @@ namespace Leadwort::Components {
 
 		Component* CreateComponent(const std::string& typeName, Core::Entity& entity) {
 			const auto it = m_Factories.find(typeName);
-			LW_ASSERT(it != m_Factories.end(), "Unknown component type: " + typeName);
+
+			if (it == m_Factories.end()) {
+				LW_ERROR("ComponentRegistry: Unknown component type '", typeName, "', skipping. "
+						  "This usually means a component class is missing LW_REFLECT(...).");
+				return nullptr;
+			}
 
 			return it->second(entity);
 		}
@@ -36,7 +41,6 @@ namespace Leadwort::Components {
 		std::unordered_map<std::string, Factory> m_Factories{};
 	};
 
-	// Macro para reducir boilerplate de registro:
 	#define LW_REGISTER_COMPONENT(Type) \
 		namespace { \
 			const bool _reg_##Type = [] {                                                                                      \

@@ -3,7 +3,6 @@
 #include <Leadwort/components/Component.h>
 #include <Leadwort/systems/public/BehaviourSystem.h>
 
-// Forward declarations — Entity is NOT yet complete here.
 namespace Leadwort::Core       { class Entity; }
 namespace Leadwort::Components { class Transform; }
 
@@ -11,7 +10,7 @@ namespace Leadwort::Components::Behaviours {
 
 	class Behaviour : public Component {
 	public:
-		// Declarations only — definitions are in Behaviour.inl,
+		// Declarations only, definitions are in Behaviour.inl,
 		// included at the bottom of Entity.h after Entity is complete.
 		[[nodiscard]] Transform& GetTransform() const;
 
@@ -51,4 +50,4 @@ namespace Leadwort::Components::Behaviours {
 		bool m_IsEnabled = true;
 	};
 
-} // namespace Engine::Components::Behaviours
+}

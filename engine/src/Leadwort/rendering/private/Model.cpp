@@ -58,17 +58,25 @@ namespace Leadwort::Core {
 		const unsigned int numMeshes { node->mNumMeshes };
 
 		for (std::uint32_t i = 0; i < numMeshes; ++i) {
-			auto& mesh { m_Meshes[node->mMeshes[i]] };
+			const uint32_t meshIndexInModel = node->mMeshes[i];
+			auto& mesh { m_Meshes[meshIndexInModel] };
+
+			auto setupRenderer = [&](Components::MeshRenderer* renderer) {
+				renderer->mesh = mesh;
+				renderer->isPrimitive = false;
+				renderer->modelPath = m_FullPath;
+				renderer->meshIndex = static_cast<int>(meshIndexInModel);
+			};
 
 			if (numMeshes == 1) {
 				auto* renderer { entity.AddComponent<Components::MeshRenderer>() };
-				renderer->mesh = mesh;
+				setupRenderer(renderer);
 			}
 			else {
 				const std::string childName { std::string(node->mName.C_Str()) + "_mesh_" + std::to_string(i) };
 				entity.CreateChild(childName, [&](Entity& child) {
-					auto* renderer { child.AddComponent<Components::MeshRenderer>() };
-					renderer->mesh = mesh;
+				   auto* renderer { child.AddComponent<Components::MeshRenderer>() };
+				   setupRenderer(renderer);
 				});
 			}
 		}
@@ -77,13 +85,13 @@ namespace Leadwort::Core {
 			const aiNode* childNode { node->mChildren[i] };
 
 			entity.CreateChild(childNode->mName.C_Str(), [&](Entity& child) {
-				const Mat4 childMatrix { AssimpToMat4(childNode->mTransformation) };
+			   const Mat4 childMatrix { AssimpToMat4(childNode->mTransformation) };
 
-				child.GetTransform().SetLocalPosition(childMatrix.GetTranslation());
-				child.GetTransform().SetLocalRotation(childMatrix.GetRotation());
-				child.GetTransform().SetLocalScale(childMatrix.GetScale());
+			   child.GetTransform().SetLocalPosition(childMatrix.GetTranslation());
+			   child.GetTransform().SetLocalRotation(childMatrix.GetRotation());
+			   child.GetTransform().SetLocalScale(childMatrix.GetScale());
 
-				AttachNodeToEntity(childNode, child);
+			   AttachNodeToEntity(childNode, child);
 			});
 		}
 	}

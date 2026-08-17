@@ -248,13 +248,34 @@ namespace Leadwort::Components {
 	}
 
 	void Transform::Deserialize(const Json& in) {
-		const auto& p { in["position"] };
-		const auto& r { in["rotation"] };
-		const auto& s { in["scale"] };
+		if (in.is_null() || !in.is_object()) {
+			return;
+		}
 
-		m_LocalPosition = Vec3(p[0], p[1], p[2]);
-		m_LocalRotation = Quat(r[0], r[1], r[2], r[3]); // ajustá el orden de componentes según tu ctor de Quat
-		m_LocalScale    = Vec3(s[0], s[1], s[2]);
+		if (in.contains("position") && in["position"].is_array() && in["position"].size() == 3) {
+			SetLocalPosition(Vec3(
+				in["position"][0].get<float>(),
+				in["position"][1].get<float>(),
+				in["position"][2].get<float>()
+			));
+		}
+
+		if (in.contains("rotation") && in["rotation"].is_array() && in["rotation"].size() == 4) {
+			SetLocalRotation(Quat(
+				in["rotation"][0].get<float>(), // x
+				in["rotation"][1].get<float>(), // y
+				in["rotation"][2].get<float>(), // z
+				in["rotation"][3].get<float>()  // w
+			));
+		}
+
+		if (in.contains("scale") && in["scale"].is_array() && in["scale"].size() == 3) {
+			SetLocalScale(Vec3(
+				in["scale"][0].get<float>(),
+				in["scale"][1].get<float>(),
+				in["scale"][2].get<float>()
+			));
+		}
 
 		MarkDirty();
 	}
@@ -298,4 +319,31 @@ namespace Leadwort::Components {
 		LookAt(target.GetWorldPosition(), worldUp);
 	}
 
-} // namespace Engine::Components
+	void Transform::SetParentPreserveLocal(Transform* newParent) {
+		if (newParent == this || (newParent && newParent->IsAncestorOf(*this))) {
+			return;
+		}
+
+		if (m_Parent == newParent) {
+			return;
+		}
+
+		if (m_Parent) {
+			auto& children { m_Parent->m_Children };
+			const auto it { std::ranges::find(children, this) };
+
+			if (it != children.end()) {
+				children.erase(it);
+			}
+		}
+
+		m_Parent = newParent;
+
+		if (m_Parent) {
+			m_Parent->m_Children.push_back(this);
+		}
+
+		MarkDirty();
+	}
+
+	} // namespace Engine::Components

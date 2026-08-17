@@ -1,18 +1,17 @@
 #pragma once
 
-#include "Logger.h"
+#include <Leadwort/utils/public/Logger.h>
 
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <vector>
 
-namespace Leadwort::Utils {
-
+namespace Leadwort::Events {
 	// Opaque handle returned by Subscribe. Pass it to Unsubscribe for exact removal.
 	struct Token {
-	    uint64_t id { 0 };
-	    bool IsValid() const noexcept { return id != 0; }
+		uint64_t id { 0 };
+		bool IsValid() const noexcept { return id != 0; }
 	};
 
 	template <typename... Args>

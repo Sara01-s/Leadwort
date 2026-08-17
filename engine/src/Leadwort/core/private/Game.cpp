@@ -35,7 +35,7 @@ namespace Leadwort::Core {
 	    Input::Init(Window::Get().GetHandle());
 
 	    RenderSystem::Get().Initialize();
-	    SceneSystem::Get().LoadEmptyScene();
+	    SceneSystem::Get().LoadDefaultScene();
 	    SceneSystem::Get().LoadPendingScene();
 
 		const int windowWidth = Window::Get().GetWidth();
@@ -149,14 +149,14 @@ namespace Leadwort::Core {
 		}
 	}
 
-	void Game::SetHighlightedEntity(const EntityID entityID) {
+void Game::SetHighlightedEntity(const EntityID entityID) {
 		if (entityID == Entity::ROOT_ENTITY_ID) {
 			return;
 		}
 
 		auto const& entity { SceneSystem::Get().GetCurrentScene()->GetEntity(entityID) };
 
-		if (!entity->HasComponent<Components::MeshRenderer>()) {
+		if (!entity || !entity->HasComponent<Components::MeshRenderer>()) {
 			return;
 		}
 

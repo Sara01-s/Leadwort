@@ -8,25 +8,27 @@
 
 namespace Leadwort::Core {
 
-	class Scene : public Serialization::ISerializable {
+	class IScene : public Serialization::ISerializable {
 	public:
-		Scene();
-		~Scene() override;
+		IScene();
+		~IScene() override;
 
-		Scene& operator=(const Scene&) = delete;
+		IScene& operator=(const IScene&) = delete;
 
 		virtual void Create() = 0;
 
-		[[nodiscard]] std::size_t GetEntityCount() const { return m_EntityMap.size(); }
-		[[nodiscard]] Entity* GetRootEntity() const { return m_RootEntity.get(); }
+		[[nodiscard]] std::size_t GetEntityCount() const noexcept { return m_EntityMap.size(); }
+		[[nodiscard]] Entity* GetRootEntity() const noexcept { return m_RootEntity.get(); }
 		[[nodiscard]] Entity* GetEntity(EntityID entityID) const;
 
-		[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntityMap() const { return m_EntityMap; }
-		[[nodiscard]] const std::unordered_map<std::string, Entity*>& GetNamedRefs() const { return m_NamedRefs; }
+		[[nodiscard]] const std::unordered_map<int, Unique<Entity>>& GetEntityMap() const noexcept { return m_EntityMap; }
+		[[nodiscard]] const std::unordered_map<std::string, Entity*>& GetNamedRefs() const noexcept { return m_NamedRefs; }
 
 		Entity* CreateEntity(const std::string& name = Entity::DEFAULT_NAME);
 
-		static int GenerateNextEntityID();
+		[[nodiscard]] int GenerateNextEntityID() noexcept;
+
+		void InitComponents() const noexcept;
 
 	public:
 		void Serialize(Json& out) const override;
@@ -40,11 +42,10 @@ namespace Leadwort::Core {
 		);
 
 	private:
-		static int s_IdSequence;
-
-		static void ResetSequence();
+		void ResetSequence();
 
 	private:
+		int m_IdSequence { 0 };
 		Unique<Entity> m_RootEntity { nullptr };
 		std::unordered_map<int, Unique<Entity>>  m_EntityMap{};
 		std::unordered_map<std::string, Entity*> m_NamedRefs{};

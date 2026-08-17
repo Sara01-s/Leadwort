@@ -20,7 +20,13 @@ add_custom_command(TARGET Leadwort
         "$<TARGET_FILE_DIR:Leadwort>/engine-assets"
 )
 
-if(WIN32)
+if (WIN32)
+    target_sources(Leadwort PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
+
+    set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc"
+            PROPERTY COMPILE_DEFINITIONS ""
+            PROPERTY INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+
     add_custom_command(TARGET Leadwort
             POST_BUILD
             COMMAND if not exist "$<TARGET_FILE_DIR:Leadwort>/engine-assets"
@@ -35,6 +41,7 @@ else()
     )
 endif()
 
-if(MINGW)
+if (MINGW)
     target_link_options(Leadwort PRIVATE -static-libgcc -static-libstdc++)
 endif()
+

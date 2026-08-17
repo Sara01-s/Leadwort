@@ -2,7 +2,7 @@
 #include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/core/math/public/Frustum.h>
 #include <Leadwort/core/public/Entity.h>
-#include <Leadwort/core/public/Scene.h>
+#include <Leadwort/core/public/IScene.h>
 #include <Leadwort/rendering/public/CoordinateSystem.h>
 #include <Leadwort/rendering/public/SceneCollector.h>
 
@@ -10,7 +10,7 @@
 
 namespace Leadwort::Rendering {
 
-	void SceneCollector::FindRenderersInScene(const Core::Scene& scene) {
+	void SceneCollector::FindRenderersInScene(const Core::IScene& scene) {
 		m_Renderers.clear();
 
 		for (const auto& entity : scene.GetEntityMap() | std::views::values) {

@@ -10,6 +10,11 @@ namespace Leadwort::Components::Behaviours {
 	class FirstPersonController final : public Behaviour {
 		using Input = Systems::Input;
 	public:
+		LW_REFLECT(FirstPersonController,
+			LW_FIELD(Float, moveSpeed, "Move Speed"),
+			LW_FIELD(Float, lookSensitivity, "Sensitivity")
+		)
+
 	    float moveSpeed       { 20.0f };
 	    float lookSensitivity { 0.15f };
 
@@ -67,5 +72,7 @@ namespace Leadwort::Components::Behaviours {
 	private:
 	    Quat m_Rotation = Quat::Identity();
 	};
+
+	LW_REGISTER_COMPONENT(FirstPersonController)
 
 } // namespace Engine::Components::Behaviours

@@ -1,13 +1,13 @@
 // SceneSerializer.h
 #pragma once
-#include <Leadwort/core/public/Scene.h>
+#include <Leadwort/core/public/IScene.h>
 #include <filesystem>
 
 namespace Leadwort::Serialization {
 
 	class SceneSerializer {
 	public:
-		static bool SaveToFile(const Core::Scene& scene, const std::filesystem::path& path) {
+		static bool SaveToFile(const Core::IScene& scene, const std::filesystem::path& path) {
 			Json out{};
 			scene.Serialize(out);
 
@@ -24,7 +24,7 @@ namespace Leadwort::Serialization {
 			return true;
 		}
 
-		static bool LoadFromFile(Core::Scene& scene, const std::filesystem::path& path) {
+		static bool LoadFromFile(Core::IScene& scene, const std::filesystem::path& path) {
 			if (!std::filesystem::exists(path)) {
 				LW_ERROR("SceneSerializer: File does not exist: ", path.string());
 				return false;

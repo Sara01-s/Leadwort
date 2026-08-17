@@ -26,11 +26,12 @@ void RenderSystem::Initialize() {
 
     SetClearColor(Color::Gray20());
 
-    SceneSystem::Get().OnSceneLoaded.Subscribe(
-        [this](const Scene* scene) {
-            m_SceneCollector.FindRenderersInScene(*scene);
-        }, this
-    );
+	m_OnSceneLoadedToken = SceneSystem::Get().OnSceneLoaded.Subscribe(
+		[this](const IScene* scene) {
+			m_SceneCollector.FindRenderersInScene(*scene);
+			m_HighlightedEntity = nullptr;
+		}
+	);
 
     m_CameraUBO.Initialize();
 	m_LightingUBO.Initialize();
@@ -64,6 +65,10 @@ void RenderSystem::ClearScreen() {
 
 void RenderSystem::SetClearColor(const Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
+}
+
+void RenderSystem::Clear() const noexcept {
+	SceneSystem::Get().OnSceneLoaded.Unsubscribe(m_OnSceneLoadedToken);
 }
 
 } // namespace Engine::Systems

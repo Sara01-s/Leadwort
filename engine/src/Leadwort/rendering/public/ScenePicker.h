@@ -3,7 +3,7 @@
 #include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/core/math/public/Ray.h>
 #include <Leadwort/core/public/Entity.h>
-#include <Leadwort/core/public/Scene.h>
+#include <Leadwort/core/public/IScene.h>
 #include <Leadwort/rendering/public/CoordinateSystem.h>
 
 #include <limits>
@@ -13,7 +13,7 @@ namespace Leadwort::Rendering {
 
 	class ScenePicker {
 	public:
-		[[nodiscard]] static EntityID Pick(const Ray& ray, const Core::Scene& scene) {
+		[[nodiscard]] static EntityID Pick(const Ray& ray, const Core::IScene& scene) {
 			EntityID closestEntity { Core::Entity::ROOT_ENTITY_ID };
 			float closestT { std::numeric_limits<float>::max() };
 

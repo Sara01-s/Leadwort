@@ -4,6 +4,7 @@
 #include "../../core/public/Layers.h"
 #include "../../rendering/public/Skybox.h"
 #include "../Component.h"
+#include "Leadwort/components/ComponentRegistry.h"
 #include "Leadwort/core/math/public/Ray.h"
 
 #include <memory>
@@ -47,5 +48,7 @@ namespace Leadwort::Components {
 		// Camera.cpp
 		std::vector<Utils::GizmoShapes::DebugLine> GetGizmoLines() const noexcept override;
 	};
+
+	LW_REGISTER_COMPONENT(Camera)
 
 } // namespace Engine::Components

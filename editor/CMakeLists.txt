@@ -5,6 +5,7 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(imguizmo REQUIRED)
+find_package(nfd CONFIG REQUIRED)
 
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "src/*.h" "src/*.hpp")
@@ -22,6 +23,7 @@ target_link_libraries(LeadwortEditorLib
         PUBLIC
             imgui::imgui
             imguizmo::imguizmo
+            nfd::nfd
 
         PRIVATE
             LeadwortEngineLib

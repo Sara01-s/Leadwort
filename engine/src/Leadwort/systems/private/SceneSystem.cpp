@@ -1,18 +1,20 @@
-#include <Leadwort/systems/public/SceneSystem.h>
-#include <Leadwort/scenes/EmptyScene.h>
+#include <Leadwort/scenes/DefaultScene.h>
 #include <Leadwort/systems/public/BehaviourSystem.h>
 #include <Leadwort/systems/public/CameraSystem.h>
 #include <Leadwort/systems/public/Input.h>
 #include <Leadwort/systems/public/RenderSystem.h>
+#include <Leadwort/systems/public/SceneSystem.h>
 
 namespace Leadwort::Systems {
 
-void SceneSystem::LoadScene(Unique<Core::Scene> scene) {
+void SceneSystem::LoadScene(Unique<Core::IScene> scene) {
 	m_PendingScene = std::move(scene);
+	m_PendingSceneNeedsCreate = false;
 }
 
-void SceneSystem::LoadEmptyScene() {
-	LoadScene(CreateUnique<Scenes::EmptyScene>());
+void SceneSystem::LoadDefaultScene() {
+	m_PendingScene = CreateUnique<Scenes::DefaultScene>();
+	m_PendingSceneNeedsCreate = true;
 }
 
 void SceneSystem::LoadPendingScene() {
@@ -25,7 +27,13 @@ void SceneSystem::LoadPendingScene() {
 	Input::Clear();
 
 	m_CurrentScene = std::move(m_PendingScene);
-	m_CurrentScene->Create();
+
+	if (m_PendingSceneNeedsCreate) {
+		m_CurrentScene->Create();
+	}
+	else {
+		m_CurrentScene->InitComponents();
+	}
 
 	OnSceneLoaded.Execute(m_CurrentScene.get());
 }

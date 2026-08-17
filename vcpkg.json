@@ -9,6 +9,7 @@
     "glm",
     "gtest",
     "nlohmann-json",
+    "nativefiledialog-extended",
     {
       "name": "imgui",
       "default-features": false,

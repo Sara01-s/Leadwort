@@ -1,9 +1,10 @@
 #pragma once
 
-#include <filesystem>
-#include <variant>
 #include "imgui.h"
 #include "ImGuizmo.h"
+#include "Leadwort/scenes/DefaultScene.h"
+#include <filesystem>
+#include <variant>
 
 namespace Leadwort::AssetManagement {
 	enum class AssetType;
@@ -39,9 +40,10 @@ namespace Editor {
 			EmbeddedMaterialSelection
 		> Selection{};
 
-		Leadwort::Core::Scene* OpenedScene{};
+		Leadwort::Core::IScene* OpenedScene{};
+		std::filesystem::path OpenedScenePath{};
 		std::vector<std::string> LogHistory{};
-		Leadwort::Utils::Event<const std::string&> LogCallback{};
+		Leadwort::Events::Event<const std::string&> LogCallback{};
 
 		ImGuizmo::OPERATION GizmoOperation { ImGuizmo::TRANSLATE };
 		ImGuizmo::MODE GizmoMode { ImGuizmo::LOCAL };
@@ -67,8 +69,14 @@ namespace Editor {
 			Selection = std::monostate{};
 		}
 
-		[[nodiscard]] bool HasSelection() const noexcept {
+		[[nodiscard]]
+		bool HasSelection() const noexcept {
 			return !std::holds_alternative<std::monostate>(Selection);
+		}
+
+		[[nodiscard]]
+		bool HasOpenedScene() const noexcept {
+			return OpenedScene != nullptr;
 		}
 	};
 

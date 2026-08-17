@@ -1,7 +1,7 @@
 #include "../public/Entity.h"
 
-#include <Leadwort/core/public/Scene.h>
 #include <Leadwort/components/public/Transform.h>
+#include <Leadwort/core/public/IScene.h>
 
 #include <ranges>
 
@@ -35,46 +35,78 @@ namespace Leadwort::Core {
 	}
 
 	void Entity::Serialize(Json& out) const {
-		out["id"] = m_ID;
-		out["name"] = name;
-		out["tag"] = tag;
-		out["layerMask"] = layerMask;
+	    out["id"] = m_ID;
+	    out["name"] = name;
+	    out["tag"] = tag;
+	    out["layerMask"] = layerMask;
 
-		if (const Components::Transform* parentTransform = GetTransform().GetParent()) {
-			out["parentId"] = parentTransform->GetEntity().GetID();
-		}
+	    if (const Components::Transform* parentTransform = GetTransform().GetParent()) {
+	       out["parentId"] = parentTransform->GetEntity().GetID();
+	    }
 
-		out["components"] = Json::array();
-		for (const auto& component : m_Components | std::views::values) {
-			Json componentJson{};
-			componentJson["type"] = component->GetTypeName();
+	    out["components"] = Json::array();
 
-			Json fieldsJson{};
-			component->Serialize(fieldsJson);
-			componentJson["fields"] = fieldsJson;
+	    {
+	       Json transformJson{};
+	       transformJson["type"] = "Transform";
 
-			out["components"].push_back(componentJson);
-		}
+	       Json fieldsJson{};
+	       GetTransform().Serialize(fieldsJson);
+	       transformJson["fields"] = fieldsJson;
+
+	       out["components"].push_back(transformJson);
+	    }
+
+	    for (const auto& component : m_Components | std::views::values) {
+	       if (component->GetTypeName() == "Transform") {
+	          continue;
+	       }
+
+	       Json componentJson{};
+	       componentJson["type"] = component->GetTypeName();
+
+	       Json fieldsJson{};
+	       component->Serialize(fieldsJson);
+	       componentJson["fields"] = fieldsJson;
+
+	       out["components"].push_back(componentJson);
+	    }
 	}
 
 	void Entity::Deserialize(const Json& in) {
-		name = in.value("name", DEFAULT_NAME);
-		tag  = in.value("tag", Tags::DEFAULT);
-		layerMask = in.value("layerMask", Utils::Layers::EVERYTHING);
+	    if (in.is_null() || !in.is_object()) {
+	       return;
+	    }
 
-		for (const auto& compJson : in["components"]) {
-			const std::string typeName = compJson["type"];
+	    name = in.value("name", DEFAULT_NAME);
+	    tag  = in.value("tag", Tags::DEFAULT);
+	    layerMask = in.value("layerMask", Utils::Layers::EVERYTHING);
 
-			Components::Component* comp{};
-			if (typeName == "Transform") {
-				comp = &GetTransform();
-			}
-			else {
-				comp = Components::ComponentRegistry::Get().CreateComponent(typeName, *this);
-			}
+	    if (in.contains("components") && in["components"].is_array()) {
+	       for (const auto& compJson : in["components"]) {
+	          if (compJson.is_null() || !compJson.contains("type")) {
+	             continue;
+	          }
 
-			comp->Deserialize(compJson["fields"]);
-		}
+	          const std::string typeName { compJson["type"] };
+
+	          Components::Component* component{};
+	          if (typeName == "Transform") {
+	             component = &GetTransform();
+	          }
+	          else {
+	             component = Components::ComponentRegistry::Get().CreateComponent(typeName, *this);
+	          }
+
+	          if (!component) {
+	             continue;
+	          }
+
+	          if (compJson.contains("fields") && !compJson["fields"].is_null()) {
+	             component->Deserialize(compJson["fields"]);
+	          }
+	       }
+	    }
 	}
 
 } // namespace Leadwort::Core

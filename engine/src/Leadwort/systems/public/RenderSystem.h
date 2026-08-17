@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../events/public/Event.h"
 #include "Leadwort/rendering/public/rendergraph/RenderGraph.h"
 
 #include <Leadwort/components/public/Camera.h>
@@ -24,6 +25,7 @@ public:
 
 	static void ClearScreen();
     static void SetClearColor(Color color);
+	void Clear() const noexcept;
 
 private:
 	RenderSystem() = default;
@@ -37,6 +39,8 @@ private:
 	Rendering::RG::RenderGraph m_SceneRenderGraph{};
 
 	Core::Entity* m_HighlightedEntity { nullptr };
+
+	Events::Token m_OnSceneLoadedToken{};
 };
 
 } // namespace Engine::Systems

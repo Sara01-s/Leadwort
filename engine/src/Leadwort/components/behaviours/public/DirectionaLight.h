@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Leadwort/components/ComponentRegistry.h"
+
 #include <Leadwort/components/behaviours/public/Behaviour.h>
-#include <Leadwort/systems/public/LightingSystem.h>
 #include <Leadwort/core/math/public/Color.h>
+#include <Leadwort/systems/public/LightingSystem.h>
 
 namespace Leadwort::Components::Behaviours {
 
@@ -26,4 +28,5 @@ namespace Leadwort::Components::Behaviours {
 		}
 	};
 
-} // namespace Engine::Components::Behaviours
+	LW_REGISTER_COMPONENT(DirectionalLight)
+}

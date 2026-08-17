@@ -5,11 +5,11 @@
 #include <Leadwort/components/behaviours/public/FirstPersonController.h>
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/components/public/MeshRenderer.h>
-#include <Leadwort/core/public/Scene.h>
+#include <Leadwort/core/public/IScene.h>
 
 namespace Leadwort::Scenes {
 
-	class EmptyScene final : public Core::Scene {
+	class DefaultScene final : public Core::IScene {
 	public:
 	    void Create() override {
 	        // Default Cube

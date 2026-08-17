@@ -64,6 +64,7 @@ namespace Leadwort::Components {
 		void Rotate(const Vec3& euler);
 		void LookAt(const Vec3& targetPosition, const Vec3& worldUp = Vec3::Up());
 		void LookAt(const Transform& target, const Vec3& worldUp = Vec3::Up());
+		void SetParentPreserveLocal(Transform* newParent);
 
 		void Serialize(Json& out) const final override;
 		void Deserialize(const Json& in) final override;

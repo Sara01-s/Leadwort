@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../utils/public/Event.h"
+#include "../../events/public/Event.h"
 #include "../../utils/public/Singleton.h"
 #include "../math/public/Vec2.h"
 
@@ -14,7 +14,7 @@ namespace Leadwort::Core {
 		friend class Singleton;
 
 	public:
-		Utils::VoidEvent OnWindowResized{};
+		Events::VoidEvent OnWindowResized{};
 
 		Window() = default;
 		Window(const Window&) = delete;

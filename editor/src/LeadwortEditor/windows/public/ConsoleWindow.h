@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Leadwort/utils/public/Event.h"
+#include "../../../../../engine/src/Leadwort/events/public/Event.h"
 #include "LeadwortEditor/data/EditorContext.h"
 #include "imgui.h"
 
@@ -117,7 +117,7 @@ namespace Editor::Windows {
 
 	private:
 		EditorContext& m_EditorContext;
-		Leadwort::Utils::Token m_LogToken{};
+		Leadwort::Events::Token m_LogToken{};
 		std::vector<std::string> m_LogBuffer{};
 		bool m_ScrollToBottom { false };
 	};

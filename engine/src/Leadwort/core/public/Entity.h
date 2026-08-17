@@ -17,7 +17,7 @@ namespace Leadwort::Components {
 	class Transform;
 }
 
-namespace Leadwort::Core { class Scene; }
+namespace Leadwort::Core { class IScene; }
 
 namespace Leadwort::Core {
 
@@ -29,7 +29,7 @@ namespace Leadwort::Core {
 	    std::string name { DEFAULT_NAME };
 	    uint32_t layerMask { Utils::Layers::EVERYTHING };
 	    std::string tag { Tags::DEFAULT };
-		Scene* scene { nullptr };
+		IScene* scene { nullptr };
 
 	public:
 	    explicit Entity(EntityID id, std::string name = DEFAULT_NAME);

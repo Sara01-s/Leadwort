@@ -36,6 +36,7 @@ namespace Leadwort::Core {
 		glfwWindowHint(GLFW_SAMPLES, 4);
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 		glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
 		m_Handle = glfwCreateWindow(m_Width, m_Height, m_Title.data(), nullptr, nullptr);
 		if (!m_Handle) {

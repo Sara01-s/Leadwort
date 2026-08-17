@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ImGuiTheme.h"
-#include "Leadwort/systems/public/Input.h"
 
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 
@@ -12,9 +11,11 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
+#include <nfd.hpp>
+
 #include <string>
 
-namespace Editor::Core  {
+namespace Editor::Core {
 
 	class EditorCore {
 	public:
@@ -35,6 +36,8 @@ namespace Editor::Core  {
 			const auto window { reinterpret_cast<GLFWwindow*>(windowHandle) };
 	        ImGui_ImplGlfw_InitForOpenGL(window, true);
 	        ImGui_ImplOpenGL3_Init("#version 430");
+
+			NFD_Init();
 	    }
 
 		static void StartFrame() {
@@ -95,6 +98,8 @@ namespace Editor::Core  {
 	    }
 
 	    ~EditorCore() {
+			NFD_Quit();
+
 	        ImGui_ImplOpenGL3_Shutdown();
 	        ImGui_ImplGlfw_Shutdown();
 	        ImGui::DestroyContext();

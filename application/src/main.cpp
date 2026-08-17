@@ -10,6 +10,7 @@
 #include "LeadwortEditor/windows/public/HierarchyWindow.h"
 #include "LeadwortEditor/windows/public/InspectorWindow.h"
 #include "LeadwortEditor/windows/public/SceneTools.h"
+#include "LeadwortEditor/windows/public/ToolsWindow.h"
 
 #include <LeadwortEditor/core/public/EditorCore.h>
 #include <LeadwortEditor/core/public/EditorWindowsContainer.h>
@@ -70,7 +71,8 @@ int main() {
 		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::InspectorWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::AssetsWindow>(editorContext),
-		Leadwort::CreateUnique<Windows::SceneTools>(editorContext)
+		Leadwort::CreateUnique<Windows::SceneTools>(editorContext),
+		Leadwort::CreateUnique<Core::ToolsWindow>(editorContext)
 	);
 
 	game.Loop(
@@ -81,6 +83,8 @@ int main() {
 		[&] {
 			Core::EditorCore::StartFrame();
 			Core::EditorCore::SetupDockSpace();
+
+			editorContext.OpenedScene = Leadwort::Systems::SceneSystem::Get().GetCurrentScene();
 
 			if (const auto* selectedID { std::get_if<Leadwort::EntityID>(&editorContext.Selection)}) {
 				game.SetHighlightedEntity(*selectedID);

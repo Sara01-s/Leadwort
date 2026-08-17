@@ -4,14 +4,14 @@
 
 #include <vector>
 
-namespace Leadwort::Core       { class Scene; }
+namespace Leadwort::Core       { class IScene; }
 namespace Leadwort::Components { class Camera; class IRenderer; }
 
 namespace Leadwort::Rendering {
 
 	class SceneCollector {
 	public:
-		void FindRenderersInScene(const Core::Scene& scene);
+		void FindRenderersInScene(const Core::IScene& scene);
 		[[nodiscard]] RenderQueues BuildRenderQueues(const Components::Camera& camera) const;
 
 	private:

@@ -60,9 +60,5 @@ target_link_libraries(LeadwortEngineLib
 
 target_precompile_headers(LeadwortEngineLib PRIVATE pch.h)
 
-if(WIN32)
-    target_sources(LeadwortEngineLib PRIVATE resources.rc)
-endif()
-
 enable_testing()
 add_subdirectory(tests)
