@@ -31,6 +31,7 @@ namespace Leadwort::Core {
 		Unique<Rendering::RG::RenderTexture> m_PostProcessTex{};
 		Unique<Rendering::RG::RenderTexture> m_SceneColorTex{};
 		Unique<Rendering::RG::RenderTexture> m_SceneDepthTex{};
+		Unique<Rendering::RG::RenderTexture> m_ShadowMap{};
 
 		Rendering::RG::RenderGraph m_GameRenderGraph{};
 		Rendering::RG::RenderGraph m_SceneRenderGraph{};

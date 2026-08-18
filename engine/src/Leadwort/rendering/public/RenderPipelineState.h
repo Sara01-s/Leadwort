@@ -139,6 +139,18 @@ namespace Leadwort::Rendering {
 	        };
 	    }
 
+		static constexpr RenderPipelineState ShadowDepth() {
+	    	return RenderPipelineState {
+	    		.depthTest   = true,
+				.depthWrite  = true,
+				.multisample = false,
+				.depthFunc   = DepthFunc::Less,
+				.cullMode    = CullMode::Front,
+				.blendMode   = BlendMode::Disabled,
+				.colorWrite  = false,
+			};
+	    }
+
 	    bool operator==(const RenderPipelineState& other) const = default;
 	};
 

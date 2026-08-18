@@ -4,9 +4,10 @@
 #include "Leadwort/rendering/public/rendergraph/passes/BackgroundPass.h"
 #include "Leadwort/rendering/public/rendergraph/passes/GridPass.h"
 #include "Leadwort/rendering/public/rendergraph/passes/OpaquePass.h"
-#include "Leadwort/rendering/public/rendergraph/passes/TransparentPass.h"
-#include "Leadwort/rendering/public/rendergraph/passes/PostProcessPass.h"
 #include "Leadwort/rendering/public/rendergraph/passes/OutlinePass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/PostProcessPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/ShadowMapPass.h"
+#include "Leadwort/rendering/public/rendergraph/passes/TransparentPass.h"
 #include "Leadwort/serialization/SceneSerializer.h"
 #include "Leadwort/systems/public/ShaderWatcher.h"
 
@@ -46,6 +47,7 @@ namespace Leadwort::Core {
 		m_PostProcessTex = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
 		m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8);
 		m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
+		m_ShadowMap		 = CreateUnique<RenderTexture>(2048, 2048, RenderTexture::Format::ShadowDepth32F);
 
 		BuildRenderGraphs();
 	}
@@ -58,16 +60,19 @@ namespace Leadwort::Core {
 		RenderTexture& postColor { *m_PostProcessTex };
 		RenderTexture& sceneColor { *m_SceneColorTex };
 		RenderTexture& sceneDepth { *m_SceneDepthTex };
+		RenderTexture& shadowMap { *m_ShadowMap };
 
 		m_GameRenderGraph.AddPass<BackgroundPass>(gameColor, gameDepth);
-		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<ShadowMapPass>(shadowMap);
+		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth, shadowMap);
 		m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
 		m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
 		m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor, gameDepth);
 		m_GameRenderGraph.Compile();
 
 		m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);
-		m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<ShadowMapPass>(shadowMap);
+		m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth, shadowMap);
 		m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth);
 		m_SceneRenderGraph.AddPass<GridPass>(sceneColor, sceneDepth);
 		m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth);

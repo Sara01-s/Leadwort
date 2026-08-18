@@ -42,7 +42,7 @@ namespace Leadwort::Core {
 	    }
 
 		for (unsigned int i = 0; i < m_AiScene->mNumMeshes; i++) {
-			m_Meshes.push_back(ParseMesh(m_AiScene->mMeshes[i], m_AiScene, m_ResourceBaseDir));
+			m_Meshes.push_back(ParseMesh(m_AiScene->mMeshes[i], m_AiScene, i));
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace Leadwort::Core {
 	// Mesh parsing
 	// ---------------------------------------------------------------------------
 
-	Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, const std::string& path) const {
+	Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, unsigned int meshIndex) const {
 	    LW_ASSERT(mesh != nullptr, "Model::ParseMesh: aiMesh is null.");
 	    LW_ASSERT(scene != nullptr, "Model::ParseMesh: aiScene is null.");
 		LW_ASSERT(mesh->mMaterialIndex < scene->mNumMaterials, "Model::ParseMesh: Material index out of range.");
@@ -114,7 +114,7 @@ namespace Leadwort::Core {
 	    const bool hasTexCoords { mesh->mTextureCoords[0] != nullptr };
 	    const bool hasTangents  { mesh->HasTangentsAndBitangents() };
 
-		const unsigned int meshIndex { mesh->mMaterialIndex };
+		const unsigned int materialIndex { mesh->mMaterialIndex };
 
 	    VertexLayout layout{};
 	    layout.Append(ElementType::Position3D);
@@ -164,7 +164,7 @@ namespace Leadwort::Core {
 	        }
 	    }
 
-	    const MaterialFeatures features { ParseMaterialFeatures(scene->mMaterials[meshIndex]) };
+	    const MaterialFeatures features { ParseMaterialFeatures(scene->mMaterials[materialIndex]) };
 
 		std::set<std::string> defines{};
 
@@ -190,7 +190,7 @@ namespace Leadwort::Core {
 		const Shared<Shader> shader { EngineAssets::GetShader("shaders/shd_lit.glsl", defines) };
 		const Shared<Material> material { EngineAssets::GetOrCreateMaterial(meshKey, shader) };
 
-		material->SetName(scene->mMaterials[meshIndex]->GetName().C_Str());
+		material->SetName(scene->mMaterials[materialIndex]->GetName().C_Str());
 
 	    material->SetColor4("_Color", features.color);
 	    material->SetFloat("_SpecularIntensity", features.specularIntensity);
@@ -198,7 +198,7 @@ namespace Leadwort::Core {
 		material->SetFloat("_RoughnessIntensity", features.roughnessIntensity);
 		material->SetFloat("_MetallicIntensity", features.metallicIntensity);
 
-	    BindTextures(*material, scene->mMaterials[meshIndex], features);
+	    BindTextures(*material, scene->mMaterials[materialIndex], features);
 
 		auto resultMesh { EngineAssets::GetMesh(MeshData {
 			std::string(mesh->mName.C_Str()),

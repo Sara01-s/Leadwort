@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Leadwort/core/math/public/Mat4.h"
 #include "Leadwort/core/math/public/Vec2.h"
 #include "Leadwort/core/math/public/Vec4.h"
 
@@ -10,46 +11,47 @@ namespace Leadwort::Components::Behaviours { class Light; }
 
 namespace Leadwort::Rendering {
 
-static constexpr int MAX_POINT_LIGHTS { 8 };
-static constexpr int MAX_SPOT_LIGHTS { 8 };
-// (+1) because that accounts for 1 directional light
-static constexpr int MAX_LIGHTS { MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS + 1 };
+	static constexpr int MAX_POINT_LIGHTS { 8 };
+	static constexpr int MAX_SPOT_LIGHTS { 8 };
+	// (+1) because that accounts for 1 directional light
+	static constexpr int MAX_LIGHTS { MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS + 1 };
 
-struct alignas(16) PointLightGPU {
-	Vec4 Position;
-	Vec4 Color;       // rgb = color, a = intensity
-	Vec4 Attenuation; // xyz = attenuation
-};
+	struct alignas(16) PointLightGPU {
+		Vec4 Position;
+		Vec4 Color;       // rgb = color, a = intensity
+		Vec4 Attenuation; // xyz = attenuation
+	};
 
-struct alignas(16) SpotLightGPU {
-	Vec4 Position;
-	Vec4 Direction;
-	Vec4 Color;       // rgb = color, a = intensity
-	Vec4 Attenuation;
-	Vec4 Cutoffs;     // x = cos(inner), y = cos(outer)
-};
+	struct alignas(16) SpotLightGPU {
+		Vec4 Position;
+		Vec4 Direction;
+		Vec4 Color;       // rgb = color, a = intensity
+		Vec4 Attenuation;
+		Vec4 Cutoffs;     // x = cos(inner), y = cos(outer)
+	};
 
-// Must match shd_lighting.glsl LightingData declaration
-struct alignas(16) LightingDataGPU {
-	Vec4 Direction{};
-	Vec4 ColorIntensity{};
-	std::array<PointLightGPU, MAX_POINT_LIGHTS> PointLights;
-	std::array<SpotLightGPU, MAX_SPOT_LIGHTS> SpotLights;
-	alignas(16) int LightCounts[4]{}; // x = numPointLights, y = numSpotLights (INTEGERS)
-};
+	// Must match shd_lighting.glsl LightingData declaration exactly, field order included.
+	struct alignas(16) LightingDataGPU {
+		Vec4 Direction{};
+		Vec4 ColorIntensity{};
+		std::array<PointLightGPU, MAX_POINT_LIGHTS> PointLights;
+		std::array<SpotLightGPU, MAX_SPOT_LIGHTS> SpotLights;
+		Mat4 LightSpaceMatrix{};
+		alignas(16) int LightCounts[4]{}; // x = numPointLights, y = numSpotLights (INTEGERS)
+	};
 
-static constexpr GLuint LIGHTING_UBO_BINDING { 1 };
-static constexpr GLuint LIGHTING_UBO_SIZE_BYTES { sizeof(LightingDataGPU) };
+	static constexpr GLuint LIGHTING_UBO_BINDING { 1 };
+	static constexpr GLuint LIGHTING_UBO_SIZE_BYTES { sizeof(LightingDataGPU) };
 
-class LightingUBO {
-public:
-	void Initialize();
-	void Update(const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights) const;
+	class LightingUBO {
+	public:
+		void Initialize();
+		void Update(const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights, const Mat4& lightSpaceMatrix) const;
 
-	~LightingUBO();
+		~LightingUBO();
 
-private:
-	GLuint m_UBO { 0 };
-};
+	private:
+		GLuint m_UBO { 0 };
+	};
 
 }

@@ -43,7 +43,12 @@ namespace Leadwort::Rendering::RG {
 	    // Depth / stencil attachment
 		if (const auto* depthPtr { depth.value_or(nullptr) }) {
 			LW_ASSERT(depthPtr->IsDepth(), "Framebuffer: non-depth texture passed as depth attachment.");
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthPtr->GetGpuID(), 0);
+
+			const GLenum attachmentPoint = depthPtr->HasStencil()
+				? GL_DEPTH_STENCIL_ATTACHMENT
+				: GL_DEPTH_ATTACHMENT;
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentPoint, GL_TEXTURE_2D, depthPtr->GetGpuID(), 0);
 		}
 
 	    LW_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer: incomplete framebuffer object.");

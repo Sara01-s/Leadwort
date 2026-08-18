@@ -1,5 +1,7 @@
 #include "../public/Shader.h"
 
+#include "Leadwort/rendering/public/rendergraph/GlobalTextureSlots.h"
+
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/math/public/Mat4.h>
 #include <Leadwort/core/math/public/Vec4.h>
@@ -33,7 +35,7 @@ namespace Leadwort::Rendering::Bindables {
 
 		Systems::ShaderWatcher::Get().UnregisterShader(this);
 	}
-
+ 
 	void Shader::Bind() const noexcept {
 		LW_ASSERT(m_GpuID != 0, "Shader: Cannot bind, GPU ID is 0.");
 		glUseProgram(m_GpuID);
@@ -371,9 +373,8 @@ namespace Leadwort::Rendering::Bindables {
 		}
 	}
 
-	void Shader::ExtractSamplers() {
-		int uniformCount = 0;
-
+void Shader::ExtractSamplers() {
+		int uniformCount { 0 };
 		glGetProgramiv(m_GpuID, GL_ACTIVE_UNIFORMS, &uniformCount);
 
 		for (int i = 0; i < uniformCount; i++) {
@@ -384,7 +385,14 @@ namespace Leadwort::Rendering::Bindables {
 
 			if (type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE || type == GL_SAMPLER_2D_SHADOW || type == GL_SAMPLER_3D) {
 				const int location = glGetUniformLocation(m_GpuID, name);
-				m_Samplers[name] = SamplerInfo { type, location };
+				const int reservedSlot = GlobalTextureSlots::GetReservedSlotForGlobalSampler(name);
+
+				m_Samplers[name] = SamplerInfo { type, location, reservedSlot };
+
+				if (reservedSlot >= 0) {
+					glUseProgram(m_GpuID);
+					glUniform1i(location, reservedSlot);
+				}
 			}
 		}
 	}

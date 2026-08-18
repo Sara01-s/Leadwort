@@ -13,21 +13,32 @@ namespace Leadwort::Rendering::RG {
 	}
 
 	void RenderTexture::Setup() {
-	    GLint  internal_format{};
+	    GLint  internalFormat{};
 	    GLenum format{};
 	    GLenum type{};
-	    GetGLFormats(m_Format, internal_format, format, type);
+	    GetGLFormats(m_Format, internalFormat, format, type);
 
 	    glGenTextures(1, &m_TextureGpuID);
 	    glBindTexture(GL_TEXTURE_2D, m_TextureGpuID);
-	    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_Width, m_Height, 0, format, type, nullptr);
+	    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, format, type, nullptr);
 
-		const GLint filter = IsDepth() ? GL_NEAREST : GL_LINEAR;
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	    glBindTexture(GL_TEXTURE_2D, 0);
+		const GLint filter = IsShadowSampleable() ? GL_LINEAR : (IsDepth() ? GL_NEAREST : GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+
+		if (IsShadowSampleable()) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			constexpr float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		}
+		else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
 	}
 
 	void RenderTexture::Clear() noexcept {
@@ -76,6 +87,11 @@ namespace Leadwort::Rendering::RG {
 	            outFormat   = GL_DEPTH_STENCIL;
 	            outType     = GL_UNSIGNED_INT_24_8;
 	            break;
+	    	case Format::ShadowDepth32F:
+	    		outInternal = GL_DEPTH_COMPONENT32F;
+	    		outFormat   = GL_DEPTH_COMPONENT;
+	    		outType     = GL_FLOAT;
+	    		break;
 	    }
 	}
 

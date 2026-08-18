@@ -44,7 +44,7 @@ namespace Leadwort::Rendering::RG {
     		// PrintSortedPasses();
     	}
 
-    	void Execute(Components::Camera& camera, RenderQueues& queues, Components::MeshRenderer* highlightedMeshRenderer) const {
+    	void Execute(Components::Camera& camera, RenderQueues& queues, Components::MeshRenderer* highlightedMeshRenderer, const Mat4& lightSpaceMatrix) const {
     		if (!m_IsCompiled) {
     			LW_ERROR("RenderGraph: Cannot Execute, graph is not compiled or has errors");
     			return;
@@ -53,7 +53,8 @@ namespace Leadwort::Rendering::RG {
     		const RenderContext renderContext {
     			&camera,
 				&queues,
-				highlightedMeshRenderer
+				highlightedMeshRenderer,
+				lightSpaceMatrix
 			};
 
     		for (const auto& pass : m_Passes) {

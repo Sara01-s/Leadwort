@@ -22,19 +22,22 @@ namespace Leadwort::Rendering {
 	    RenderPipelineState pipelineState { RenderPipelineState::Opaque() };
 	    Mat4 modelMatrix{};
 		Mat3 normalMatrix{};
+		bool castShadows { true };
 
 	    uint64_t sortKey { 0ULL };
 
-		static DrawCommand		Create(
+		static DrawCommand Create(
 			const Bindables::Mesh& mesh,
 			const Mat4& modelMatrix,
-			const float linearDepth
+			const float linearDepth,
+			const bool castShadows = true
 		) noexcept {
-			const auto& material = *mesh.GetMaterial();
-			const auto& shader = material.GetShader();
-			const bool invertDepth =
+			const auto& material { *mesh.GetMaterial() };
+			const auto& shader { material.GetShader() };
+			const bool invertDepth {
 				material.pipelineState.blendMode == BlendMode::AlphaBlend ||
-				material.pipelineState.blendMode == BlendMode::PremultipliedAlpha;
+				material.pipelineState.blendMode == BlendMode::PremultipliedAlpha
+			};
 
 			return DrawCommand {
 				.shader        = &shader,
@@ -43,6 +46,7 @@ namespace Leadwort::Rendering {
 				.pipelineState = material.pipelineState,
 				.modelMatrix   = modelMatrix,
 				.normalMatrix  = Transpose(Inverse(modelMatrix.ToMat3())),
+				.castShadows   = castShadows,
 				.sortKey = BuildKey(
 					static_cast<uint16_t>(shader.GetGpuID()),
 					static_cast<uint16_t>(material.GetGpuID()),
@@ -109,6 +113,20 @@ namespace Leadwort::Rendering {
 	            cmd.mesh->Unbind();
 	        }
 	    }
+
+		void DrawShadowCasters(const Bindables::Shader& shadowShader) const noexcept {
+			for (const auto& cmd : m_DrawCommands) {
+				if (!cmd.castShadows) {
+					continue;
+				}
+
+				shadowShader.SetUniform("_ModelMatrix", cmd.modelMatrix);
+
+				cmd.mesh->Bind();
+				glDrawElements(cmd.mesh->GetTopology(), cmd.mesh->GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+				cmd.mesh->Unbind();
+			}
+		}
 
 	    void Clear() noexcept {
 		    m_DrawCommands.clear();

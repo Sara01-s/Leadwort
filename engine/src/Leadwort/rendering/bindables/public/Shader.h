@@ -16,8 +16,9 @@ namespace Leadwort::Rendering::Bindables {
 	class Shader : public IBindable  {
 	public:
 		struct SamplerInfo {
-			GLenum type; // GL_SAMPLER_2D, GL_SAMPLER_CUBE, etc.
-			int location;
+			GLenum Type{}; // GL_SAMPLER_2D, GL_SAMPLER_CUBE, etc.
+			int Location{};
+			int ReservedSlot { -1 };
 		};
 
 		Shader(const std::string& filePath, const std::set<std::string>& defines, AssetManagement::AssetKey<Shader>);

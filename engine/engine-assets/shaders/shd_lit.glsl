@@ -20,14 +20,18 @@ layout (std140, binding = 0) uniform CameraData {
     vec4 _Padding;
 };
 
+
 out vec3 v_worldPosition;
 out vec3 v_worldNormal;
 out vec2 v_uv;
 out vec3 v_cameraPosition;
+out vec4 v_lightSpacePosition;
 
 #ifdef HAS_TANGENTS
     out mat3 v_tbn;
 #endif
+
+#include "include/shd_lighting_data.glsl"
 
 void main() {
     vec4 worldPos = _ModelMatrix * vec4(a_position, 1.0);
@@ -45,14 +49,25 @@ void main() {
     #endif
 
     v_cameraPosition = _CameraPosition.xyz;
+    v_lightSpacePosition = _LightSpaceMatrix * worldPos;
 
     gl_Position = _ProjectionMatrix * _ViewMatrix * worldPos;
 }
 
 #type fragment
 #version 450 core
+in vec3 v_worldPosition;
+in vec3 v_worldNormal;
+in vec2 v_uv;
+in vec3 v_cameraPosition;
+in vec4 v_lightSpacePosition;
+
 #include "include/shd_pbr.glsl"
 #include "include/shd_lighting.glsl"
+
+#ifdef HAS_TANGENTS
+    in mat3 v_tbn;
+#endif
 
 layout(location = 0) out vec4 fragColor;
 
@@ -77,14 +92,15 @@ void main() {
 
     vec3 directLighting = vec3(0.0);
 
-    // Directional light
+    // Directional light (shadow-maps)
     {
         vec3 L = normalize(-_LightDirection.xyz);
         vec3 sum = V + L;
         vec3 H = dot(sum, sum) > 1e-6 ? normalize(sum) : N;
 
         vec3 lightColor = _LightColorIntensity.rgb * _LightColorIntensity.a;
-        directLighting += PBR_Direct(F0, albedo, N, V, L, H, roughness, metallic, lightColor);
+        float shadow = calcShadow(v_lightSpacePosition, N, L);
+        directLighting += (1.0 - shadow) * PBR_Direct(F0, albedo, N, V, L, H, roughness, metallic, lightColor);
     }
 
     // Point lights

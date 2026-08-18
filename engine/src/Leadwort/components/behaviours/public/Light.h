@@ -31,6 +31,7 @@ namespace Leadwort::Components::Behaviours {
 			LW_FIELD(Float, InnerCutoff, "Inner Cutoff"),
 			LW_FIELD(Float, OuterCutoff, "Outer Cutoff")
 		)
+
 	public:
 		[[nodiscard]]
 		std::string_view GetTypeAsString() const noexcept {
@@ -72,7 +73,6 @@ namespace Leadwort::Components::Behaviours {
 			return 10.0f; // Fallback
 		}
 
-		// Light.h
 		[[nodiscard]]
 		std::vector<Utils::GizmoShapes::DebugLine> GetGizmoLines() const noexcept override {
 	        std::vector<Utils::GizmoShapes::DebugLine> lines{};
@@ -133,6 +133,27 @@ namespace Leadwort::Components::Behaviours {
 
 	        return lines;
 	    }
+
+		[[nodiscard]]
+		static Mat4 CalculateLightSpaceMatrix(const Light& light) noexcept {
+			constexpr float orthoHalfSize { 20.0f };
+			constexpr float nearPlane { 0.1f };
+			constexpr float farPlane  { 100.0f };
+			constexpr float shadowDistance { 30.0f };
+			constexpr Vec3 sceneCenter { 0.0f, 0.0f, 0.0f };
+
+			const Vec3 lightDir = light.GetEntity().GetTransform().GetForward().Normalized();
+			const Vec3 lightPos = sceneCenter - lightDir * shadowDistance;
+
+			const Mat4 lightView = Mat4::LookAt(lightPos, sceneCenter, Vec3::Up());
+			const Mat4 lightProjection = Mat4::Orthographic(
+				-orthoHalfSize, orthoHalfSize,
+				-orthoHalfSize, orthoHalfSize,
+				nearPlane, farPlane
+			);
+
+			return lightProjection * lightView;
+		}
 	};
 
 	LW_REGISTER_COMPONENT(Light)

@@ -23,12 +23,18 @@ namespace Leadwort::Rendering::RG::Passes {
     	void Execute(const RenderContext& renderContext) noexcept override {
 			GLStateCache::Get().Invalidate();
 
-			glDepthMask(GL_TRUE);
+			if (m_Output) {
+				glViewport(0, 0, m_Output->GetWidth(), m_Output->GetHeight());
+			}
+
 			glStencilMask(0xFF);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			glDepthMask(GL_TRUE);
 
 			std::visit(overloaded {
 				[](const Components::Camera::SkyBox& sky) {
-					glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+					glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 					sky.Sky->Render();
 				},
 				[](const Components::Camera::SolidColor& solid) {
@@ -36,7 +42,7 @@ namespace Leadwort::Rendering::RG::Passes {
 					glClearColor(bg.r, bg.g, bg.b, bg.a);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 				}
-			}, renderContext.camera->Background);
+			}, renderContext.Camera->Background);
 		}
 
     private:

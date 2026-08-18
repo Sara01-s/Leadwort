@@ -125,7 +125,7 @@ void DrawMaterialInspector(Leadwort::Rendering::Bindables::Material& material) {
         std::ranges::sort(sorted, [](const auto& a, const auto& b) { return a.first < b.first; });
 
     	for (const auto& [uniformName, info] : sorted) {
-    		if (info.type != GL_SAMPLER_2D) {
+    		if (info.Type != GL_SAMPLER_2D) {
     			continue;
     		}
 

@@ -23,12 +23,12 @@ public:
 	}
 
 	void Execute(const RenderContext& renderContext) noexcept override {
-		if (renderContext.highlightedMeshRenderer == nullptr) {
+		if (renderContext.HighlightedMeshRenderer == nullptr) {
 			return;
 		}
 
-		const auto& entity      { renderContext.highlightedMeshRenderer->GetEntity() };
-		const auto& mesh        { renderContext.highlightedMeshRenderer->mesh };
+		const auto& entity      { renderContext.HighlightedMeshRenderer->GetEntity() };
+		const auto& mesh        { renderContext.HighlightedMeshRenderer->mesh };
 		const Mat4  modelMatrix { CoordinateSystem::CalculateModelMatrix(entity.GetTransform()) };
 
 		GLStateCache::Get().ApplyState(RenderPipelineState::OutlineStencilWrite());

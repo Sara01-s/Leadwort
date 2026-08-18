@@ -18,10 +18,13 @@ namespace Leadwort::Components {
 		using Mesh = Rendering::Bindables::Mesh;
 
 		LW_REFLECT(MeshRenderer,
-			LW_FIELD(AssetRef, mesh, "Mesh")
+			LW_FIELD(AssetRef, mesh, "Mesh"),
+			LW_FIELD(Bool, castShadows, "Cast Shadows")
 		)
 	public:
 		Shared<Mesh> mesh { Utils::PrimitiveMeshes::Get().Cube() };
+		bool castShadows { true };
+
 		std::string modelPath {};
 		int meshIndex { -1 };
 		std::string primitiveType { "cube" };
@@ -29,6 +32,7 @@ namespace Leadwort::Components {
 
 		void Serialize(Json& out) const override {
 			out["isPrimitive"] = isPrimitive;
+			out["castShadows"] = castShadows;
 
 			if (isPrimitive) {
 				out["primitiveType"] = primitiveType;
@@ -41,6 +45,7 @@ namespace Leadwort::Components {
 
 		void Deserialize(const Json& in) override {
 			isPrimitive = in.value("isPrimitive", true);
+			castShadows = in.value("castShadows", true);
 
 			if (isPrimitive) {
 				primitiveType = in.value("primitiveType", "cube");

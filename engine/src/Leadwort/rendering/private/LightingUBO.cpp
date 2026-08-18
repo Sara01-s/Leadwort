@@ -22,11 +22,15 @@ namespace Leadwort::Rendering {
 		}
 	}
 
-	void LightingUBO::Update(const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights) const {
+	void LightingUBO::Update(
+		const std::array<Components::Behaviours::Light*, MAX_LIGHTS>& lights,
+		const Mat4& lightSpaceMatrix
+	) const {
 		LightingDataGPU data;
+		data.LightSpaceMatrix = lightSpaceMatrix;
 
-		int pointIndex { 0 };
-		int spotIndex { 0 };
+		int pointIndex{0};
+		int spotIndex{0};
 
 		for (const auto* light: lights) {
 			if (!light) {
@@ -62,7 +66,8 @@ namespace Leadwort::Rendering {
 						s.Cutoffs = Vec4(
 							std::cos(light->InnerCutoff * DegToRad),
 							std::cos(light->OuterCutoff * DegToRad),
-							0.0f, 0.0f
+							0.0f,
+							0.0f
 						);
 					}
 					break;

@@ -1,11 +1,6 @@
 #ifndef LW_PBR_HLSL
 #define LW_PBR_HLSL
 
-in vec3 v_worldPosition;
-in vec3 v_worldNormal;
-in vec2 v_uv;
-in vec3 v_cameraPosition;
-
 uniform vec4  _Color;
 uniform float _MetallicIntensity;
 uniform float _RoughnessIntensity;

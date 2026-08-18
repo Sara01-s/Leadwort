@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Leadwort/core/math/public/Mat4.h"
 #include "RenderQueue.h"
 
 namespace Leadwort::Components {
@@ -13,9 +14,10 @@ namespace Leadwort::Rendering {
 
 	class RenderContext {
 	public:
-		Components::Camera* camera { nullptr };
-		RenderQueues* renderQueues { nullptr };
-		Components::MeshRenderer* highlightedMeshRenderer { nullptr };
+		Components::Camera* Camera { nullptr };
+		RenderQueues* RenderQueues { nullptr };
+		Components::MeshRenderer* HighlightedMeshRenderer { nullptr };
+		Mat4 LightSpaceMatrix{};
 	};
 
 }

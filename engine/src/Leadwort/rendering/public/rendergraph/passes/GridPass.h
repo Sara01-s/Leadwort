@@ -24,14 +24,14 @@ public:
 	}
 
 	void Execute(const RenderContext& renderContext) noexcept override {
-		if ((renderContext.camera->CullingMask & Utils::Layers::SCENE) == 0) {
+		if ((renderContext.Camera->CullingMask & Utils::Layers::SCENE) == 0) {
 			return;
 		}
 
 		GLStateCache::Get().ApplyState(RenderPipelineState::Grid());
 
 		m_GridShader->Bind();
-		m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(renderContext.camera->GetProjectionMatrix()));
+		m_GridShader->SetUniform("_InvProjectionMatrix", Inverse(renderContext.Camera->GetProjectionMatrix()));
 		m_GridShader->SetUniform("_Resolution", m_Color.GetResolution());
 
 		glBindVertexArray(m_EmptyVAO);

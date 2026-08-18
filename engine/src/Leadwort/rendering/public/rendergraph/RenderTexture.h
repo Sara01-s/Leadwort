@@ -15,6 +15,7 @@ public:
         RGBA8,            // LDR color + alpha
         RGBA16F,          // HDR color
         Depth24Stencil8,  // Depth + stencil (not sampleable as color)
+    	ShadowDepth32F,   // Depth-only, sampleable as sampler2DShadow (shadow maps)
     };
 
 public:
@@ -31,18 +32,20 @@ public:
     // Binds as a sampler at the given texture unit.
     void BindAsInput(GLint slot) const noexcept;
 
-    [[nodiscard]] GLuint  GetGpuID()      const noexcept { return m_TextureGpuID; }
-    [[nodiscard]] int     GetWidth()      const noexcept { return m_Width; }
-    [[nodiscard]] int     GetHeight()     const noexcept { return m_Height; }
-    [[nodiscard]] Format  GetFormat()     const noexcept { return m_Format; }
-    [[nodiscard]] Vec2    GetResolution() const noexcept { return Vec2(m_Width, m_Height); }
-    [[nodiscard]] float   GetAspectRatio() const noexcept {
-        return static_cast<float>(m_Width) / static_cast<float>(m_Height);
+    [[nodiscard]] constexpr int GetWidth()  const noexcept { return m_Width; }
+    [[nodiscard]] constexpr int GetHeight() const noexcept { return m_Height; }
+    [[nodiscard]] GLuint GetGpuID()      const noexcept { return m_TextureGpuID; }
+    [[nodiscard]] Format GetFormat()     const noexcept { return m_Format; }
+    [[nodiscard]] Vec2   GetResolution() const noexcept { return Vec2(m_Width, m_Height); }
+    [[nodiscard]] bool   IsDepth() const noexcept { return m_Format == Format::Depth24Stencil8 || m_Format == Format::ShadowDepth32F; }
+	[[nodiscard]] bool   IsShadowSampleable() const noexcept { return m_Format == Format::ShadowDepth32F; }
+    [[nodiscard]] bool   IsValid() const noexcept { return m_TextureGpuID != 0; }
+	[[nodiscard]] float  GetAspectRatio() const noexcept {
+    	return static_cast<float>(m_Width) / static_cast<float>(m_Height);
     }
-    [[nodiscard]] bool IsDepth() const noexcept {
-        return m_Format == Format::Depth24Stencil8;
+	[[nodiscard]] bool HasStencil() const noexcept {
+    	return m_Format == Format::Depth24Stencil8;
     }
-    [[nodiscard]] bool IsValid() const noexcept { return m_TextureGpuID != 0; }
 
 private:
     void Setup();

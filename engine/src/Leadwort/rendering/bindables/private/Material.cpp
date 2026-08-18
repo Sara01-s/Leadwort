@@ -1,5 +1,7 @@
 #include "../public/Material.h"
 
+#include "Leadwort/rendering/public/rendergraph/GlobalTextureSlots.h"
+
 #include <Leadwort/asset-management/private/AssetKey.h>
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/asset-management/public/DefaultAssets.h>
@@ -21,10 +23,9 @@ namespace Leadwort::Rendering::Bindables {
 	// ─────────────────────────────────────────────
 
 	void Material::SetInt(const std::string& name, const int value)     { m_Ints[name]    = value; m_UniformsDirty = true; }
-void Material::SetFloat(const std::string& name, const float value) {
+	void Material::SetFloat(const std::string& name, const float value) {
 		m_Floats[name] = value;
 		m_UniformsDirty = true;
-		LW_LOG("SetFloat '", name, "' = ", value, " on material ptr=", reinterpret_cast<uintptr_t>(this));
 	}
 	void Material::SetVec3(const std::string& name, const Vec3& value)  { m_Vec3s[name]   = value; m_UniformsDirty = true; }
 	void Material::SetVec4(const std::string& name, const Vec4& value)  { m_Vec4s[name]   = value; m_UniformsDirty = true; }
@@ -108,6 +109,11 @@ void Material::SetFloat(const std::string& name, const float value) {
 
 		int slot{};
 		for (const auto& [name, samplerInfo] : m_Shader->GetSamplers()) {
+			const int reservedSlot = GlobalTextureSlots::GetReservedSlotForGlobalSampler(name);
+			if (reservedSlot >= 0) {
+				continue;
+			}
+
 			glActiveTexture(GL_TEXTURE0 + slot);
 
 			const auto it = m_Textures.find(name);
@@ -124,13 +130,13 @@ void Material::SetFloat(const std::string& name, const float value) {
 					glBindTexture(textureSlot.Target, textureSlot.GpuID);
 				}
 				else {
-					const GLenum target = samplerInfo.type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+					const GLenum target = samplerInfo.Type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
 					glBindTexture(target, s_Fallback->GetGpuID());
 				}
 			}
 			else {
 				// Fallback texture.
-				const GLenum target = samplerInfo.type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+				const GLenum target = samplerInfo.Type == GL_SAMPLER_CUBE ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
 				glBindTexture(target, s_Fallback->GetGpuID());
 			}
 

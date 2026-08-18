@@ -57,7 +57,8 @@ namespace Leadwort::Core {
 	private:
 	    void AttachNodeToEntity(const aiNode* node, Entity& entity);
 
-	    Shared<Rendering::Bindables::Mesh> ParseMesh(const aiMesh* mesh, const aiScene* scene, const std::string& path) const;
+	    Shared<Rendering::Bindables::Mesh> ParseMesh(const aiMesh* mesh, const aiScene* scene,
+													 unsigned int meshIndex) const;
 
 		static MaterialFeatures ParseMaterialFeatures(const aiMaterial* material);
 	    void BindTextures(Rendering::Bindables::Material& material, const aiMaterial* aiMat, const MaterialFeatures& features) const;

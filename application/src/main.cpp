@@ -21,11 +21,11 @@
 int main() {
 #ifdef _WIN32
     const BOOL dpiResult { SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) };
-    LW_ERROR("DPI awareness set: ", (dpiResult ? "OK" : "FAILED") ," GetLastError=", GetLastError());
+    LW_LOG("DPI awareness set: ", (dpiResult ? "OK" : "FAILED") ," GetLastError=", GetLastError());
 
     const auto currentContext { GetThreadDpiAwarenessContext() };
     const auto awareness { GetAwarenessFromDpiAwarenessContext(currentContext) };
-    LW_ERROR("Current DPI awareness value: ", static_cast<int>(awareness));
+    LW_LOG("Current DPI awareness value: ", static_cast<int>(awareness));
 #endif
 	using namespace Editor;
 

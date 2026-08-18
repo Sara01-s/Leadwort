@@ -1,6 +1,8 @@
 #include <Leadwort/systems/public/RenderSystem.h>
 
 #include "../../core/math/public/Color.h"
+#include "Leadwort/components/behaviours/public/Light.h"
+
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/MeshRenderer.h>
 #include <Leadwort/core/public/Window.h>
@@ -40,19 +42,32 @@ void RenderSystem::Initialize() {
 // ----------------------------------------------
 //  Main render
 // ----------------------------------------------
+Mat4 FindAndCalculateLightSpaceMatrix(const LightingSystem::Lights& lights) {
+	for (const auto* light : lights) {
+		if (light && light->Type == Behaviours::Light::LightType::Directional) {
+			return Behaviours::Light::CalculateLightSpaceMatrix(*light);
+		}
+	}
+
+	return Mat4::Identity(); // no directional light in scene
+}
 
 void RenderSystem::Render(Camera& camera, const RG::RenderGraph& graph) const {
 	GLStateCache::Get().Invalidate();
 
 	auto queues { m_SceneCollector.BuildRenderQueues(camera) };
 	m_CameraUBO.Update(camera);
-	m_LightingUBO.Update(LightingSystem::Get().GetLights());
+
+	const auto lights = LightingSystem::Get().GetLights();
+	const Mat4 lightSpaceMatrix = FindAndCalculateLightSpaceMatrix(lights);
+
+	m_LightingUBO.Update(lights, lightSpaceMatrix);
 
 	MeshRenderer* highlightedMeshRenderer {
 		m_HighlightedEntity == nullptr ? nullptr : m_HighlightedEntity->GetComponent<MeshRenderer>()
 	};
 
-	graph.Execute(camera, queues, highlightedMeshRenderer);
+	graph.Execute(camera, queues, highlightedMeshRenderer, lightSpaceMatrix);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::Get().GetWidth(), Window::Get().GetHeight());

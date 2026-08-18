@@ -2,33 +2,9 @@
 #define LW_LIGHTING_HLSL
 
 #include "shd_pbr.glsl"
+#include "shd_lighting_data.glsl"
 
-#define MAX_POINT_LIGHTS 8
-#define MAX_SPOT_LIGHTS 8
-
-struct PointLight {
-	vec4 position;
-	vec4 color;
-	vec4 attenuation;
-};
-
-struct SpotLight {
-	vec4 position;
-	vec4 direction;
-	vec4 color;
-	vec4 attenuation;
-	vec4 cutoffs;
-};
-
-layout(std140, binding = 1) uniform LightingData {
-	vec4 _LightDirection;      // w ignored (directional)
-	vec4 _LightColorIntensity; // rgb = color, a = intensity (directional)
-
-	PointLight _PointLights[MAX_POINT_LIGHTS];
-	SpotLight  _SpotLights[MAX_SPOT_LIGHTS];
-
-	ivec4 _LightCounts; // x = numPointLights, y = numSpotLights, zw unused
-};
+layout(binding = 15) uniform sampler2DShadow _ShadowMap;
 
 float calcAttenuation(vec3 att, float distance) {
 	return 1.0 / (att.x + att.y * distance + att.z * distance * distance);
@@ -65,6 +41,37 @@ vec3 calcSpotLight(SpotLight light, vec3 F0, vec3 albedo, vec3 N, vec3 V, float 
 	vec3 lightColor = light.color.rgb * light.color.a * attenuation * spotIntensity;
 
 	return PBR_Direct(F0, albedo, N, V, L, H, roughness, metallic, lightColor);
+}
+
+float calcShadow(vec4 lightSpacePos, vec3 N, vec3 L) {
+	vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+	projCoords = projCoords * 0.5 + 0.5; // [-1,1] -> [0,1]
+
+	if (projCoords.z > 1.0) {
+		return 0.0;
+	}
+
+	float bias = max(0.005 * (1.0 - dot(N, L)), 0.0015);
+
+	// Profundidad de referencia aplicando el sesgo
+	float currentDepth = projCoords.z - bias;
+
+	vec2 texelSize = 1.0 / vec2(textureSize(_ShadowMap, 0));
+	float shadow = 0.0;
+
+	// PCF 3x3
+	for (int x = -1; x <= 1; ++x) {
+		for (int y = -1; y <= 1; ++y) {
+			vec2 offset = vec2(x, y) * texelSize;
+			shadow += texture(_ShadowMap, vec3(projCoords.xy + offset, currentDepth));
+		}
+	}
+
+	shadow /= 9.0;
+
+	return 1.0 - shadow;
+
+	return shadow;
 }
 
 #endif

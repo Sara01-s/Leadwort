@@ -22,9 +22,10 @@ public:
 
 	void Execute(const RenderContext& renderContext) noexcept override {
 		DrawCommandBuffer buffer{};
+		GLStateCache::Get().ApplyState(RenderPipelineState::Transparent());
 
-		for (const auto* renderer : (*renderContext.renderQueues)[RenderQueue::Transparent]) {
-			renderer->EmitDrawCommand(buffer, *renderContext.camera);
+		for (const auto* renderer : (*renderContext.RenderQueues)[RenderQueue::Transparent]) {
+			renderer->EmitDrawCommand(buffer, *renderContext.Camera);
 		}
 
 		buffer.Sort();

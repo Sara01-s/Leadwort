@@ -20,7 +20,7 @@ namespace Leadwort::Components {
 		const Vec3  viewPos     = camera.WorldToCameraSpace(modelMatrix.GetTranslation());
 		const float linearDepth = -viewPos.z;
 
-		drawCmdBuffer.Add(DrawCommand::Create(*mesh, modelMatrix, linearDepth));
+		drawCmdBuffer.Add(DrawCommand::Create(*mesh, modelMatrix, linearDepth, castShadows));
 	}
 
 } // namespace Engine::Components

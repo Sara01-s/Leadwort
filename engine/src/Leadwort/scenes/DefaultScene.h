@@ -23,15 +23,11 @@ namespace Leadwort::Scenes {
 			auto* mr { cube2->AddComponent<Components::MeshRenderer>() };
 			mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
 
-
     		cube->GetTransform().SetLocalScale(Vec3(5.0f));
 
-			// const auto modelParent { CreateEntity("Model") };
-			// const auto model { AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb") };
-			// model->Instantiate(*modelParent);
-   //  		modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
-   //  		modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
-   //  		modelParent->GetTransform().SetLocalScale(Vec3(0.03f));
+			const auto modelParent { CreateEntity("Scenery") };
+			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scenery.glb") };
+			model->Instantiate(*modelParent);
 
 	        // Main Camera
 	        {
@@ -53,12 +49,12 @@ namespace Leadwort::Scenes {
 
 	            e->AddComponent<Components::Behaviours::FirstPersonController>();
 				auto* a { e->AddComponent<Components::Camera>() };
-				a->Background = Components::Camera::SolidColor {
-					.Color = Color::Gray35()
-				};
-				// a->background = Components::Camera::SkyBox {
-				// 	.skybox = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_clouds_2k.exr")
+				// a->Background = Components::Camera::SolidColor {
+				// 	.Color = Color::Gray35()
 				// };
+				a->Background = Components::Camera::SkyBox {
+					.Sky = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_sky.exr")
+				};
 	        }
 
 	        // Directional Light
