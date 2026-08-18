@@ -21,8 +21,10 @@ namespace Leadwort::Rendering::RG {
 	    glGenTextures(1, &m_TextureGpuID);
 	    glBindTexture(GL_TEXTURE_2D, m_TextureGpuID);
 	    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_Width, m_Height, 0, format, type, nullptr);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		const GLint filter = IsDepth() ? GL_NEAREST : GL_LINEAR;
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	    glBindTexture(GL_TEXTURE_2D, 0);

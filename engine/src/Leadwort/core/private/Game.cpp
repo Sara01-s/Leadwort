@@ -53,7 +53,7 @@ namespace Leadwort::Core {
 	void Game::BuildRenderGraphs() {
 		using namespace Rendering::RG::Passes;
 
-		RenderTexture& gameColor{ *m_GameColorTex};
+		RenderTexture& gameColor { *m_GameColorTex};
 		RenderTexture& gameDepth { *m_GameDepthTex };
 		RenderTexture& postColor { *m_PostProcessTex };
 		RenderTexture& sceneColor { *m_SceneColorTex };
@@ -63,7 +63,7 @@ namespace Leadwort::Core {
 		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth);
 		m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
 		m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
-		m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor);
+		m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor, gameDepth);
 		m_GameRenderGraph.Compile();
 
 		m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);

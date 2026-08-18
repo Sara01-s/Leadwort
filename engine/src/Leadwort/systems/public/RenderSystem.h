@@ -7,7 +7,6 @@
 #include <Leadwort/core/math/public/Color.h>
 #include <Leadwort/rendering/public/CameraUBO.h>
 #include <Leadwort/rendering/public/LightingUBO.h>
-#include <Leadwort/rendering/public/PostProcess.h>
 #include <Leadwort/rendering/public/SceneCollector.h>
 #include <Leadwort/utils/public/Singleton.h>
 

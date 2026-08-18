@@ -13,27 +13,32 @@ namespace Leadwort::Scenes {
 	public:
 	    void Create() override {
 	        // Default Cube
-			Core::Entity* sphere = CreateEntity("Default Cube");
+			Core::Entity* cube = CreateEntity("Default Cube");
 	        {
-	            auto* mr { sphere->AddComponent<Components::MeshRenderer>() };
+	            auto* mr { cube->AddComponent<Components::MeshRenderer>() };
 				mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
 	        }
 
-    		sphere->GetTransform().SetLocalScale(Vec3(5.0f));
+			Core::Entity* cube2 = CreateEntity("Default Cube 2");
+			auto* mr { cube2->AddComponent<Components::MeshRenderer>() };
+			mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
 
-			const auto modelParent { CreateEntity("Model") };
-			const auto model { AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb") };
-			model->Instantiate(*modelParent);
-    		modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
-    		modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
-    		modelParent->GetTransform().SetLocalScale(Vec3(0.03f));
+
+    		cube->GetTransform().SetLocalScale(Vec3(5.0f));
+
+			// const auto modelParent { CreateEntity("Model") };
+			// const auto model { AssetManagement::EngineAssets::GetModel("models/model_mech_drone.glb") };
+			// model->Instantiate(*modelParent);
+   //  		modelParent->GetTransform().SetLocalPosition(Vec3(0.0f, 0.0f, -15.0f));
+   //  		modelParent->GetTransform().SetLocalRotation(Quat::FromEuler(-90.0f, -180.0f, 0.0f));
+   //  		modelParent->GetTransform().SetLocalScale(Vec3(0.03f));
 
 	        // Main Camera
 	        {
 				Core::Entity* e { CreateEntity("Main Camera") };
 	            e->tag = Core::Tags::MAIN_CAMERA;
 	            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-	            e->GetTransform().LookAt(sphere->GetTransform());
+	            e->GetTransform().LookAt(cube->GetTransform());
 
 	            auto* cam = e->AddComponent<Components::Camera>();
 	            cam->CullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;
@@ -44,7 +49,7 @@ namespace Leadwort::Scenes {
 				Core::Entity* e { CreateEntity("Scene Camera") };
 	            e->tag = Core::Tags::SCENE_CAMERA;
 	            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-	            e->GetTransform().LookAt(sphere->GetTransform());
+	            e->GetTransform().LookAt(cube->GetTransform());
 
 	            e->AddComponent<Components::Behaviours::FirstPersonController>();
 				auto* a { e->AddComponent<Components::Camera>() };

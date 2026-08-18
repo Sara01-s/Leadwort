@@ -24,6 +24,7 @@ namespace Leadwort::Rendering::RG {
 
 			m_PassGraph[&pass].push_back({ &texture, flags, UsageFlags::Sampled });
 		}
+
 		void SetRenderAttachment(IPass& pass, RenderTexture& texture) noexcept {
 			if (!m_PassGraph.contains(&pass)) {
 				m_PassInsertionOrder.push_back(&pass);
