@@ -37,6 +37,12 @@ namespace Leadwort::Utils {
 	Shared<Mesh> PrimitiveMeshes::Sphere() { if (!m_Sphere) m_Sphere = BuildSphere(); return m_Sphere; }
 	Shared<Mesh> PrimitiveMeshes::Cube()   { if (!m_Cube)   m_Cube   = BuildCube();   return m_Cube; }
 	Shared<Mesh> PrimitiveMeshes::Capsule() { if (!m_Capsule) m_Capsule = BuildCapsule(); return m_Capsule; }
+	Shared<Mesh> PrimitiveMeshes::SubdividedPlane(
+		const float sizeX, const float sizeZ,
+		const int segmentsX, const int segmentsZ
+	) const {
+		return BuildSubdividedPlane(sizeX, sizeZ, segmentsX, segmentsZ);
+	}
 
 	// ─────────────────────────────────────────────
 	//  Helpers
@@ -99,6 +105,71 @@ namespace Leadwort::Utils {
 		constexpr std::array<Index, 6> indices { 0, 2, 1, 2, 0, 3 };
 
 		return RegisterMesh(m_Layout, vertices, indices, "Plane");
+	}
+
+	Shared<Mesh> PrimitiveMeshes::BuildSubdividedPlane(
+	    const float sizeX,
+	    const float sizeZ,
+	    const int segmentsX,
+	    const int segmentsZ
+	) const noexcept {
+	    const int segX { Max(1, segmentsX) };
+	    const int segZ { Max(1, segmentsZ) };
+
+	    const int vertsX { segX + 1 };
+	    const int vertsZ { segZ + 1 };
+
+	    std::vector<float> vertices{};
+	    vertices.reserve(static_cast<std::size_t>(vertsX) * vertsZ * 8);
+
+	    const float halfX { sizeX * 0.5f };
+	    const float halfZ { sizeZ * 0.5f };
+
+	    for (int z = 0; z < vertsZ; z++) {
+	        const float tZ { static_cast<float>(z) / static_cast<float>(segZ) };
+	        const float posZ { -halfZ + tZ * sizeZ };
+
+	        for (int x = 0; x < vertsX; x++) {
+	            const float tX { static_cast<float>(x) / static_cast<float>(segX) };
+	            const float posX { -halfX + tX * sizeX };
+
+	            // Position
+	            vertices.push_back(posX);
+	            vertices.push_back(0.0f);
+	            vertices.push_back(posZ);
+
+	            // Normal
+	            vertices.push_back(0.0f);
+	            vertices.push_back(1.0f);
+	            vertices.push_back(0.0f);
+
+	            // UV
+	            vertices.push_back(tX);
+	            vertices.push_back(tZ);
+	        }
+	    }
+
+	    std::vector<Index> indices{};
+	    indices.reserve(static_cast<std::size_t>(segX) * segZ * 6);
+
+	    for (int z = 0; z < segZ; z++) {
+	        for (int x = 0; x < segX; x++) {
+	            const Index i0 { static_cast<Index>(z * vertsX + x) };
+	            const Index i1 { static_cast<Index>(z * vertsX + x + 1) };
+	            const Index i2 { static_cast<Index>((z + 1) * vertsX + x + 1) };
+	            const Index i3 { static_cast<Index>((z + 1) * vertsX + x) };
+
+	            // Same winding as BuildPlane (0, 2, 1, 2, 0, 3)
+	            indices.push_back(i0);
+	            indices.push_back(i2);
+	            indices.push_back(i1);
+	            indices.push_back(i2);
+	            indices.push_back(i0);
+	            indices.push_back(i3);
+	        }
+	    }
+
+	    return RegisterMesh(m_Layout, vertices, indices, "SubdividedPlane");
 	}
 
 	Shared<Mesh> PrimitiveMeshes::BuildSphere() const noexcept {

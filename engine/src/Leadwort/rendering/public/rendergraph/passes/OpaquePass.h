@@ -2,7 +2,7 @@
 
 #include "Leadwort/components/public/IRenderer.h"
 #include "Leadwort/rendering/public/DrawCommands.h"
-#include "Leadwort/rendering/public/rendergraph/GlobalTextureSlots.h"
+#include "Leadwort/rendering/public/rendergraph/GlobalSlots.h"
 #include "Leadwort/rendering/public/rendergraph/IPass.h"
 #include "Leadwort/rendering/public/rendergraph/RenderGraphBuilder.h"
 #include "Leadwort/rendering/public/rendergraph/RenderTexture.h"
@@ -35,7 +35,7 @@ class OpaquePass final : public IPass {
 			}
 
 			buffer.Sort();
-			m_ShadowMap.BindAsInput(GlobalTextureSlots::ShadowMapSlot);
+			m_ShadowMap.BindAsInput(TextureSlots::ShadowMapSlot);
 			buffer.Draw();
 		}
 

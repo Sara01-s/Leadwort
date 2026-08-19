@@ -10,10 +10,11 @@ class PrimitiveMeshes : public Singleton<PrimitiveMeshes> {
 public:
 	Shared<Rendering::Bindables::Mesh> Empty();
 	Shared<Rendering::Bindables::Mesh> Quad();
-	Shared<Rendering::Bindables::Mesh> Plane();
 	Shared<Rendering::Bindables::Mesh> Sphere();
 	Shared<Rendering::Bindables::Mesh> Cube();
 	Shared<Rendering::Bindables::Mesh> Capsule();
+	Shared<Rendering::Bindables::Mesh> Plane();
+	Shared<Rendering::Bindables::Mesh> SubdividedPlane(float sizeX, float sizeZ, int segmentsX, int segmentsZ) const;
 
 private:
 	PrimitiveMeshes();
@@ -21,18 +22,20 @@ private:
 	Shared<Rendering::Bindables::Mesh> BuildEmpty()   const noexcept;
 	Shared<Rendering::Bindables::Mesh> BuildQuad()    const noexcept;
 	Shared<Rendering::Bindables::Mesh> BuildPlane()   const noexcept;
+	Shared<Rendering::Bindables::Mesh> BuildSubdividedPlane(float sizeX, float sizeZ, int segmentsX, int segmentsZ) const noexcept;
 	Shared<Rendering::Bindables::Mesh> BuildSphere()  const noexcept;
 	Shared<Rendering::Bindables::Mesh> BuildCube()    const noexcept;
 	Shared<Rendering::Bindables::Mesh> BuildCapsule() const noexcept;
 
 	Rendering::Bindables::VertexLayout m_Layout{};
 
-	Shared<Rendering::Bindables::Mesh> m_Empty;
-	Shared<Rendering::Bindables::Mesh> m_Quad;
-	Shared<Rendering::Bindables::Mesh> m_Plane;
-	Shared<Rendering::Bindables::Mesh> m_Sphere;
-	Shared<Rendering::Bindables::Mesh> m_Cube;
+	Shared<Rendering::Bindables::Mesh> m_Empty{};
+	Shared<Rendering::Bindables::Mesh> m_Quad{};
+	Shared<Rendering::Bindables::Mesh> m_Plane{};
+	Shared<Rendering::Bindables::Mesh> m_Sphere{};
+	Shared<Rendering::Bindables::Mesh> m_Cube{};
 	Shared<Rendering::Bindables::Mesh> m_Capsule{};
+	Shared<Rendering::Bindables::Mesh> m_SubdividedPlane{};
 };
 
 } // namespace Engine::Utils

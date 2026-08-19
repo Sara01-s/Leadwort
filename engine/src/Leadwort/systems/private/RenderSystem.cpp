@@ -2,6 +2,7 @@
 
 #include "../../core/math/public/Color.h"
 #include "Leadwort/components/behaviours/public/Light.h"
+#include "Leadwort/core/public/Time.h"
 
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/MeshRenderer.h>
@@ -37,6 +38,7 @@ void RenderSystem::Initialize() {
 
     m_CameraUBO.Initialize();
 	m_LightingUBO.Initialize();
+	m_TimeUBO.Initialize();
 }
 
 // ----------------------------------------------
@@ -62,6 +64,7 @@ void RenderSystem::Render(Camera& camera, const RG::RenderGraph& graph) const {
 	const Mat4 lightSpaceMatrix = FindAndCalculateLightSpaceMatrix(lights);
 
 	m_LightingUBO.Update(lights, lightSpaceMatrix);
+	m_TimeUBO.Update(Time::GetTime(), Time::GetDeltaTime());
 
 	MeshRenderer* highlightedMeshRenderer {
 		m_HighlightedEntity == nullptr ? nullptr : m_HighlightedEntity->GetComponent<MeshRenderer>()

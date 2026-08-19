@@ -1,6 +1,6 @@
 #include "../public/Shader.h"
 
-#include "Leadwort/rendering/public/rendergraph/GlobalTextureSlots.h"
+#include "Leadwort/rendering/public/rendergraph/GlobalSlots.h"
 
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/core/math/public/Mat4.h>
@@ -80,34 +80,27 @@ namespace Leadwort::Rendering::Bindables {
 				m_Source = LoadSource(m_Path);
 			}
 
-			const auto shaderSources = ParseShader(m_Source);
-	        const std::string baseDir = m_Path.empty() ? "" : m_Path.substr(0, m_Path.find_last_of('/'));
+			const auto shaderSources { ParseShader(m_Source) };
+	        const std::string baseDir { m_Path.empty() ? "" : m_Path.substr(0, m_Path.find_last_of('/')) };
 
-	        auto resolveAndInject = [&](const std::string& key) -> std::string {
-	            const auto it = shaderSources.find(key);
-	            if (it == shaderSources.end())
-	                throw std::runtime_error("Missing " + key + " shader in: " + m_Path);
+	        auto resolveAndInject { [&](const std::string& key) -> std::string {
+		        const auto it { shaderSources.find(key) };
+	        	if (it == shaderSources.end()) {
+	        		throw std::runtime_error("Missing " + key + " shader in: " + m_Path);
+	        	}
 
-	            std::set<std::string> visited;
-	            return InjectDefines(ResolveIncludes(it->second, baseDir, visited));
-	        };
+	        	std::set<std::string> visited{};
+	        	return InjectDefines(ResolveIncludes(it->second, baseDir, visited));
+	        }};
 
-	        const std::string vertexSrc   = resolveAndInject("vertex");
-	        const std::string fragmentSrc = resolveAndInject("fragment");
+	        const std::string vertexSrc   { resolveAndInject("vertex") };
+	        const std::string fragmentSrc { resolveAndInject("fragment") };
 
-	        const uint32_t vs = CompileShader(GL_VERTEX_SHADER,   vertexSrc);
-	        const uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+	        const uint32_t vs { CompileShader(GL_VERTEX_SHADER,   vertexSrc) };
+	        const uint32_t fs { CompileShader(GL_FRAGMENT_SHADER, fragmentSrc) };
 
-	        const uint32_t newProgram = LinkProgram(vs, fs);
+	        const uint32_t newProgram { LinkProgram(vs, fs) };
 	        LW_ASSERT(newProgram != 0, "Shader: Failed to create a program during compilation.");
-
-    		if (const uint32_t cameraBlock = glGetUniformBlockIndex(newProgram, "CameraData"); cameraBlock != GL_INVALID_INDEX) {
-    			glUniformBlockBinding(newProgram, cameraBlock, 0);
-			}
-
-    		if (const uint32_t lightBlock = glGetUniformBlockIndex(newProgram, "LightingData"); lightBlock != GL_INVALID_INDEX) {
-    			glUniformBlockBinding(newProgram, lightBlock, 1);
-			}
 
 	        if (m_GpuID != 0) {
 				glDeleteProgram(m_GpuID);
@@ -129,8 +122,8 @@ namespace Leadwort::Rendering::Bindables {
 	}
 
 	uint32_t Shader::CompileShader(const uint32_t type, const std::string& source) {
-		const uint32_t id = glCreateShader(type);
-		LW_ASSERT(id != 0, "Shader: Failed to create shader object.");
+		const uint32_t id { glCreateShader(type) };
+		LW_ASSERT(id != 0, "Shader: Failed to create a shader object.");
 
 		const char* src = source.c_str();
 		glShaderSource(id, 1, &src, nullptr);
@@ -140,7 +133,8 @@ namespace Leadwort::Rendering::Bindables {
 		glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 
 		if (!success) {
-			char infoLog[1024];
+			char infoLog[1024]{};
+
 			glGetShaderInfoLog(id, 1024, nullptr, infoLog);
 			glDeleteShader(id);
 			throw std::runtime_error("Shader compilation error: " + std::string(infoLog));
@@ -150,7 +144,7 @@ namespace Leadwort::Rendering::Bindables {
 	}
 
 	uint32_t Shader::LinkProgram(const uint32_t vs, const uint32_t fs) {
-		const uint32_t program = glCreateProgram();
+		const uint32_t program { glCreateProgram() };
 		LW_ASSERT(program != 0, "Shader: Failed to create a linking program.");
 
 		glAttachShader(program, vs);
@@ -180,15 +174,16 @@ namespace Leadwort::Rendering::Bindables {
 	}
 
 	std::unordered_map<std::string, std::string> Shader::ParseShader(const std::string_view source) {
-		std::unordered_map<std::string, std::string> shaders;
+		std::unordered_map<std::string, std::string> shaders{};
 		std::istringstream stream((source.data()));
-		std::string line;
-		std::string currentType;
+		std::string line{};
+		std::string currentType{};
 		std::ostringstream builder;
 
 		while (std::getline(stream, line)) {
-			if (!line.empty() && line.back() == '\r')
+			if (!line.empty() && line.back() == '\r') {
 				line.pop_back();
+			}
 
 			if (line.rfind("#type", 0) == 0) {
 				if (!currentType.empty()) {
@@ -218,27 +213,27 @@ namespace Leadwort::Rendering::Bindables {
 		const std::string& currentDir,
 		std::set<std::string>& visited
 	) {
-		std::ostringstream result;
+		std::ostringstream result{};
 		std::istringstream stream((source.data()));
-		std::string line;
+		std::string line{};
 
 		while (std::getline(stream, line)) {
 			const std::string trimmed = [&] {
-				const size_t s = line.find_first_not_of(" \t");
+				const size_t s { line.find_first_not_of(" \t") };
 				return s == std::string::npos ? line : line.substr(s);
 			}();
 
 			if (trimmed.rfind("#include", 0) == 0) {
-				const size_t q1 = trimmed.find('"');
-				const size_t q2 = trimmed.find('"', q1 + 1);
+				const size_t q1 { trimmed.find('"') };
+				const size_t q2 { trimmed.find('"', q1 + 1) };
 
 				if (q1 == std::string::npos || q2 == std::string::npos) {
 					throw std::runtime_error("Shader: Malformed #include: " + line);
 				}
 
-				const std::string includePath = trimmed.substr(q1 + 1, q2 - q1 - 1);
+				const std::string includePath { trimmed.substr(q1 + 1, q2 - q1 - 1) };
 
-				fs::path fullFsPath = currentDir.empty() ? fs::path(includePath) : fs::path(currentDir) / includePath;
+				fs::path fullFsPath { currentDir.empty() ? fs::path(includePath) : fs::path(currentDir) / includePath };
 				fullFsPath = fullFsPath.lexically_normal();
 
 				const std::string normalized = fullFsPath.generic_string();
@@ -265,9 +260,9 @@ namespace Leadwort::Rendering::Bindables {
 		}
 
 		std::istringstream stream((source.data()));
-		std::ostringstream builder;
-		std::string line;
-		bool injected = false;
+		std::ostringstream builder{};
+		std::string line{};
+		bool injected { false };
 
 		if (std::getline(stream, line)) {
 			builder << line << '\n';
@@ -286,7 +281,7 @@ namespace Leadwort::Rendering::Bindables {
 				prefix << "#define " << define << '\n';
 			}
 
-			std::string rest;
+			std::string rest{};
 
 			while (std::getline(stream, rest)) {
 				builder << rest << '\n';
@@ -385,7 +380,7 @@ void Shader::ExtractSamplers() {
 
 			if (type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE || type == GL_SAMPLER_2D_SHADOW || type == GL_SAMPLER_3D) {
 				const int location = glGetUniformLocation(m_GpuID, name);
-				const int reservedSlot = GlobalTextureSlots::GetReservedSlotForGlobalSampler(name);
+				const int reservedSlot = TextureSlots::GetReservedSlotForGlobalSampler(name);
 
 				m_Samplers[name] = SamplerInfo { type, location, reservedSlot };
 

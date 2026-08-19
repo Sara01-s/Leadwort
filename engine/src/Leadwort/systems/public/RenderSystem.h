@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../events/public/Event.h"
+#include "Leadwort/rendering/public/TimeUBO.h"
 #include "Leadwort/rendering/public/rendergraph/RenderGraph.h"
 
 #include <Leadwort/components/public/Camera.h>
@@ -33,6 +34,7 @@ private:
 private:
 	Rendering::CameraUBO m_CameraUBO{};
 	Rendering::LightingUBO m_LightingUBO{};
+	Rendering::TimeUBO m_TimeUBO{};
 	Rendering::SceneCollector m_SceneCollector{};
 	Rendering::RG::RenderGraph m_GameRenderGraph{};
 	Rendering::RG::RenderGraph m_SceneRenderGraph{};

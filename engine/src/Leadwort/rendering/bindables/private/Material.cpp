@@ -1,6 +1,6 @@
 #include "../public/Material.h"
 
-#include "Leadwort/rendering/public/rendergraph/GlobalTextureSlots.h"
+#include "Leadwort/rendering/public/rendergraph/GlobalSlots.h"
 
 #include <Leadwort/asset-management/private/AssetKey.h>
 #include <Leadwort/asset-management/public/AssetDatabase.h>
@@ -109,7 +109,7 @@ namespace Leadwort::Rendering::Bindables {
 
 		int slot{};
 		for (const auto& [name, samplerInfo] : m_Shader->GetSamplers()) {
-			const int reservedSlot = GlobalTextureSlots::GetReservedSlotForGlobalSampler(name);
+			const int reservedSlot = TextureSlots::GetReservedSlotForGlobalSampler(name);
 			if (reservedSlot >= 0) {
 				continue;
 			}

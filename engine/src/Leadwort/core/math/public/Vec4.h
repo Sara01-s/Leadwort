@@ -4,6 +4,9 @@
 
 namespace Leadwort {
 
+struct Vec2;
+struct Vec3;
+
 struct Vec4 {
 	float x = 0.0f;
 	float y = 0.0f;

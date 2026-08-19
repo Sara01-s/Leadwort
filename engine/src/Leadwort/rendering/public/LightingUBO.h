@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Leadwort/core/math/public/Mat4.h"
-#include "Leadwort/core/math/public/Vec2.h"
 #include "Leadwort/core/math/public/Vec4.h"
 
 #include <glad/glad.h>
@@ -39,9 +38,6 @@ namespace Leadwort::Rendering {
 		Mat4 LightSpaceMatrix{};
 		alignas(16) int LightCounts[4]{}; // x = numPointLights, y = numSpotLights (INTEGERS)
 	};
-
-	static constexpr GLuint LIGHTING_UBO_BINDING { 1 };
-	static constexpr GLuint LIGHTING_UBO_SIZE_BYTES { sizeof(LightingDataGPU) };
 
 	class LightingUBO {
 	public:

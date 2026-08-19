@@ -20,7 +20,6 @@ layout (std140, binding = 0) uniform CameraData {
     vec4 _Padding;
 };
 
-
 out vec3 v_worldPosition;
 out vec3 v_worldNormal;
 out vec2 v_uv;

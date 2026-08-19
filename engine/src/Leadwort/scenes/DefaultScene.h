@@ -13,17 +13,19 @@ namespace Leadwort::Scenes {
 	public:
 	    void Create() override {
 	        // Default Cube
-			Core::Entity* cube = CreateEntity("Default Cube");
+			Core::Entity* cube { CreateEntity("Default Cube") };
 	        {
 	            auto* mr { cube->AddComponent<Components::MeshRenderer>() };
 				mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
 	        }
 
-			Core::Entity* cube2 = CreateEntity("Default Cube 2");
-			auto* mr { cube2->AddComponent<Components::MeshRenderer>() };
-			mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
-
-    		cube->GetTransform().SetLocalScale(Vec3(5.0f));
+			Core::Entity* water { CreateEntity("Water") };
+	    	water->GetTransform().SetLocalScale(Vec3(100.0f, 1.0f, 100.0f));
+			auto* mr { water->AddComponent<Components::MeshRenderer>() };
+			const auto waterShader { AssetManagement::EngineAssets::GetShader("shaders/shd_water.glsl") };
+			const auto waterMaterial { AssetManagement::EngineAssets::CreateMaterial(waterShader) };
+			mr->mesh = Utils::PrimitiveMeshes::Get().SubdividedPlane(1.0f, 1.0f, 100.0f, 100.0f);
+			mr->mesh->SetMaterial(waterMaterial);
 
 			const auto modelParent { CreateEntity("Scenery") };
 			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scenery.glb") };
@@ -33,8 +35,8 @@ namespace Leadwort::Scenes {
 	        {
 				Core::Entity* e { CreateEntity("Main Camera") };
 	            e->tag = Core::Tags::MAIN_CAMERA;
-	            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-	            e->GetTransform().LookAt(cube->GetTransform());
+	            e->GetTransform().SetLocalPosition(Vec3(15.0f, 6.0f, 7.5f));
+				e->GetTransform().SetLocalRotation(Quat::FromEuler(18.0f, -115.0f, 0.0f));
 
 	            auto* cam = e->AddComponent<Components::Camera>();
 	            cam->CullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;

@@ -4,7 +4,13 @@
 namespace Leadwort::Rendering {
 	// Reserved texture units for engine-wide "global" samplers.
 	// Materials must never bind into this range.
-	namespace GlobalTextureSlots {
+	namespace UBOSlots {
+		static constexpr int CameraDataBinding   { 0 };
+		static constexpr int LightingDataBinding { 1 };
+		static constexpr int TimeDataBinding     { 2 };
+	}
+
+	namespace TextureSlots {
 		static constexpr int ShadowMapSlot     { 15 };
 		static constexpr int IBLIrradianceSlot { 14 };
 		static constexpr int IBLPrefilterSlot  { 13 };

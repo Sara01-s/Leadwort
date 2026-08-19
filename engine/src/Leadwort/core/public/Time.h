@@ -6,8 +6,8 @@ namespace Leadwort::Core {
 	public:
 		Time() = delete;
 
-		static inline float timeScale = 1.0f;
-		static constexpr float FIXED_DELTA_TIME = 1.0f / 60.0f;
+		static inline float TimeScale { 1.0f };
+		static constexpr float FIXED_DELTA_TIME { 1.0f / 60.0f };
 
 		static float GetDeltaTime() { return m_DeltaTime; }
 		static float GetTime()      { return m_Time; }
@@ -17,11 +17,11 @@ namespace Leadwort::Core {
 				m_LastTime = currentTime;
 			}
 
-			const float frameTime = static_cast<float>(currentTime - m_LastTime) * timeScale;
+			const float frameTime = static_cast<float>(currentTime - m_LastTime) * TimeScale;
 
 			m_LastTime    = currentTime;
 			m_DeltaTime   = frameTime;
-			m_Time       += frameTime;
+			m_Time        += frameTime;
 			m_Accumulator += frameTime;
 		}
 
@@ -36,10 +36,10 @@ namespace Leadwort::Core {
 		}
 
 	private:
-		static inline double m_LastTime    = 0.0;
-		static inline float  m_DeltaTime   = 0.0f;
-		static inline float  m_Time        = 0.0f;
-		static inline float  m_Accumulator = 0.0f;
+		static inline double m_LastTime    { 0.0 };
+		static inline float  m_DeltaTime   { 0.0f };
+		static inline float  m_Time        { 0.0f };
+		static inline float  m_Accumulator { 0.0f };
 	};
 
-} // namespace Engine::Core
+}

@@ -33,13 +33,13 @@ const float _BloomThreshold = 1.0;
 const float _BloomIntensity = 0.6;
 const float _BloomRadius = 12.0;
 
-const float _VignetteIntensity = 1.2;
+const float _VignetteIntensity = 1.1;
 const float _Gamma = 1/2.2;
 const float _Exposure = 0.5;
 const float _Brightness = 0.3;
 const float _GrainStrength = 0.01;
 const float _ChromaticAberrationOffset = 0.5;
-const float _ChromaticAberrationIntensity = 0.3; // [0, 1]
+const float _ChromaticAberrationIntensity = 0.0; // [0, 1]
 
 void main() {
     vec2 uv = v_uv;

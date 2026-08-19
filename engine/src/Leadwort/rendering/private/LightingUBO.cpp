@@ -1,6 +1,7 @@
 #include <Leadwort/rendering/public/LightingUBO.h>
 
 #include "Leadwort/components/public/Transform.h"
+#include "Leadwort/rendering/public/rendergraph/GlobalSlots.h"
 
 #include <Leadwort/components/behaviours/public/Light.h>
 #include <Leadwort/core/public/Entity.h>
@@ -11,8 +12,8 @@ namespace Leadwort::Rendering {
 	void LightingUBO::Initialize() {
 		glGenBuffers(1, &m_UBO);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-		glBufferData(GL_UNIFORM_BUFFER, LIGHTING_UBO_SIZE_BYTES, nullptr, GL_DYNAMIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, LIGHTING_UBO_BINDING, m_UBO);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(LightingDataGPU), nullptr, GL_DYNAMIC_DRAW);
+		glBindBufferBase(GL_UNIFORM_BUFFER, UBOSlots::LightingDataBinding, m_UBO);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
@@ -79,7 +80,7 @@ namespace Leadwort::Rendering {
 		data.LightCounts[1] = spotIndex;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, LIGHTING_UBO_SIZE_BYTES, &data);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightingDataGPU), &data);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 

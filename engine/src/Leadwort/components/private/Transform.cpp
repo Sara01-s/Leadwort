@@ -15,8 +15,10 @@ namespace Leadwort::Components {
 
 	void Transform::SetLocalScale(const Vec3& scale) {
 		LW_ASSERT(scale.Length() > 0.0001f, "Transform::SetLocalScale: Scale is too small (near zero).");
+		Vec3 s { scale };
+		s.y = Max(0.0001f, scale.y);
 
-		m_LocalScale = scale;
+		m_LocalScale = s;
 		MarkDirty();
 	}
 
@@ -270,11 +272,7 @@ namespace Leadwort::Components {
 		}
 
 		if (in.contains("scale") && in["scale"].is_array() && in["scale"].size() == 3) {
-			SetLocalScale(Vec3(
-				in["scale"][0].get<float>(),
-				in["scale"][1].get<float>(),
-				in["scale"][2].get<float>()
-			));
+			SetLocalScale(Vec3(in["scale"][0].get<float>(), in["scale"][1].get<float>(), in["scale"][2].get<float>()));
 		}
 
 		MarkDirty();

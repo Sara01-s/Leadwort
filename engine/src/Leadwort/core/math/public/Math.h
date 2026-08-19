@@ -76,6 +76,8 @@ inline constexpr int IntInfinity { std::numeric_limits<int>::infinity() };
 [[nodiscard]] inline float Exp(const float v)                { return std::exp(v); }
 [[nodiscard]] inline float Min(const float a, const float b) { return std::min(a, b); }
 [[nodiscard]] inline float Max(const float a, const float b) { return std::max(a, b); }
+[[nodiscard]] inline int Min(const int a, const int b)		 { return std::min(a, b); }
+[[nodiscard]] inline int Max(const int a, const int b)		 { return std::max(a, b); }
 
 [[nodiscard]] inline float Sin(const float rad)              { return std::sin(rad); }
 [[nodiscard]] inline float Cos(const float rad)              { return std::cos(rad); }

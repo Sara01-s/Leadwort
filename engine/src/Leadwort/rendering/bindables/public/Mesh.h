@@ -50,6 +50,7 @@ public:
 	}
 
 	void SetMaterial(const Shared<Material>& material) { m_MeshData.material = material; }
+	void SetTopology(const GLenum topology) { m_MeshData.topology = topology; }
 
 private:
 	MeshData m_MeshData;
