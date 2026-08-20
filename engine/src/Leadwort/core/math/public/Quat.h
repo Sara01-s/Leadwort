@@ -10,10 +10,10 @@
 namespace Leadwort {
 
 struct Quat {
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
-	float w = 1.0f;
+	float x { 0.0f };
+	float y { 0.0f };
+	float z { 0.0f };
+	float w { 1.0f };
 
 	constexpr Quat() = default;
 	constexpr Quat(const float x, const float y, const float z, const float w) : x(x), y(y), z(z), w(w) {}

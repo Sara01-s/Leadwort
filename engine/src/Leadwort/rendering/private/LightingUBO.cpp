@@ -76,8 +76,8 @@ namespace Leadwort::Rendering {
 			}
 		}
 
-		data.LightCounts[0] = pointIndex;
-		data.LightCounts[1] = spotIndex;
+		data.LightCounts.x = pointIndex;
+		data.LightCounts.y = spotIndex;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightingDataGPU), &data);

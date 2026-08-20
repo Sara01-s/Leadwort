@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Leadwort/core/math/public/IntVec4.h"
 #include "Leadwort/core/math/public/Mat4.h"
 #include "Leadwort/core/math/public/Vec4.h"
 
@@ -36,7 +37,7 @@ namespace Leadwort::Rendering {
 		std::array<PointLightGPU, MAX_POINT_LIGHTS> PointLights;
 		std::array<SpotLightGPU, MAX_SPOT_LIGHTS> SpotLights;
 		Mat4 LightSpaceMatrix{};
-		alignas(16) int LightCounts[4]{}; // x = numPointLights, y = numSpotLights (INTEGERS)
+		IntVec4 LightCounts{};
 	};
 
 	class LightingUBO {

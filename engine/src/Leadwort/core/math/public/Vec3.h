@@ -8,9 +8,9 @@
 namespace Leadwort {
 
 struct Vec3 {
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
+	float x { 0.0f };
+	float y { 0.0f };
+	float z { 0.0f };
 
 	explicit constexpr Vec3() = default;
 	explicit constexpr Vec3(const float x, const float y, const float z) : x(x), y(y), z(z) {}

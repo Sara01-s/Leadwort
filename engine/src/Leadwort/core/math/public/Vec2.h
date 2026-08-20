@@ -8,8 +8,8 @@
 namespace Leadwort {
 
 struct Vec2 {
-	float x = 0.0f;
-	float y = 0.0f;
+	float x { 0.0f };
+	float y { 0.0f };
 
 	explicit constexpr Vec2() = default;
 	explicit constexpr Vec2(const float x, const float y) : x(x), y(y) {}

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "IntVec2.h"
+#include "IntVec3.h"
+#include "IntVec4.h"
 #include "Mat3.h"
 #include "Mat4.h"
 #include "Quat.h"
@@ -378,6 +381,56 @@ template<typename... Args>
 }
 
 [[nodiscard]] inline float EaseInBounce(const float t) { return 1.0f - EaseOutBounce(1.0f - t); }
+
+[[nodiscard]] inline int Clamp(const int v, const int lo, const int hi) { return std::clamp(v, lo, hi); }
+[[nodiscard]] inline int Abs(const int v) { return std::abs(v); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IntVec2
+// ─────────────────────────────────────────────────────────────────────────────
+
+[[nodiscard]] inline int   Dot(const IntVec2& a, const IntVec2& b)           { return a.Dot(b); }
+[[nodiscard]] inline float Length(const IntVec2& v)                          { return v.Length(); }
+[[nodiscard]] inline int   LengthSquared(const IntVec2& v)                   { return v.LengthSq(); }
+[[nodiscard]] inline float Distance(const IntVec2& a, const IntVec2& b)      { return (b - a).Length(); }
+[[nodiscard]] inline int   DistanceSq(const IntVec2& a, const IntVec2& b)    { return (b - a).LengthSq(); }
+[[nodiscard]] inline IntVec2 Abs(const IntVec2& v)                           { return IntVec2(Abs(v.x), Abs(v.y)); }
+[[nodiscard]] inline IntVec2 Min(const IntVec2& a, const IntVec2& b)         { return IntVec2(Min(a.x, b.x), Min(a.y, b.y)); }
+[[nodiscard]] inline IntVec2 Max(const IntVec2& a, const IntVec2& b)         { return IntVec2(Max(a.x, b.x), Max(a.y, b.y)); }
+[[nodiscard]] inline IntVec2 Clamp(const IntVec2& v, const IntVec2& lo, const IntVec2& hi) {
+    return IntVec2(Clamp(v.x, lo.x, hi.x), Clamp(v.y, lo.y, hi.y));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IntVec3
+// ─────────────────────────────────────────────────────────────────────────────
+
+[[nodiscard]] inline int     Dot(const IntVec3& a, const IntVec3& b)           { return a.Dot(b); }
+[[nodiscard]] inline IntVec3 Cross(const IntVec3& a, const IntVec3& b)         { return a.Cross(b); }
+[[nodiscard]] inline float   Length(const IntVec3& v)                          { return v.Length(); }
+[[nodiscard]] inline int     LengthSquared(const IntVec3& v)                   { return v.LengthSquared(); }
+[[nodiscard]] inline float   Distance(const IntVec3& a, const IntVec3& b)      { return (b - a).Length(); }
+[[nodiscard]] inline int     DistanceSq(const IntVec3& a, const IntVec3& b)    { return (b - a).LengthSquared(); }
+[[nodiscard]] inline IntVec3 Abs(const IntVec3& v)                             { return IntVec3(Abs(v.x), Abs(v.y), Abs(v.z)); }
+[[nodiscard]] inline IntVec3 Min(const IntVec3& a, const IntVec3& b)           { return IntVec3(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z)); }
+[[nodiscard]] inline IntVec3 Max(const IntVec3& a, const IntVec3& b)           { return IntVec3(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z)); }
+[[nodiscard]] inline IntVec3 Clamp(const IntVec3& v, const IntVec3& lo, const IntVec3& hi) {
+    return IntVec3(Clamp(v.x, lo.x, hi.x), Clamp(v.y, lo.y, hi.y), Clamp(v.z, lo.z, hi.z));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  IntVec4
+// ─────────────────────────────────────────────────────────────────────────────
+
+[[nodiscard]] inline int     Dot(const IntVec4& a, const IntVec4& b)           { return a.Dot(b); }
+[[nodiscard]] inline float   Length(const IntVec4& v)                          { return v.Length(); }
+[[nodiscard]] inline int     LengthSquared(const IntVec4& v)                   { return v.LengthSq(); }
+[[nodiscard]] inline IntVec4 Abs(const IntVec4& v)                             { return IntVec4(Abs(v.x), Abs(v.y), Abs(v.z), Abs(v.w)); }
+[[nodiscard]] inline IntVec4 Min(const IntVec4& a, const IntVec4& b)           { return IntVec4(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z), Min(a.w, b.w)); }
+[[nodiscard]] inline IntVec4 Max(const IntVec4& a, const IntVec4& b)           { return IntVec4(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z), Max(a.w, b.w)); }
+[[nodiscard]] inline IntVec4 Clamp(const IntVec4& v, const IntVec4& lo, const IntVec4& hi) {
+    return IntVec4(Clamp(v.x, lo.x, hi.x), Clamp(v.y, lo.y, hi.y), Clamp(v.z, lo.z, hi.z), Clamp(v.w, lo.w, hi.w));
+}
 
 } // namespace Engine
 

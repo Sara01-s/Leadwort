@@ -8,10 +8,10 @@ struct Vec2;
 struct Vec3;
 
 struct Vec4 {
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
-	float w = 0.0f;
+	float x { 0.0f };
+	float y { 0.0f };
+	float z { 0.0f };
+	float w { 0.0f };
 
 	explicit constexpr Vec4() = default;
 	explicit constexpr Vec4(const float x, const float y, const float z, const float w) : x(x), y(y), z(z), w(w) {}
