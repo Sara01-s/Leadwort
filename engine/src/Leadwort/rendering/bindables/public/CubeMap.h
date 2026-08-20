@@ -15,8 +15,8 @@ public:
 
 	CubeMap(const CubeMap&)            = delete;
 	CubeMap& operator=(const CubeMap&) = delete;
-	CubeMap(CubeMap&&)                 = default;
-	CubeMap& operator=(CubeMap&&)      = default;
+	CubeMap(CubeMap&&)                 = delete;
+	CubeMap& operator=(CubeMap&&)      = delete;
 
 	void Bind(int slot) const;
 	void Bind()   const noexcept override;

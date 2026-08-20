@@ -112,7 +112,8 @@ void main() {
         directLighting += calcSpotLight(_SpotLights[i], F0, albedo, N, V, roughness, metallic, v_worldPosition);
     }
 
-    vec3 ambientLight = AMBIENT_LIGHT * albedo * ao;
+    // Ambient light with IBL
+    vec3 ambientLight = PBR_IBL(F0, albedo, N, V, roughness, metallic, ao);
     vec3 color = emission + ambientLight + directLighting;
 
     color = pow(color, vec3(1.0 / 2.2));

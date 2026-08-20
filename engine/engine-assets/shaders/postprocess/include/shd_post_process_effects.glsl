@@ -65,15 +65,15 @@ float getCoC(float linearDepth, float focusDistance, float focusRange) {
 }
 
 vec3 applyDepthOfField(
-    sampler2D screenTex,
-    sampler2D depthTex,
-    vec2 uv,
-    vec2 texelSize,
-    float focusDistance,
-    float focusRange,
-    float maxBlurRadius,
-    float nearPlane,
-    float farPlane
+        sampler2D screenTex,
+        sampler2D depthTex,
+        vec2 uv,
+        vec2 texelSize,
+        float focusDistance,
+        float focusRange,
+        float maxBlurRadius,
+        float nearPlane,
+        float farPlane
 ) {
     float rawDepth = texture(depthTex, uv).r;
     float centerLinearDepth = linearizeDepth(rawDepth, nearPlane, farPlane);
@@ -101,8 +101,8 @@ vec3 applyDepthOfField(
         float sampleCoC = getCoC(sampleLinearDepth, focusDistance, focusRange);
 
         float depthWeight = sampleLinearDepth <= centerLinearDepth
-            ? 1.0
-            : clamp(sampleCoC / max(centerCoC, 0.001), 0.0, 1.0);
+        ? 1.0
+        : clamp(sampleCoC / max(centerCoC, 0.001), 0.0, 1.0);
 
         vec3 sampleColor = texture(screenTex, offsetUV).rgb;
 
@@ -126,12 +126,12 @@ vec3 extractBrightness(vec3 color, float threshold) {
 }
 
 vec3 applyBloom(
-    sampler2D screenTex,
-    vec2 uv,
-    vec2 texelSize,
-    float threshold,
-    float intensity,
-    float radius
+        sampler2D screenTex,
+        vec2 uv,
+        vec2 texelSize,
+        float threshold,
+        float intensity,
+        float radius
 ) {
     vec3 bloomAcc = vec3(0.0);
     const int SAMPLE_COUNT = 16;
@@ -148,4 +148,32 @@ vec3 applyBloom(
 
     bloomAcc /= float(SAMPLE_COUNT);
     return bloomAcc * intensity;
+}
+
+// Screen Space Fog
+vec3 reconstructWorldPos(vec2 uv, float depth, mat4 invViewProj) {
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 worldPos = invViewProj * clipPos;
+
+    return worldPos.xyz / worldPos.w;
+}
+
+vec3 applyScreenSpaceFog(
+        vec3 sceneColor,
+        vec3 worldPos,
+        vec3 cameraPos,
+        vec3 fogColor,
+        float fogHeight,
+        float fogAttenuation,
+        float fogDensity,
+        float fogOffset
+) {
+    float height = min(fogHeight, worldPos.y) / fogHeight;
+    height = pow(clamp(height, 0.0, 1.0), 1.0 / fogAttenuation);
+
+    float viewDistance = length(cameraPos - worldPos);
+    float fogFactor = fogDensity * max(0.0, viewDistance - fogOffset);
+    fogFactor = exp2(-fogFactor * fogFactor);
+
+    return mix(fogColor, sceneColor, clamp(height + fogFactor, 0.0, 1.0));
 }

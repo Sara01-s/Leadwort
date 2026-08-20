@@ -1,7 +1,9 @@
 #pragma once
 
-#include <Leadwort/rendering/public/rendergraph/RenderGraph.h>
+#include "Leadwort/rendering/IBLBaker.h"
+
 #include <Leadwort/core/public/Core.h>
+#include <Leadwort/rendering/public/rendergraph/RenderGraph.h>
 
 #include <memory>
 
@@ -32,6 +34,7 @@ namespace Leadwort::Core {
 		Unique<Rendering::RG::RenderTexture> m_SceneColorTex{};
 		Unique<Rendering::RG::RenderTexture> m_SceneDepthTex{};
 		Unique<Rendering::RG::RenderTexture> m_ShadowMap{};
+		Unique<Rendering::IBLBaker::Result> m_IBLResult;
 
 		Rendering::RG::RenderGraph m_GameRenderGraph{};
 		Rendering::RG::RenderGraph m_SceneRenderGraph{};

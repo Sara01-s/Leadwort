@@ -7,23 +7,17 @@ namespace Leadwort::Rendering {
 		const auto shader = AssetManagement::EngineAssets::GetShader("shaders/shd_skybox.glsl");
 		m_SkyboxMaterial = AssetManagement::EngineAssets::CreateMaterial(shader);
 
-		constexpr float vertices[] = {
+		constexpr float vertices[] {
 			-1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
 			-1.0f, -1.0f, 1.0f,  1.0f, -1.0f, 1.0f,  1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f
 		};
 
-		constexpr int indices[] = {
-			// -Z
+		constexpr int indices[] {
 			2, 1, 0,  3, 2, 0,
-			// +Z
 			5, 6, 4,  6, 7, 4,
-			// -X
 			7, 3, 0,  4, 7, 0,
-			// +X
 			6, 5, 1,  2, 6, 1,
-			// -Y
 			5, 4, 0,  1, 5, 0,
-			// +Y
 			6, 2, 3,  7, 6, 3,
 		};
 
@@ -46,6 +40,10 @@ namespace Leadwort::Rendering {
 
 		const auto& exrTexture { AssetManagement::EngineAssets::GetTexture(exrPath) };
 		m_SkyboxMaterial->SetTexture("_SkyboxTexture", exrTexture);
+
+		m_SkyboxMaterial->SetFloat("_RotationDegrees", m_RotationDegrees);
+		m_SkyboxMaterial->SetVec3("_Tint", m_Tint);
+		m_SkyboxMaterial->SetFloat("_Exposure", m_Exposure);
 	}
 
 	Skybox::~Skybox() {
@@ -68,6 +66,21 @@ namespace Leadwort::Rendering {
 		glDepthMask(GL_TRUE);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
+	}
+
+	void Skybox::SetRotation(const float degrees) noexcept {
+		m_RotationDegrees = degrees;
+		m_SkyboxMaterial->SetFloat("_RotationDegrees", degrees);
+	}
+
+	void Skybox::SetTint(const Vec3& tint) noexcept {
+		m_Tint = tint;
+		m_SkyboxMaterial->SetVec3("_Tint", tint);
+	}
+
+	void Skybox::SetExposure(const float exposure) noexcept {
+		m_Exposure = exposure;
+		m_SkyboxMaterial->SetFloat("_Exposure", exposure);
 	}
 
 }

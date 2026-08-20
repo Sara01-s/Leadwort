@@ -21,6 +21,7 @@ namespace Leadwort::Scenes {
 
 			Core::Entity* water { CreateEntity("Water") };
 	    	water->GetTransform().SetLocalScale(Vec3(100.0f, 1.0f, 100.0f));
+	    	water->GetTransform().SetLocalPosition(Vec3(0.0f, -3.0f, 0.0f));
 			auto* mr { water->AddComponent<Components::MeshRenderer>() };
 			const auto waterShader { AssetManagement::EngineAssets::GetShader("shaders/shd_water.glsl") };
 			const auto waterMaterial { AssetManagement::EngineAssets::CreateMaterial(waterShader) };
@@ -35,11 +36,14 @@ namespace Leadwort::Scenes {
 	        {
 				Core::Entity* e { CreateEntity("Main Camera") };
 	            e->tag = Core::Tags::MAIN_CAMERA;
-	            e->GetTransform().SetLocalPosition(Vec3(15.0f, 6.0f, 7.5f));
-				e->GetTransform().SetLocalRotation(Quat::FromEuler(18.0f, -115.0f, 0.0f));
+	            e->GetTransform().SetLocalPosition(Vec3(-5.0f, 2.0f, -2.0f));
+				e->GetTransform().SetLocalRotation(Quat::FromEuler(360.0f, 45.0f, 0.0f));
 
 	            auto* cam = e->AddComponent<Components::Camera>();
 	            cam->CullingMask = Utils::Layers::EVERYTHING & ~Utils::Layers::SCENE;
+				cam->Background = Components::Camera::SkyBox {
+					.Sky = CreateUnique<Rendering::Skybox>("textures/skyboxes/tex_sky.exr")
+				};
 	        }
 
 	        // Scene Camera
@@ -63,7 +67,7 @@ namespace Leadwort::Scenes {
 	        {
 				Core::Entity* e { CreateEntity("Directional Light") };
 	            e->AddComponent<Components::Behaviours::Light>();
-				e->GetTransform().SetLocalRotation(Quat::FromEuler(135.0f, -45.0f, -45.0f));
+				e->GetTransform().SetLocalRotation(Quat::FromEuler(170.0f, -45.0f, -45.0f));
 	        }
 	    }
 	};

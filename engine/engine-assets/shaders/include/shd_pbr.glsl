@@ -1,6 +1,12 @@
 #ifndef LW_PBR_HLSL
 #define LW_PBR_HLSL
 
+layout(binding = 14) uniform samplerCube _IBLIrradiance;
+layout(binding = 13) uniform samplerCube _IBLPrefilter;
+layout(binding = 12) uniform sampler2D   _IBLBrdfLUT;
+
+const float MAX_PREFILTER_LOD = 4.0; // mipLevels - 1, must match IBLBaker::PrefilterEnvironment
+
 uniform vec4  _Color;
 uniform float _MetallicIntensity;
 uniform float _RoughnessIntensity;
@@ -42,17 +48,21 @@ uniform float _RoughnessIntensity;
     uniform vec4 _AmbientOcclusionTexture_ST;
 #endif
 
+// ----------------------------------------------------------------
 vec2 applyST(vec2 uv, vec4 st) {
     return uv * st.xy + st.zw;
 }
 
-const vec3 AMBIENT_LIGHT = vec3(0.03, 0.03, 0.04);
+const vec3 AMBIENT_LIGHT = vec3(0.03, 0.03, 0.04); // Unused when using IBL.
 
 vec3 linearColorSpace(vec3 color) {
     return pow(color, vec3(2.2));
 }
 
-// ----------------------------------------------------------------
+vec3 fresnelRoughness(vec3 F0, vec3 V, vec3 N, float roughness) {
+    float NdotV = max(dot(N, V), 0.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+}
 
 vec3 sampleAlbedo(vec2 uv) {
     vec3 albedo = linearColorSpace(_Color.rgb);
@@ -270,6 +280,30 @@ vec3 PBR(
     vec3 emissivity = emission + ambientLight;
 
     return emissivity + direct;
+}
+
+vec3 PBR_IBL(
+    vec3 F0,
+    vec3 albedo,
+    vec3 N, vec3 V,
+    float roughness,
+    float metallic,
+    float ao
+) {
+    vec3 Ks = fresnelRoughness(F0, V, N, roughness);
+    vec3 Kd = (1.0 - Ks) * (1.0 - metallic);
+
+    // Diffuse
+    vec3 irradiance = texture(_IBLIrradiance, N).rgb;
+    vec3 diffuseIBL = irradiance * albedo;
+
+    // Specular
+    vec3 R = reflect(-V, N);
+    vec3 prefilteredColor = textureLod(_IBLPrefilter, R, roughness * MAX_PREFILTER_LOD).rgb;
+    vec2 brdf = texture(_IBLBrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specularIBL = prefilteredColor * (F0 * brdf.x + brdf.y);
+
+    return (Kd * diffuseIBL + specularIBL) * ao;
 }
 
 /*

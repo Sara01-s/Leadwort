@@ -39,8 +39,8 @@ namespace Leadwort::Core {
 	    SceneSystem::Get().LoadDefaultScene();
 	    SceneSystem::Get().LoadPendingScene();
 
-		const int windowWidth = Window::Get().GetWidth();
-		const int windowHeight = Window::Get().GetHeight();
+		const int windowWidth { Window::Get().GetWidth() };
+		const int windowHeight { Window::Get().GetHeight() };
 
 		m_GameColorTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
 		m_GameDepthTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
@@ -48,6 +48,9 @@ namespace Leadwort::Core {
 		m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8);
 		m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
 		m_ShadowMap		 = CreateUnique<RenderTexture>(2048, 2048, RenderTexture::Format::ShadowDepth32F);
+
+		const auto skyHDRI { AssetManagement::EngineAssets::GetTexture("textures/skyboxes/tex_sky.exr") };
+		m_IBLResult = CreateUnique<Rendering::IBLBaker::Result>(Rendering::IBLBaker::Bake(*skyHDRI));
 
 		BuildRenderGraphs();
 	}
@@ -61,21 +64,22 @@ namespace Leadwort::Core {
 		RenderTexture& sceneColor { *m_SceneColorTex };
 		RenderTexture& sceneDepth { *m_SceneDepthTex };
 		RenderTexture& shadowMap { *m_ShadowMap };
+		const Rendering::IBLBaker::Result& ibl { *m_IBLResult };
 
 		m_GameRenderGraph.AddPass<BackgroundPass>(gameColor, gameDepth);
 		m_GameRenderGraph.AddPass<ShadowMapPass>(shadowMap);
-		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth, shadowMap);
-		m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth);
-		m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth);
+		m_GameRenderGraph.AddPass<OpaquePass>(gameColor, gameDepth, shadowMap, ibl);
+		m_GameRenderGraph.AddPass<AlphaTestPass>(gameColor, gameDepth, ibl);
+		m_GameRenderGraph.AddPass<TransparentPass>(gameColor, gameDepth, ibl);
 		m_GameRenderGraph.AddPass<PostProcessPass>(gameColor, postColor, gameDepth);
 		m_GameRenderGraph.Compile();
 
 		m_SceneRenderGraph.AddPass<BackgroundPass>(sceneColor, sceneDepth);
 		m_SceneRenderGraph.AddPass<ShadowMapPass>(shadowMap);
-		m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth, shadowMap);
-		m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<OpaquePass>(sceneColor, sceneDepth, shadowMap, ibl);
+		m_SceneRenderGraph.AddPass<AlphaTestPass>(sceneColor, sceneDepth, ibl);
 		m_SceneRenderGraph.AddPass<GridPass>(sceneColor, sceneDepth);
-		m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth);
+		m_SceneRenderGraph.AddPass<TransparentPass>(sceneColor, sceneDepth, ibl);
 		m_SceneRenderGraph.AddPass<OutlinePass>(sceneColor, sceneDepth);
 		m_SceneRenderGraph.Compile();
 	}
@@ -154,7 +158,7 @@ namespace Leadwort::Core {
 		}
 	}
 
-void Game::SetHighlightedEntity(const EntityID entityID) {
+	void Game::SetHighlightedEntity(const EntityID entityID) {
 		if (entityID == Entity::ROOT_ENTITY_ID) {
 			return;
 		}

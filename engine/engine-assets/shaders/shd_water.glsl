@@ -23,15 +23,15 @@ layout(std140, binding = 2) uniform TimeData {
 const int   WAVE_COUNT           = 8;      // vertexWaveCount
 const float WAVE_SEED            = 0.0;
 const float WAVE_SEED_ITER       = 1253.2131;
-const float WAVE_FREQUENCY       = 0.15;
+const float WAVE_FREQUENCY       = 0.02;
 const float WAVE_FREQUENCY_MULT  = 1.18;
 const float WAVE_AMPLITUDE       = 1.0;
 const float WAVE_AMPLITUDE_MULT  = 0.82;
-const float WAVE_SPEED           = 2.0;    // vertexInitialSpeed
-const float WAVE_SPEED_RAMP      = 1.07;
+const float WAVE_SPEED           = 0.05;    // vertexInitialSpeed
+const float WAVE_SPEED_RAMP      = 1.02;
 const float WAVE_DRAG            = 1.0;
 const float WAVE_HEIGHT          = 2.5;
-const float WAVE_MAX_PEAK        = 1.0;
+const float WAVE_MAX_PEAK        = 0.9;
 const float WAVE_PEAK_OFFSET     = 1.0;
 
 out vec2 v_uv;
@@ -115,23 +115,32 @@ layout(std140, binding = 2) uniform TimeData {
 	vec4 _Time;
 };
 
+layout(binding = 13) uniform samplerCube _IBLPrefilter;
+
 const vec3  SUN_DIRECTION        = vec3(0.3, -0.15, 0.9);
 const vec3  SUN_COLOR            = vec3(1.0, 0.95, 0.85);
 
-const vec3  DEEP_COLOR           = vec3(0.01, 0.04, 0.08);
-const vec3  SHALLOW_COLOR        = vec3(0.1, 0.6, 0.85);
+const vec3  DEEP_COLOR    		 = vec3(0.02, 0.03, 0.04);
+const vec3  SHALLOW_COLOR  		 = vec3(0.15, 0.17, 0.19);
 
 const vec3  SPECULAR_COLOR       = vec3(1.0, 1.0, 0.95);
 
-const float FRESNEL_BIAS         = 0.02;
-const float FRESNEL_STRENGTH     = 0.6;
-const float FRESNEL_POWER        = 4.0;
+const float FRESNEL_BIAS         = 0.05;
+const float FRESNEL_STRENGTH     = 1.0;
+const float FRESNEL_POWER        = 3.0;
 
 const vec3  TIP_COLOR            = vec3(0.9, 0.95, 1.0);
-const float FOAM_THRESHOLD       = 1.6;
-const float FOAM_SOFTNESS        = 0.5;
+const float FOAM_THRESHOLD       = 1.5;
+const float FOAM_SOFTNESS        = 0.15;
 
-const int   FRAG_WAVE_COUNT      = 32;
+const vec3  FOG_COLOR            = vec3(0.55, 0.65, 0.75);
+const float FOG_DENSITY          = 0.008;
+const float FOG_OFFSET           = 20.0;
+
+const float SUN_DISC_EXPONENT    = 3500.0;
+const float SUN_DISC_INTENSITY   = 8.0;
+
+const int   FRAG_WAVE_COUNT      = 40;
 const float FRAG_SEED            = 0.0;
 const float FRAG_SEED_ITER       = 1253.2131;
 const float FRAG_FREQUENCY       = 0.6;
@@ -142,7 +151,7 @@ const float FRAG_SPEED           = 2.0;
 const float FRAG_SPEED_RAMP      = 1.07;
 const float FRAG_DRAG            = 1.0;
 const float FRAG_MAX_PEAK        = 1.0;
-const float FRAG_PEAK_OFFSET     = 1.0;
+const float FRAG_PEAK_OFFSET     = 0.5;
 
 in vec2 v_uv;
 in vec3 v_worldPos;
@@ -199,16 +208,27 @@ void main() {
 	float specTight = pow(max(dot(normal, halfwayDir), 0.0), 800.0);
 	vec3 specular = SUN_COLOR * SPECULAR_COLOR * (specWide * 0.6 + specTight * 3.0);
 
+	vec3 reflectedDir = reflect(-viewDir, normal);
+	float sunDisc = pow(max(dot(reflectedDir, lightDir), 0.0), SUN_DISC_EXPONENT);
+	vec3 sun = SUN_COLOR * sunDisc * SUN_DISC_INTENSITY;
+
 	float fresnelBase = 1.0 - max(dot(viewDir, normal), 0.0);
 	float fresnel = FRESNEL_BIAS + (1.0 - FRESNEL_BIAS) * pow(fresnelBase, FRESNEL_POWER);
 	fresnel *= FRESNEL_STRENGTH;
 
-	vec3 skyColor = vec3(0.5, 0.65, 0.8);
+	vec3 skyColor = textureLod(_IBLPrefilter, reflectedDir, 0.0).rgb;
 	vec3 reflection = mix(baseColor, skyColor, clamp(fresnel, 0.0, 1.0));
 
 	float foamAmount = smoothstep(FOAM_THRESHOLD, FOAM_THRESHOLD + FOAM_SOFTNESS, v_height);
 	vec3 foam = TIP_COLOR * foamAmount;
 
-	vec3 finalColor = reflection + specular + foam;
+	vec3 colorBeforeFog = reflection + specular + sun + foam;
+
+	float viewDistance = length(_CameraPosition.xyz - v_worldPos);
+	float fogFactor = FOG_DENSITY * max(0.0, viewDistance - FOG_OFFSET);
+	fogFactor = exp2(-fogFactor * fogFactor);
+
+	vec3 finalColor = mix(FOG_COLOR, colorBeforeFog, clamp(fogFactor, 0.0, 1.0));
+
 	fragColor = vec4(finalColor, 1.0) * _Color;
 }

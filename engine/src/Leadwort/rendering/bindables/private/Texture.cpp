@@ -42,6 +42,18 @@ namespace Leadwort::Rendering::Bindables {
 		glBindTexture(GL_TEXTURE_2D, m_GpuID);
 
 		m_Channels = 4;
+
+		const size_t pixelCount = static_cast<size_t>(m_Width) * m_Height * 4;
+		for (size_t i = 0; i < pixelCount; i++) {
+			if (!std::isfinite(exrData[i])) {
+				exrData[i] = 0.0f; // NaN/inf -> discard
+			}
+			else {
+				constexpr float MAX_HALF_FLOAT = 65000.0f;
+				exrData[i] = std::min(exrData[i], MAX_HALF_FLOAT);
+			}
+		}
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_Width, m_Height, 0, GL_RGBA, GL_FLOAT, exrData);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
