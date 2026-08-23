@@ -12,7 +12,9 @@ uniform float _MetallicIntensity;
 uniform float _RoughnessIntensity;
 
 #ifdef HAS_TANGENTS
-    in mat3 v_tbn;
+    #ifndef HAS_TANGENTS
+        out mat3 v_tbn;
+    #endif
 #endif
 
 #ifdef HAS_DIFFUSE

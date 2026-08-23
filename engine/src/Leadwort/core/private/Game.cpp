@@ -28,7 +28,7 @@ namespace Leadwort::Core {
 	using namespace Systems;
 
 	Game::Game() {
-		if (!Window::Get().Initialize(1920, 1080, "Leadwort")) {
+		if (!Window::Get().Initialize(1920, 1080, "Leadwort Engine")) {
 			LW_ERROR("Error to initialize Engine");
 		}
 

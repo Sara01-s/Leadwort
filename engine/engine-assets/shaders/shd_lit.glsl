@@ -61,12 +61,12 @@ in vec2 v_uv;
 in vec3 v_cameraPosition;
 in vec4 v_lightSpacePosition;
 
+#ifdef HAS_TANGENTS
+    out mat3 v_tbn;
+#endif
+
 #include "include/shd_pbr.glsl"
 #include "include/shd_lighting.glsl"
-
-#ifdef HAS_TANGENTS
-    in mat3 v_tbn;
-#endif
 
 layout(location = 0) out vec4 fragColor;
 

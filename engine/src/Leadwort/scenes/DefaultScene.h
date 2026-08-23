@@ -29,7 +29,7 @@ namespace Leadwort::Scenes {
 			mr->mesh->SetMaterial(waterMaterial);
 
 			const auto modelParent { CreateEntity("Scenery") };
-			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scenery.glb") };
+			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scenery_v2.glb") };
 			model->Instantiate(*modelParent);
 
 	        // Main Camera
