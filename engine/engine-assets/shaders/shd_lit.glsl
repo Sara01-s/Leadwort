@@ -62,7 +62,7 @@ in vec3 v_cameraPosition;
 in vec4 v_lightSpacePosition;
 
 #ifdef HAS_TANGENTS
-    out mat3 v_tbn;
+    in mat3 v_tbn;
 #endif
 
 #include "include/shd_pbr.glsl"
@@ -78,7 +78,7 @@ void main() {
     float roughness = sampleRoughness(uv);
     float metallic  = sampleMetallic(uv);
 
-    if (alpha < 0.1) {
+    if (alpha < _AlphaCutoff) {
         discard;
     }
 

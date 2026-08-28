@@ -42,12 +42,12 @@ namespace Leadwort::Core {
 		const int windowWidth { Window::Get().GetWidth() };
 		const int windowHeight { Window::Get().GetHeight() };
 
-		m_GameColorTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
-		m_GameDepthTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
-		m_PostProcessTex = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F);
-		m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8);
-		m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8);
-		m_ShadowMap		 = CreateUnique<RenderTexture>(2048, 2048, RenderTexture::Format::ShadowDepth32F);
+		m_GameColorTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F, "Game Color");
+		m_GameDepthTex   = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8, "Game Depth");
+		m_PostProcessTex = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA16F, "Post Process Color");
+		m_SceneColorTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::RGBA8, "Scene Color");
+		m_SceneDepthTex  = CreateUnique<RenderTexture>(windowWidth, windowHeight, RenderTexture::Format::Depth24Stencil8, "Scene Depth");
+		m_ShadowMap		 = CreateUnique<RenderTexture>(2048, 2048, RenderTexture::Format::ShadowDepth32F, "Shadow Map");
 
 		const auto skyHDRI { AssetManagement::EngineAssets::GetTexture("textures/skyboxes/tex_sky.exr") };
 		m_IBLResult = CreateUnique<Rendering::IBLBaker::Result>(Rendering::IBLBaker::Bake(*skyHDRI));
@@ -159,17 +159,25 @@ namespace Leadwort::Core {
 	}
 
 	void Game::SetHighlightedEntity(const EntityID entityID) {
-		if (entityID == Entity::ROOT_ENTITY_ID) {
+		RenderSystem& renderSystem { RenderSystem::Get() };
+
+		const IScene* scene { SceneSystem::Get().GetCurrentScene() };
+		Entity* entity { nullptr };
+
+		if (scene != nullptr && entityID != Entity::ROOT_ENTITY_ID) {
+			const auto& entityMap { scene->GetEntityMap() };
+
+			if (const auto it { entityMap.find(entityID) }; it != entityMap.end()) {
+				entity = it->second.get();
+			}
+		}
+
+		if (entity == nullptr || !entity->HasComponent<Components::MeshRenderer>()) {
+			renderSystem.SetHighlightedEntity(nullptr);
 			return;
 		}
 
-		auto const& entity { SceneSystem::Get().GetCurrentScene()->GetEntity(entityID) };
-
-		if (!entity || !entity->HasComponent<Components::MeshRenderer>()) {
-			return;
-		}
-
-		RenderSystem::Get().SetHighlightedEntity(entity);
+		renderSystem.SetHighlightedEntity(entity);
 	}
 
 } // namespace Engine::Core

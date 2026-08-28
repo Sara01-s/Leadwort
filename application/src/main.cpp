@@ -9,7 +9,7 @@
 #include "LeadwortEditor/windows/public/ConsoleWindow.h"
 #include "LeadwortEditor/windows/public/HierarchyWindow.h"
 #include "LeadwortEditor/windows/public/InspectorWindow.h"
-#include "LeadwortEditor/windows/public/SceneTools.h"
+#include "LeadwortEditor/windows/public/RenderGraphWindow.h"
 #include "LeadwortEditor/windows/public/ToolsWindow.h"
 
 #include <LeadwortEditor/core/public/EditorCore.h>
@@ -71,7 +71,7 @@ int main() {
 		Leadwort::CreateUnique<Windows::ConsoleWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::InspectorWindow>(editorContext),
 		Leadwort::CreateUnique<Windows::AssetsWindow>(editorContext),
-		Leadwort::CreateUnique<Windows::SceneTools>(editorContext),
+		Leadwort::CreateUnique<Windows::RenderGraphWindow>(game),
 		Leadwort::CreateUnique<Core::ToolsWindow>(editorContext)
 	);
 

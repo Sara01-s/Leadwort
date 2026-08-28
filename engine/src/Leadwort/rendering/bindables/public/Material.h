@@ -8,6 +8,7 @@
 #include <Leadwort/core/math/public/Math.h>
 #include <Leadwort/core/public/Core.h>
 #include <Leadwort/rendering/public/RenderPipelineState.h>
+#include <Leadwort/rendering/public/RenderQueue.h>
 
 #include <glad/glad.h>
 #include <string>
@@ -29,6 +30,11 @@ namespace Leadwort::Rendering::Bindables {
 		};
 
 		RenderPipelineState pipelineState { RenderPipelineState::Opaque() };
+
+		// Which pass draws this material. Set on import from the glTF alphaMode; the
+		// scene collector reads the renderer's copy, so renderers pull it across with
+		// MeshRenderer::SyncRenderQueueFromMaterial().
+		RenderQueue renderQueue { RenderQueue::Opaque };
 
 	public:
 		explicit Material(const Shared<Shader>& shader, AssetManagement::AssetKey<Material>);

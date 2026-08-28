@@ -29,12 +29,19 @@ namespace Leadwort::Rendering::RG {
     	// Non-null only if this pass declared at least one Write/WriteDepth resource.
     	[[nodiscard]] FrameBuffer* GetFrameBuffer() const noexcept { return m_FrameBuffer; }
 
+    	// A disabled pass is skipped by RenderGraph::Execute() but keeps its place in
+    	// the graph, so dependencies and the compiled order stay untouched. Meant for
+    	// editor tooling (isolating a pass while debugging), not for runtime culling.
+    	[[nodiscard]] bool IsEnabled() const noexcept { return m_Enabled; }
+    	void SetEnabled(const bool enabled) noexcept { m_Enabled = enabled; }
+
     private:
         static inline std::uint32_t s_NextPassID { 0 };
 
         std::uint32_t m_ID { s_NextPassID++ };
         std::string m_Name{};
     	FrameBuffer* m_FrameBuffer { nullptr };
+    	bool m_Enabled { true };
     };
 
 }

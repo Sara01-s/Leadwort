@@ -25,11 +25,11 @@ namespace Leadwort::Scenes {
 			auto* mr { water->AddComponent<Components::MeshRenderer>() };
 			const auto waterShader { AssetManagement::EngineAssets::GetShader("shaders/shd_water.glsl") };
 			const auto waterMaterial { AssetManagement::EngineAssets::CreateMaterial(waterShader) };
-			mr->mesh = Utils::PrimitiveMeshes::Get().SubdividedPlane(1.0f, 1.0f, 100.0f, 100.0f);
+			mr->SetSubdividedPlane(1.0f, 1.0f, 100, 100);
 			mr->mesh->SetMaterial(waterMaterial);
 
 			const auto modelParent { CreateEntity("Scenery") };
-			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scenery_v2.glb") };
+			const auto model { AssetManagement::EngineAssets::GetModel("models/model_scene.glb") };
 			model->Instantiate(*modelParent);
 
 	        // Main Camera

@@ -60,9 +60,9 @@ namespace Editor::Core {
             }
         }
 
-        static void DrawEditMenu() {
+        void DrawEditMenu() const {
             if (ImGui::BeginMenu("Edit")) {
-                ImGui::TextDisabled("Nothing here yet");
+                ImGui::MenuItem("Show Gizmos", nullptr, &m_EditorContext.ShowGizmos);
                 ImGui::EndMenu();
             }
         }

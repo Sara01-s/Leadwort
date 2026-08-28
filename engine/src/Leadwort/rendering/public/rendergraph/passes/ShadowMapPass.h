@@ -36,8 +36,14 @@ public:
 		m_ShadowShader->SetUniform("_LightSpaceMatrix", renderContext.LightSpaceMatrix);
 
 		DrawCommandBuffer buffer{};
-		for (const auto* renderer : (*renderContext.RenderQueues)[RenderQueue::Opaque]) {
-			renderer->EmitDrawCommand(buffer, *renderContext.Camera);
+
+		// Alpha-tested geometry casts shadows as well: the depth shader discards the same
+		// texels the lit pass does. Transparent (glTF BLEND) geometry is left out on
+		// purpose, it has no meaningful opaque shadow.
+		for (const RenderQueue queue : { RenderQueue::Opaque, RenderQueue::AlphaTest }) {
+			for (const auto* renderer : (*renderContext.RenderQueues)[queue]) {
+				renderer->EmitDrawCommand(buffer, *renderContext.Camera);
+			}
 		}
 		buffer.DrawShadowCasters(*m_ShadowShader);
 

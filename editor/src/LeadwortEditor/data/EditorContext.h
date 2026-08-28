@@ -48,6 +48,8 @@ namespace Editor {
 		ImGuizmo::OPERATION GizmoOperation { ImGuizmo::TRANSLATE };
 		ImGuizmo::MODE GizmoMode { ImGuizmo::LOCAL };
 
+		bool ShowGizmos { true };
+
 	public:
 		void SelectEntity(Leadwort::EntityID id) {
 			Selection = id;

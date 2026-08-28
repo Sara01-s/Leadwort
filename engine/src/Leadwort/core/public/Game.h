@@ -27,6 +27,9 @@ namespace Leadwort::Core {
 		[[nodiscard]] Rendering::RG::RenderTexture& GetSceneOutputTexture() const noexcept { return *m_SceneColorTex; }
 		[[nodiscard]] Rendering::RG::RenderTexture& GetSceneDepthTexture()  const noexcept { return *m_SceneDepthTex; }
 
+		[[nodiscard]] Rendering::RG::RenderGraph& GetGameRenderGraph()  noexcept { return m_GameRenderGraph; }
+		[[nodiscard]] Rendering::RG::RenderGraph& GetSceneRenderGraph() noexcept { return m_SceneRenderGraph; }
+
 	private:
 		Unique<Rendering::RG::RenderTexture> m_GameColorTex{};
 		Unique<Rendering::RG::RenderTexture> m_GameDepthTex{};
@@ -36,8 +39,8 @@ namespace Leadwort::Core {
 		Unique<Rendering::RG::RenderTexture> m_ShadowMap{};
 		Unique<Rendering::IBLBaker::Result> m_IBLResult;
 
-		Rendering::RG::RenderGraph m_GameRenderGraph{};
-		Rendering::RG::RenderGraph m_SceneRenderGraph{};
+		Rendering::RG::RenderGraph m_GameRenderGraph  { "Game Render Graph" };
+		Rendering::RG::RenderGraph m_SceneRenderGraph { "Scene Render Graph" };
 	};
 
 } // namespace Engine::Core

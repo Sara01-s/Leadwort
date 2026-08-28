@@ -41,7 +41,14 @@ namespace Leadwort::Serialization {
 				return false;
 			}
 
-			scene.Deserialize(in);
+			try {
+				scene.Deserialize(in);
+			}
+			catch (const std::exception& e) {
+				LW_ERROR("SceneSerializer: Failed to deserialize scene: ", e.what());
+				return false;
+			}
+
 			return true;
 		}
 	};

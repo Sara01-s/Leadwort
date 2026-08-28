@@ -2,6 +2,7 @@
 
 #include "Leadwort/asset-management/public/AssetDatabase.h"
 #include "Leadwort/components/ComponentRegistry.h"
+#include "Leadwort/serialization/AssetSerializer.h"
 
 #include <Leadwort/components/public/IRenderer.h>
 #include <Leadwort/rendering/bindables/public/Mesh.h>
@@ -30,16 +31,56 @@ namespace Leadwort::Components {
 		std::string primitiveType { "cube" };
 		bool isPrimitive { true };
 
+		float planeSizeX     { 1.0f };
+		float planeSizeZ     { 1.0f };
+		int   planeSegmentsX { 1 };
+		int   planeSegmentsZ { 1 };
+
+		// Builds a subdivided-plane primitive and tags the renderer so that the
+		// mesh identity survives serialization.
+		void SetSubdividedPlane(const float sizeX, const float sizeZ, const int segmentsX, const int segmentsZ) {
+			isPrimitive = true;
+			primitiveType = "subdivided_plane";
+			planeSizeX = sizeX;
+			planeSizeZ = sizeZ;
+			planeSegmentsX = segmentsX;
+			planeSegmentsZ = segmentsZ;
+			mesh = Utils::PrimitiveMeshes::Get().SubdividedPlane(sizeX, sizeZ, segmentsX, segmentsZ);
+		}
+
+		// The material carries the queue (glTF alphaMode), but the scene collector reads
+		// the renderer's own field, so it has to be pulled across whenever the mesh
+		// changes: on import and after deserializing.
+		void SyncRenderQueueFromMaterial() noexcept {
+			if (mesh && mesh->GetMaterial()) {
+				renderQueue = mesh->GetMaterial()->renderQueue;
+			}
+		}
+
 		void Serialize(Json& out) const override {
 			out["isPrimitive"] = isPrimitive;
 			out["castShadows"] = castShadows;
 
 			if (isPrimitive) {
 				out["primitiveType"] = primitiveType;
+
+				if (primitiveType == "subdivided_plane") {
+					out["planeSizeX"] = planeSizeX;
+					out["planeSizeZ"] = planeSizeZ;
+					out["planeSegmentsX"] = planeSegmentsX;
+					out["planeSegmentsZ"] = planeSegmentsZ;
+				}
 			}
 			else {
 				out["modelPath"] = modelPath;
 				out["meshIndex"] = meshIndex;
+			}
+
+			// Only primitives carry a scene-authored material override. Model meshes
+			// own their material (potentially with embedded textures) and must not be
+			// rebuilt from a lossy JSON round-trip.
+			if (isPrimitive && mesh && mesh->GetMaterial()) {
+				out["material"] = AssetManagement::AssetSerializer<Rendering::Bindables::Material>::Serialize(*mesh->GetMaterial());
 			}
 		}
 
@@ -49,7 +90,15 @@ namespace Leadwort::Components {
 
 			if (isPrimitive) {
 				primitiveType = in.value("primitiveType", "cube");
-				if (primitiveType == "cube") {
+
+				if (primitiveType == "subdivided_plane") {
+					planeSizeX = in.value("planeSizeX", 1.0f);
+					planeSizeZ = in.value("planeSizeZ", 1.0f);
+					planeSegmentsX = in.value("planeSegmentsX", 1);
+					planeSegmentsZ = in.value("planeSegmentsZ", 1);
+					mesh = Utils::PrimitiveMeshes::Get().SubdividedPlane(planeSizeX, planeSizeZ, planeSegmentsX, planeSegmentsZ);
+				}
+				else {
 					mesh = Utils::PrimitiveMeshes::Get().Cube();
 				}
 				// TODO: Add other primitives later
@@ -65,6 +114,14 @@ namespace Leadwort::Components {
 					}
 				}
 			}
+
+			if (isPrimitive && mesh && in.contains("material")) {
+				if (auto material { AssetManagement::AssetSerializer<Rendering::Bindables::Material>::Deserialize(in.at("material")) }) {
+					mesh->SetMaterial(material);
+				}
+			}
+
+			SyncRenderQueueFromMaterial();
 		}
 
 	public:

@@ -9,7 +9,10 @@
 #include <Leadwort/rendering/bindables/public/Material.h>
 #include <Leadwort/rendering/bindables/public/Mesh.h>
 #include <Leadwort/rendering/bindables/public/VertexLayout.h>
+#include <assimp/GltfMaterial.h>
+#include <assimp/config.h>
 #include <algorithm>
+#include <string_view>
 #include <vector>
 
 
@@ -28,8 +31,17 @@ namespace Leadwort::Core {
 		m_ResourceBaseDir = sanitizedPath.substr(0, sanitizedPath.find_last_of('/'));
 		m_FullPath = sanitizedPath;
 
+	    // Points and lines have no place in a mesh renderer, and a 1- or 2-index "face"
+	    // would silently desync the whole index buffer, so drop those primitives at
+	    // import time instead of trusting the data.
+	    m_Importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
+
 	    m_AiScene = m_Importer.ReadFile(path,
 	        aiProcess_Triangulate
+	        | aiProcess_SortByPType
+	        // Only fires on meshes that arrived without normals. Without it their vertex
+	        // layout skips a slot and every later attribute lands on the wrong location.
+	        | aiProcess_GenSmoothNormals
 	        | aiProcess_JoinIdenticalVertices
 	        | aiProcess_CalcTangentSpace
 	        | aiProcess_ImproveCacheLocality
@@ -66,6 +78,7 @@ namespace Leadwort::Core {
 				renderer->isPrimitive = false;
 				renderer->modelPath = m_FullPath;
 				renderer->meshIndex = static_cast<int>(meshIndexInModel);
+				renderer->SyncRenderQueueFromMaterial();
 			};
 
 			if (numMeshes == 1) {
@@ -99,6 +112,32 @@ namespace Leadwort::Core {
 	// ---------------------------------------------------------------------------
 	// Mesh parsing
 	// ---------------------------------------------------------------------------
+
+	// glTF's alphaMode maps one to one onto the engine's queues.
+	static Rendering::RenderQueue ToRenderQueue(const AlphaMode alphaMode) noexcept {
+		switch (alphaMode) {
+			case AlphaMode::Mask:   return Rendering::RenderQueue::AlphaTest;
+			case AlphaMode::Blend:  return Rendering::RenderQueue::Transparent;
+			case AlphaMode::Opaque: break;
+		}
+
+		return Rendering::RenderQueue::Opaque;
+	}
+
+	// MASK is opaque geometry with a discard: depth writes stay on and blending stays
+	// off. Only BLEND drops depth writes and blends, which is also what makes
+	// DrawCommand::Create sort it back-to-front.
+	static Rendering::RenderPipelineState BuildPipelineState(const MaterialFeatures& features) noexcept {
+		Rendering::RenderPipelineState state {
+			features.alphaMode == AlphaMode::Blend
+				? Rendering::RenderPipelineState::Transparent()
+				: Rendering::RenderPipelineState::Opaque()
+		};
+
+		state.cullMode = features.doubleSided ? Rendering::CullMode::None : Rendering::CullMode::Back;
+
+		return state;
+	}
 
 	Shared<Mesh> Model::ParseMesh(const aiMesh* mesh, const aiScene* scene, unsigned int meshIndex) const {
 	    LW_ASSERT(mesh != nullptr, "Model::ParseMesh: aiMesh is null.");
@@ -159,6 +198,13 @@ namespace Leadwort::Core {
 
 	    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 	        const aiFace& face = mesh->mFaces[i];
+
+	        // Triangulate + SBP_REMOVE should leave nothing else, but a stray non-triangle
+	        // would shift every index after it, so skip instead of appending blindly.
+	        if (face.mNumIndices != 3) {
+	            continue;
+	        }
+
 	        for (unsigned int j = 0; j < face.mNumIndices; j++) {
 	            indices.push_back(face.mIndices[j]);
 	        }
@@ -197,6 +243,13 @@ namespace Leadwort::Core {
 	    material->SetFloat("_SpecularPower", features.specularPower);
 		material->SetFloat("_RoughnessIntensity", features.roughnessIntensity);
 		material->SetFloat("_MetallicIntensity", features.metallicIntensity);
+
+		material->renderQueue = ToRenderQueue(features.alphaMode);
+		material->pipelineState = BuildPipelineState(features);
+
+		// A cutoff of zero disables the test in the shader, which is what OPAQUE (alpha
+		// ignored) and BLEND (alpha blended, never discarded) both want.
+		material->SetFloat("_AlphaCutoff", features.alphaMode == AlphaMode::Mask ? features.alphaCutoff : 0.0f);
 
 	    BindTextures(*material, scene->mMaterials[materialIndex], features);
 
@@ -265,6 +318,30 @@ namespace Leadwort::Core {
 	        features.color = Color(color.r, color.g, color.b, color.a);
 	    }
 
+	    aiString alphaMode{};
+	    if (material->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaMode) == AI_SUCCESS) {
+	        const std::string_view mode { alphaMode.C_Str() };
+
+	        if (mode == "MASK") {
+	            features.alphaMode = AlphaMode::Mask;
+	        }
+	        else if (mode == "BLEND") {
+	            features.alphaMode = AlphaMode::Blend;
+	        }
+	    }
+
+	    float alphaCutoff { 0.5f };
+	    if (material->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alphaCutoff) == AI_SUCCESS) {
+	        features.alphaCutoff = alphaCutoff;
+	    }
+
+	    // glTF doubleSided. Foliage cards are the reason this matters: culled backfaces
+	    // make half of every leaf disappear.
+	    int twoSided { 0 };
+	    if (material->Get(AI_MATKEY_TWOSIDED, twoSided) == AI_SUCCESS) {
+	        features.doubleSided = twoSided != 0;
+	    }
+
 	    return features;
 	}
 
@@ -290,7 +367,7 @@ namespace Leadwort::Core {
 	                const auto* data = reinterpret_cast<const uint8_t*>(embedded->pcData);
 	                const size_t size = embedded->mWidth;
 
-	                const Shared<Texture> texture = EngineAssets::GetEmbeddedTexture(index, data, size);
+	                const Shared<Texture> texture = EngineAssets::GetEmbeddedTexture(m_FullPath, index, data, size);
 	                LW_ASSERT(texture, "Failed to load embedded texture at index: " + std::to_string(index));
 	                material.SetTexture(uniform, texture, slot);
 	                return;

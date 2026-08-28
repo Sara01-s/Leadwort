@@ -2,8 +2,8 @@
 
 namespace Leadwort::Rendering::RG {
 
-	RenderTexture::RenderTexture(const int width, const int height, const Format format)
-	    : m_Width(width), m_Height(height), m_Format(format)
+	RenderTexture::RenderTexture(const int width, const int height, const Format format, std::string debugName)
+	    : m_Width(width), m_Height(height), m_Format(format), m_DebugName(std::move(debugName))
 	{
 	    Setup();
 	}

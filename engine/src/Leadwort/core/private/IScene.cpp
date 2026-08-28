@@ -1,7 +1,11 @@
 #include "Leadwort/core/public/IScene.h"
 
+#include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/Transform.h>
+#include <Leadwort/rendering/public/Model.h>
 #include <stdexcept>
+#include <unordered_set>
+#include <vector>
 
 namespace Leadwort::Core {
 
@@ -39,6 +43,41 @@ namespace Leadwort::Core {
     }
 
     void IScene::Deserialize(const Json& in) {
+		if (!in.contains("entities") || !in["entities"].is_array()) {
+			return;
+		}
+
+		// Keep every referenced model alive for the whole deserialization pass.
+		// The model cache holds only weak refs, so without this pin each model is
+		// dropped the moment its owning MeshRenderer::Deserialize returns, forcing
+		// a full re-parse of the source file for every entity that references it.
+		std::vector<Shared<Model>> pinnedModels{};
+		{
+			std::unordered_set<std::string> seenModelPaths{};
+
+			for (const auto& entityJson : in["entities"]) {
+				if (!entityJson.contains("components") || !entityJson["components"].is_array()) {
+					continue;
+				}
+
+				for (const auto& compJson : entityJson["components"]) {
+					if (!compJson.contains("fields") || !compJson["fields"].is_object()) {
+						continue;
+					}
+
+					const std::string modelPath { compJson["fields"].value("modelPath", std::string{}) };
+
+					if (modelPath.empty() || !seenModelPaths.insert(modelPath).second) {
+						continue;
+					}
+
+					if (auto model { AssetManagement::EngineAssets::GetModel(modelPath) }) {
+						pinnedModels.push_back(std::move(model));
+					}
+				}
+			}
+		}
+
 		std::unordered_map<int, Entity*> idRemap{};
 
 		idRemap[m_RootEntity->GetID()] = m_RootEntity.get();

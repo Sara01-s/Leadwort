@@ -17,6 +17,16 @@ namespace Leadwort::Rendering::RG {
 
 	class RenderGraphBuilder final {
 	public:
+		struct ResourceDescription {
+			RenderTexture* resource { nullptr };
+			AccessFlags flags { AccessFlags::Read };
+			UsageFlags usage { UsageFlags::Color };
+		};
+
+		using PassDependencies = std::vector<ResourceDescription>;
+		using PassGraph = std::unordered_map<IPass*, PassDependencies>;
+
+	public:
 		void UseTexture(IPass& pass, RenderTexture& texture, const AccessFlags flags) noexcept {
 			if (!m_PassGraph.contains(&pass)) {
 				m_PassInsertionOrder.push_back(&pass);
@@ -118,15 +128,6 @@ namespace Leadwort::Rendering::RG {
 		}
 
 	private:
-		struct ResourceDescription {
-			RenderTexture* resource { nullptr };
-			AccessFlags flags { AccessFlags::Read };
-			UsageFlags usage { UsageFlags::Color };
-		};
-
-		using PassDependencies = std::vector<ResourceDescription>;
-		using PassGraph = std::unordered_map<IPass*, PassDependencies>;
-
 		PassGraph m_PassGraph{};
 		std::vector<IPass*> m_PassInsertionOrder{};
 	};

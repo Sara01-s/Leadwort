@@ -27,12 +27,15 @@ public:
 	[[nodiscard]] float GetExposure() const noexcept { return m_Exposure; }
 	void SetExposure(float exposure) noexcept;
 
+	[[nodiscard]] const std::string& GetExrPath() const noexcept { return m_ExrPath; }
+
 private:
 	GpuID m_Vao { 0 };
 	GpuID m_Vbo { 0 };
 	GpuID m_Ibo { 0 };
 
 	Shared<Bindables::Material> m_SkyboxMaterial{};
+	std::string m_ExrPath{};
 
 	float m_RotationDegrees { 0.0f };
 	Vec3  m_Tint            { 1.0f, 1.0f, 1.0f };

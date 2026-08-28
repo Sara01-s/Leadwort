@@ -58,6 +58,10 @@ namespace Leadwort::Rendering::RG {
 			};
 
     		for (const auto& pass : m_Passes) {
+    			if (!pass->IsEnabled()) {
+    				continue;
+    			}
+
     			if (const auto* frameBuffer = pass->GetFrameBuffer()) {
     				frameBuffer->Bind();
     			}
@@ -67,6 +71,16 @@ namespace Leadwort::Rendering::RG {
 
     		FrameBuffer::Unbind();
     	}
+
+    	[[nodiscard]] std::string_view GetName() const noexcept { return m_Name; }
+    	[[nodiscard]] bool IsCompiled() const noexcept { return m_IsCompiled; }
+
+    	// Passes in compiled (execution) order. Valid only once IsCompiled() is true.
+    	[[nodiscard]] const std::vector<Unique<IPass>>& GetPasses() const noexcept { return m_Passes; }
+
+    	// Recorded resource declarations, keyed by pass. Used by editor tooling to
+    	// visualize the pass/resource dependency matrix.
+    	[[nodiscard]] const RenderGraphBuilder& GetBuilder() const noexcept { return *m_RenderGraphBuilder; }
 
     	void Print() const {
     		LW_LOG("Render Graph: ", m_Name);

@@ -11,11 +11,9 @@ uniform vec4  _Color;
 uniform float _MetallicIntensity;
 uniform float _RoughnessIntensity;
 
-#ifdef HAS_TANGENTS
-    #ifndef HAS_TANGENTS
-        out mat3 v_tbn;
-    #endif
-#endif
+// Alpha test threshold, from the glTF alphaMode: MASK sets its cutoff here, OPAQUE and
+// BLEND leave it at zero so nothing is ever discarded.
+uniform float _AlphaCutoff;
 
 #ifdef HAS_DIFFUSE
     uniform sampler2D _DiffuseTexture;

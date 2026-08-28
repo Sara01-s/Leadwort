@@ -22,13 +22,13 @@ public:
 		m_PostProcessMaterial = AssetManagement::EngineAssets::CreateMaterial(shader);
 	}
 
-	std::string_view GetName() const noexcept override { return "Post-Process Pass"; }
-
 	void RecordToRenderGraph(RenderGraphBuilder& builder) noexcept override {
 		builder.UseTexture(*this, m_Src, AccessFlags::Read);
 		builder.UseTexture(*this, m_Depth, AccessFlags::Read);
 		builder.SetRenderAttachment(*this, m_Dst);
 	}
+
+	std::string_view GetName() const noexcept override { return "Post-Process Pass"; }
 
 	void Execute(const RenderContext& renderContext) noexcept override {
 		GLStateCache::Get().ApplyState(RenderPipelineState::PostProcess());

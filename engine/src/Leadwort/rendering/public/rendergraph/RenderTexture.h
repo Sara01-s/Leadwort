@@ -3,6 +3,8 @@
 #include <Leadwort/core/math/public/Vec2.h>
 
 #include <glad/glad.h>
+#include <string>
+#include <string_view>
 
 namespace Leadwort::Rendering::RG {
 
@@ -19,7 +21,9 @@ public:
     };
 
 public:
-    RenderTexture(int width, int height, Format format);
+    // debugName is purely informational: it labels the resource in editor tooling
+    // (Render Graph window) and has no effect on the GPU resource.
+    RenderTexture(int width, int height, Format format, std::string debugName = {});
     ~RenderTexture();
 
     RenderTexture(const RenderTexture&)            = delete;
@@ -47,6 +51,21 @@ public:
     	return m_Format == Format::Depth24Stencil8;
     }
 
+	[[nodiscard]] const std::string& GetDebugName() const noexcept { return m_DebugName; }
+	void SetDebugName(std::string name) noexcept { m_DebugName = std::move(name); }
+
+	[[nodiscard]] static constexpr std::string_view GetFormatName(const Format format) noexcept {
+    	switch (format) {
+    		case Format::RGB8:            return "RGB8";
+    		case Format::RGBA8:           return "RGBA8";
+    		case Format::RGBA16F:         return "RGBA16F";
+    		case Format::Depth24Stencil8: return "Depth24Stencil8";
+    		case Format::ShadowDepth32F:  return "ShadowDepth32F";
+    	}
+
+    	return "Unknown";
+    }
+
 private:
     void Setup();
     void Clear() noexcept;
@@ -58,6 +77,7 @@ private:
     int    m_Height{};
     Format m_Format{};
     GLuint m_TextureGpuID{ 0 };
+    std::string m_DebugName{};
 };
 
 } // namespace Engine::Rendering::Bindables

@@ -13,12 +13,7 @@ namespace Leadwort::Rendering::RG::Passes {
 class OpaquePass final : public IPass {
 
 	public:
-	   explicit OpaquePass(
-	       RenderTexture& color,
-	       RenderTexture& depth,
-	       RenderTexture& shadowMap,
-	       const IBLBaker::Result& ibl
-	   ) noexcept
+	   explicit OpaquePass(RenderTexture& color, RenderTexture& depth, RenderTexture& shadowMap, const IBLBaker::Result& ibl) noexcept
 	     : m_Color(color), m_Depth(depth), m_ShadowMap(shadowMap), m_IBL(ibl) {}
 
 	   std::string_view GetName() const noexcept override { return "Opaque Pass"; }

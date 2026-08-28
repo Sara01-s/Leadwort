@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Leadwort/serialization/ISerializable.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <sstream>
 #include <string>
 
@@ -84,5 +87,17 @@ struct Vec3 {
 };
 
 inline Vec3 operator*(const float s, const Vec3& v) { return v * s; }
+
+inline void to_json(Json& out, const Vec3& v) {
+	out["x"] = v.x;
+	out["y"] = v.y;
+	out["z"] = v.z;
+}
+
+inline void from_json(const Json& in, Vec3& v) {
+	v.x = in.value("x", v.x);
+	v.y = in.value("y", v.y);
+	v.z = in.value("z", v.z);
+}
 
 }

@@ -27,6 +27,12 @@ namespace Leadwort::Rendering::Bindables {
 		glBindVertexArray(0);
 
 		SetData(m_MeshData.vertices, m_MeshData.indices);
+
+		// The views point at the caller's staging buffers, which are gone as soon as the
+		// import returns. Everything they carried now lives on the GPU (with the counts
+		// and the AABB cached here), so drop them instead of keeping dangling pointers.
+		m_MeshData.vertices = {};
+		m_MeshData.indices = {};
 	}
 
 	Mesh::~Mesh() {
@@ -78,6 +84,9 @@ namespace Leadwort::Rendering::Bindables {
 		glBindVertexArray(0);
 
 		m_IndexCount = static_cast<int>(indices.size_bytes() / sizeof(Index));
+
+		const auto stride { m_MeshData.layout.GetStride() };
+		m_VertexCount = stride > 0 ? static_cast<int>(vertexData.size_bytes() / stride) : 0;
 
 		CalculateAABB(vertexData);
 	}

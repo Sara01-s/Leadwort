@@ -1,6 +1,7 @@
 #pragma once
 #include "../../core/public/IEditorWindow.h"
 #include "LeadwortEditor/data/EditorContext.h"
+#include "SceneTools.h"
 #include "imgui.h"
 #include <Leadwort/rendering/public/ScenePicker.h>
 #include <Leadwort/systems/public/CameraSystem.h>
@@ -14,7 +15,7 @@ namespace Editor::Windows {
 		using ResizeCallback = std::function<void(int, int)>;
 
 		explicit SceneViewport(Leadwort::Rendering::RG::RenderTexture* sceneRenderTexture, const ResizeCallback& onResize, EditorContext& editorContext)
-			: m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize), m_EditorContext(editorContext)
+			: m_SceneRenderTexture(sceneRenderTexture), m_OnResize(onResize), m_EditorContext(editorContext), m_SceneTools(editorContext)
 		{
 			ImGuizmo::SetOrthographic(false);
 		}
@@ -38,6 +39,11 @@ namespace Editor::Windows {
 			ImGui::Begin(GetName().data());
 
 			const bool isHovered { ImGui::IsWindowHovered() };
+
+			// Hovered *or* focused, counting the tools overlay: the shortcuts should keep
+			// working right after clicking a tool, with the pointer still over it.
+			const bool ownsKeyboard { ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)
+									  || ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) };
 			Leadwort::Systems::Input::Mouse::SetViewportHovered(isHovered);
 
 			const ImVec2 availSize { ImGui::GetContentRegionAvail() };
@@ -60,6 +66,17 @@ namespace Editor::Windows {
 
 				ImGui::Image(m_SceneRenderTexture->GetGpuID(), renderSize, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
+				// Gizmo tools, overlaid on the top-left corner of the rendered image.
+				// Child windows draw above their parent's content, so this stays on top
+				// of both the image and the gizmos regardless of submission order.
+				m_SceneTools.Draw(imagePos, ownsKeyboard);
+				const bool toolsHovered { m_SceneTools.IsHovered() };
+
+				// Component gizmos for every entity in the scene (frustums, light shapes, ...).
+				if (m_EditorContext.ShowGizmos) {
+					DrawAllComponentGizmos(imagePos, renderSize);
+				}
+
 				// Guizmo
 				bool guizmoActive { false };
 				if (const auto* entityID { std::get_if<Leadwort::EntityID>(&m_EditorContext.Selection) }) {
@@ -69,12 +86,11 @@ namespace Editor::Windows {
 					DrawGuizmo(*entityID);
 
 					guizmoActive = ImGuizmo::IsOver() || ImGuizmo::IsUsing();
-
-					DrawComponentGizmos(*entityID, imagePos, renderSize);
 				}
-				Leadwort::Systems::Input::Mouse::SetUIHovered(guizmoActive);
+				Leadwort::Systems::Input::Mouse::SetUIHovered(guizmoActive || toolsHovered);
 
 				if (isHovered
+					&& !toolsHovered
 					&& ImGui::IsMouseClicked(ImGuiMouseButton_Left)
 					&& !Leadwort::Systems::Input::Mouse::IsCaptured()
 					&& !ImGuizmo::IsOver())
@@ -91,26 +107,62 @@ namespace Editor::Windows {
 		}
 
 	private:
-		static bool ProjectToScreen(
-			const Leadwort::Vec3& worldPos,
-			const Leadwort::Mat4& view,
-			const Leadwort::Mat4& projection,
+		static ImVec2 ClipToScreen(
+			const Leadwort::Vec4& clip,
+			const ImVec2& viewportPos,
+			const ImVec2& viewportSize
+		) {
+			const float invW { 1.0f / clip.w };
+			const float ndcX { clip.x * invW };
+			const float ndcY { clip.y * invW };
+
+			return ImVec2 {
+				viewportPos.x + (ndcX * 0.5f + 0.5f) * viewportSize.x,
+				viewportPos.y + (1.0f - (ndcY * 0.5f + 0.5f)) * viewportSize.y
+			};
+		}
+
+		// Projects a world-space segment to screen space, clipping it against the
+		// camera near plane so segments with an endpoint behind the camera are still
+		// drawn (up to the near plane) instead of being discarded wholesale. Returns
+		// false only when the whole segment is behind the near plane.
+		static bool ClipSegmentToScreen(
+			const Leadwort::Vec3& p0,
+			const Leadwort::Vec3& p1,
+			const Leadwort::Mat4& viewProjection,
 			const ImVec2& viewportPos,
 			const ImVec2& viewportSize,
-			ImVec2& outScreen
+			ImVec2& outA,
+			ImVec2& outB
 		) {
-			using namespace Leadwort;
+			constexpr float wEps { 1e-4f };
 
-			const Leadwort::Vec4 clip { projection * view * Leadwort::Vec4(worldPos.x, worldPos.y, worldPos.z, 1.0f) };
+			Leadwort::Vec4 c0 { viewProjection * Leadwort::Vec4(p0.x, p0.y, p0.z, 1.0f) };
+			Leadwort::Vec4 c1 { viewProjection * Leadwort::Vec4(p1.x, p1.y, p1.z, 1.0f) };
 
-			if (clip.w <= 0.0001f) {
+			const bool behind0 { c0.w <= wEps };
+			const bool behind1 { c1.w <= wEps };
+
+			if (behind0 && behind1) {
 				return false;
 			}
 
-			const Vec3 ndc { Vec3(clip.x, clip.y, clip.z) / clip.w };
+			if (behind0 != behind1) {
+				// Clip space is linear in the segment parameter, so lerping to the
+				// point where w == wEps gives the exact near-plane intersection.
+				const float t { (wEps - c0.w) / (c1.w - c0.w) };
+				const Leadwort::Vec4 crossing { c0.Lerp(c1, t) };
 
-			outScreen.x = viewportPos.x + (ndc.x * 0.5f + 0.5f) * viewportSize.x;
-			outScreen.y = viewportPos.y + (1.0f - (ndc.y * 0.5f + 0.5f)) * viewportSize.y;
+				if (behind0) {
+					c0 = crossing;
+				}
+				else {
+					c1 = crossing;
+				}
+			}
+
+			outA = ClipToScreen(c0, viewportPos, viewportSize);
+			outB = ClipToScreen(c1, viewportPos, viewportSize);
 
 			return true;
 		}
@@ -175,7 +227,7 @@ namespace Editor::Windows {
 			}
 		}
 
-		static void DrawComponentGizmos(const Leadwort::EntityID entityID, const ImVec2& viewportPos, const ImVec2& viewportSize) {
+		static void DrawAllComponentGizmos(const ImVec2& viewportPos, const ImVec2& viewportSize) {
 			using namespace Leadwort;
 
 			const auto* scene { Systems::SceneSystem::Get().GetCurrentScene() };
@@ -184,26 +236,23 @@ namespace Editor::Windows {
 				return;
 			}
 
-			const auto* entity { scene->GetEntity(entityID) };
-			if (!entity) {
-				return;
-			}
-
-			const Mat4 viewMatrix { sceneCamera->GetViewMatrix() };
-			const Mat4 projectionMatrix { sceneCamera->GetProjectionMatrix() };
+			const Mat4 viewProjection { sceneCamera->GetProjectionMatrix() * sceneCamera->GetViewMatrix() };
 
 			ImDrawList* drawList { ImGui::GetWindowDrawList() };
 			constexpr ImU32 gizmoColor { IM_COL32(255, 220, 80, 255) };
 
-			for (const auto* component : entity->GetAllComponents()) {
-				for (const auto& line : component->GetGizmoLines()) {
-					ImVec2 screenStart{}, screenEnd{};
+			for (const auto& [entityID, entity] : scene->GetEntityMap()) {
+				if (!entity) {
+					continue;
+				}
 
-					const bool startVisible { ProjectToScreen(line.start, viewMatrix, projectionMatrix, viewportPos, viewportSize, screenStart) };
-					const bool endVisible   { ProjectToScreen(line.end,   viewMatrix, projectionMatrix, viewportPos, viewportSize, screenEnd) };
+				for (const auto* component : entity->GetAllComponents()) {
+					for (const auto& line : component->GetGizmoLines()) {
+						ImVec2 screenStart{}, screenEnd{};
 
-					if (startVisible && endVisible) {
-						drawList->AddLine(screenStart, screenEnd, gizmoColor, 1.5f);
+						if (ClipSegmentToScreen(line.start, line.end, viewProjection, viewportPos, viewportSize, screenStart, screenEnd)) {
+							drawList->AddLine(screenStart, screenEnd, gizmoColor, 1.5f);
+						}
 					}
 				}
 			}
@@ -213,6 +262,7 @@ namespace Editor::Windows {
 		Leadwort::Rendering::RG::RenderTexture* m_SceneRenderTexture{};
 		ResizeCallback m_OnResize{};
 		EditorContext& m_EditorContext;
+		SceneTools m_SceneTools;
 
 		bool m_PendingResize { false };
 		int m_PendingWidth { 0 };

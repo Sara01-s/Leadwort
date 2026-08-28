@@ -9,13 +9,17 @@
 
 namespace Leadwort::Rendering::Bindables {
 
+// Layout and key are held by value on purpose: a Mesh keeps its MeshData for its whole
+// life, while callers build these from locals that die as soon as the mesh is created.
+// The buffer views are the exception, they are only read during the upload and cleared
+// right after, so nothing outlives the staging buffers it points at.
 struct MeshData {
 	std::string name{};
-	const VertexLayout& layout;
-	const ConstBufferView vertices{};
-	const ConstBufferView indices{};
+	VertexLayout layout{};
+	ConstBufferView vertices{};
+	ConstBufferView indices{};
 	Shared<Material> material{};
-	const MeshKey& key;
+	MeshKey key{};
 	GLenum topology { GL_TRIANGLES };
 	GLenum usage { GL_DYNAMIC_DRAW };
 };
@@ -38,7 +42,7 @@ public:
 
 	[[nodiscard]] constexpr std::string GetName() const noexcept { return m_MeshData.name; }
 	[[nodiscard]] constexpr int GetIndexCount() const noexcept { return m_IndexCount; }
-	[[nodiscard]] int GetVertexCount() const noexcept { return m_MeshData.vertices.size_bytes() / m_MeshData.layout.GetStride(); }
+	[[nodiscard]] constexpr int GetVertexCount() const noexcept { return m_VertexCount; }
 	[[nodiscard]] Material* GetMaterial() const noexcept { return m_MeshData.material.get(); }
 	[[nodiscard]] constexpr unsigned int GetTopology() const noexcept { return m_MeshData.topology; }
 	[[nodiscard]] constexpr AABB GetAABB() const noexcept { return m_AABB; }
@@ -60,6 +64,7 @@ private:
 	uint32_t m_VBO { GL_INVALID_INDEX };
 	uint32_t m_IBO { GL_INVALID_INDEX };
 	int m_IndexCount { 0 };
+	int m_VertexCount { 0 };
 };
 
 } // namespace Engine::Rendering::Bindables

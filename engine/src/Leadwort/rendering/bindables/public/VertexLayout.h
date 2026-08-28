@@ -3,6 +3,7 @@
 #include "IBindable.h"
 #include <cstdint>
 #include <glad/glad.h>
+#include <utility>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -58,6 +59,32 @@ namespace Leadwort::Rendering::Bindables {
 	class VertexLayout : public IBindable {
 	public:
 	    VertexLayout() = default;
+
+	    // Copyable, unlike the rest of the bindables: a layout is a pure CPU description
+	    // of the vertex format and owns no GPU object (its m_GpuID stays 0), so the base's
+	    // deleted copy does not apply. MeshData holds one by value, which is what keeps a
+	    // Mesh from outliving the layout it was built from.
+	    VertexLayout(const VertexLayout& other)
+	        : IBindable(), m_Attributes(other.m_Attributes), m_Stride(other.m_Stride), m_NextLocation(other.m_NextLocation) {}
+
+	    VertexLayout(VertexLayout&& other) noexcept
+	        : IBindable(), m_Attributes(std::move(other.m_Attributes)), m_Stride(other.m_Stride), m_NextLocation(other.m_NextLocation) {}
+
+	    VertexLayout& operator=(const VertexLayout& other) {
+	        m_Attributes = other.m_Attributes;
+	        m_Stride = other.m_Stride;
+	        m_NextLocation = other.m_NextLocation;
+
+	        return *this;
+	    }
+
+	    VertexLayout& operator=(VertexLayout&& other) noexcept {
+	        m_Attributes = std::move(other.m_Attributes);
+	        m_Stride = other.m_Stride;
+	        m_NextLocation = other.m_NextLocation;
+
+	        return *this;
+	    }
 
 	    VertexLayout& Append(const ElementType type) {
 	        const auto traits = GetTraits(type);

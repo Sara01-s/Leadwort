@@ -120,6 +120,9 @@ namespace Leadwort::Rendering {
 					continue;
 				}
 
+				const bool alphaTested { BindShadowAlphaTest(shadowShader, *cmd.material) };
+
+				GLStateCache::Get().ApplyState(ShadowStateFor(cmd, alphaTested));
 				shadowShader.SetUniform("_ModelMatrix", cmd.modelMatrix);
 
 				cmd.mesh->Bind();
@@ -131,6 +134,49 @@ namespace Leadwort::Rendering {
 	    void Clear() noexcept {
 		    m_DrawCommands.clear();
 	    }
+
+	private:
+		// The depth shader has to run the same alpha test as the lit one, or cutout
+		// foliage casts the shadow of the quad it is painted on. Only alpha-tested
+		// materials carry a non-zero _AlphaCutoff, so zero disables the test.
+		// Front-face culling is the peter-panning trick, and it only holds up on closed
+		// solid geometry: a single-sided card facing the light gets culled away and casts
+		// no shadow at all. Double-sided or alpha-tested materials are cards until proven
+		// otherwise, so they render both faces into the shadow map; everything else keeps
+		// the offset-free trick.
+		[[nodiscard]] static RenderPipelineState ShadowStateFor(const DrawCommand& cmd, const bool alphaTested) noexcept {
+			RenderPipelineState state { RenderPipelineState::ShadowDepth() };
+
+			if (alphaTested || cmd.pipelineState.cullMode == CullMode::None) {
+				state.cullMode = CullMode::None;
+			}
+
+			return state;
+		}
+
+		// Returns whether the material is alpha tested, so the caller can pick a matching
+		// cull mode without looking the cutoff up twice.
+		[[nodiscard]] static bool BindShadowAlphaTest(const Bindables::Shader& shadowShader, const Bindables::Material& material) noexcept {
+			const auto& floats { material.GetFloats() };
+			const auto& textures { material.GetTextures() };
+
+			const auto cutoffIt { floats.find("_AlphaCutoff") };
+			const auto textureIt { textures.find("_DiffuseTexture") };
+
+			const float cutoff { cutoffIt != floats.end() ? cutoffIt->second : 0.0f };
+			const bool alphaTested { cutoff > 0.0f && textureIt != textures.end() && textureIt->second.Texture != nullptr };
+
+			shadowShader.SetUniform("_AlphaCutoff", alphaTested ? cutoff : 0.0f);
+
+			if (alphaTested) {
+				textureIt->second.Texture->Bind(0);
+				shadowShader.SetUniform("_DiffuseTexture", 0);
+			}
+
+			return alphaTested;
+		}
+
+	public:
 
 	    [[nodiscard]] bool IsEmpty() const noexcept { return m_DrawCommands.empty(); }
 	    [[nodiscard]] std::size_t Size() const noexcept { return m_DrawCommands.size(); }

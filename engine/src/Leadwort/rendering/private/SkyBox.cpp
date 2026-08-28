@@ -3,7 +3,7 @@
 
 namespace Leadwort::Rendering {
 
-	Skybox::Skybox(const std::string_view exrPath) {
+	Skybox::Skybox(const std::string_view exrPath) : m_ExrPath(exrPath) {
 		const auto shader = AssetManagement::EngineAssets::GetShader("shaders/shd_skybox.glsl");
 		m_SkyboxMaterial = AssetManagement::EngineAssets::CreateMaterial(shader);
 

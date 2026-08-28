@@ -120,15 +120,17 @@ namespace Leadwort::AssetManagement {
 		return texture;
 	}
 
-	Shared<Texture> AssetDatabase::GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
-		const std::string key { "*" + std::to_string(index) };
+	Shared<Texture> AssetDatabase::GetEmbeddedTexture(const std::string& modelPath, const int index, const uint8_t* data, const size_t size) {
+		// Keyed by model as well as index: every model numbers its embedded textures from
+		// zero, so "*0" on its own would hand the second model the first model's texture.
+		const std::string key { modelPath + "*" + std::to_string(index) };
 
 		if (auto cached = m_TextureCache.Get(key)) {
 			return cached;
 		}
 
-		LW_LOG("AssetManager: Loading embedded Texture [index=", index, "]");
-		auto texture { CreateTextureFromBytes(data, size, key) }; // key = "*" + index.
+		LW_LOG("AssetManager: Loading embedded Texture [", key, "]");
+		auto texture { CreateTextureFromBytes(data, size, key) };
 		LW_ASSERT(texture != nullptr, "AssetManager: Failed to decode embedded texture at index: " + key);
 
 		m_TextureCache.Set(key, texture);
@@ -264,6 +266,26 @@ namespace Leadwort::AssetManagement {
 		m_EmbeddedMaterialCache.Cleanup();
 	}
 
+	static const std::string kFallbackTextureKey { "*fallback" };
+
+	Shared<Texture> AssetDatabase::GetFallbackTexture() {
+		if (auto cached { m_TextureCache.Get(kFallbackTextureKey) }) {
+			return cached;
+		}
+
+		constexpr uint8_t pixels[] {
+			255, 0, 255, 255,     0,   0,   0, 255,
+			  0, 0,   0, 255,   255,   0, 255, 255,
+		};
+
+		auto texture { CreateShared<Texture>(AssetKey<Texture>{}) };
+		texture->SetPath(kFallbackTextureKey);
+		texture->UploadRGBA(pixels, 2, 2, /*mips*/false, /*aniso*/false);
+
+		m_TextureCache.Set(kFallbackTextureKey, texture);
+		return texture;
+	}
+
 	Shared<Texture> AssetDatabase::CreateTextureFromBytes(const uint8_t* bytes, const size_t size, const std::string& path) {
 		int width{}, height{}, channels{};
 		stbi_set_flip_vertically_on_load(true);
@@ -274,7 +296,15 @@ namespace Leadwort::AssetManagement {
 			STBI_rgb_alpha
 		)};
 
-		LW_ASSERT(pixels != nullptr, std::string("AssetManager: Texture decode failed: ") + stbi_failure_reason());
+		// stb_image covers PNG/JPG/BMP/TGA/PSD/GIF/HDR/PIC. Anything outside that set
+		// (WebP through EXT_texture_webp, KTX2/Basis, DDS) lands here, and so does a
+		// truncated file.
+		if (pixels == nullptr) {
+			const char* reason { stbi_failure_reason() };
+
+			LW_ERROR("AssetManager: Texture decode failed for '", path, "': ", reason != nullptr ? reason : "unknown reason");
+			return GetFallbackTexture();
+		}
 
 		auto texture { CreateShared<Texture>(AssetKey<Texture>{}) };
 		texture->SetPath(path);
@@ -284,4 +314,4 @@ namespace Leadwort::AssetManagement {
 		return texture;
 	}
 
-} // namespace Engine::AssetManagement
+}

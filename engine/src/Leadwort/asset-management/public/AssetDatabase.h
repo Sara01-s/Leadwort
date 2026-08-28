@@ -85,13 +85,22 @@ namespace Leadwort::AssetManagement {
 														    const std::optional<std::set<std::string>>& defines);
 	    [[nodiscard]] Shared<Bindables::Texture>  GetTexture                (std::string_view path);
 	    [[nodiscard]] Shared<Bindables::Texture>  GetTextureFromAbsolutePath(const std::string& absolutePath);
-	    [[nodiscard]] Shared<Bindables::Texture>  GetEmbeddedTexture        (int index, const uint8_t* data, size_t size);
+	    [[nodiscard]] Shared<Bindables::Texture>  GetEmbeddedTexture        (const std::string& modelPath, int index,
+																		   const uint8_t* data, size_t size);
 	    [[nodiscard]] Shared<Bindables::CubeMap>  GetCubeMap                (const std::array<std::string, 6>& paths);
 	    [[nodiscard]] Shared<Core::Model>         GetModel                  (const std::string& path);
 		[[nodiscard]] Shared<Bindables::Mesh>	  GetMesh(const Bindables::MeshData& meshData);
 		[[nodiscard]] Shared<Bindables::Material> GetOrCreateMaterial(const Bindables::MeshKey& key, const Shared<Bindables::Shader>& shader);
 		[[nodiscard]] static Shared<Bindables::Material> CreateMaterial(const Shared<Bindables::Shader>& shader);
 		[[nodiscard]] const std::string& GetRootPath() const noexcept { return m_Root; }
+
+		// A texture embedded in a model file has no path of its own to reload from, so it
+		// is keyed "<modelPath>*<index>" instead (and "*fallback" for the placeholder).
+		// The '*' is what marks a texture as not-on-disk: it cannot appear in a real path,
+		// and serialization uses this to skip textures it could never resolve back.
+		[[nodiscard]] static bool IsEmbeddedTexturePath(const std::string_view path) noexcept {
+			return path.find('*') != std::string_view::npos;
+		}
 
 		[[nodiscard]] std::vector<Shared<Bindables::Mesh>> GetAllMeshes() const noexcept;
 		[[nodiscard]] std::vector<Shared<Bindables::Texture>> GetAllTextures() const noexcept;
@@ -105,7 +114,8 @@ namespace Leadwort::AssetManagement {
 		void Cleanup();
 
 	private:
-		[[nodiscard]] static Shared<Bindables::Texture> CreateTextureFromBytes(const uint8_t* bytes, size_t size, const std::string& path);
+		[[nodiscard]] Shared<Bindables::Texture> CreateTextureFromBytes(const uint8_t* bytes, size_t size, const std::string& path);
+		[[nodiscard]] Shared<Bindables::Texture> GetFallbackTexture();
 	    [[nodiscard]] std::filesystem::path Resolve (const std::string& path) const noexcept;
 
 	    std::string m_Root{};
@@ -150,8 +160,9 @@ namespace Leadwort::AssetManagement {
 	    }
 
 	    [[nodiscard]]
-	    static Shared<Bindables::Texture> GetEmbeddedTexture(const int index, const uint8_t* data, const size_t size) {
-	        return Get().GetEmbeddedTexture(index, data, size);
+	    static Shared<Bindables::Texture> GetEmbeddedTexture(const std::string& modelPath, const int index,
+															 const uint8_t* data, const size_t size) {
+	        return Get().GetEmbeddedTexture(modelPath, index, data, size);
 	    }
 
 		[[nodiscard]]

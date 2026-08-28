@@ -21,6 +21,15 @@ namespace Leadwort::Core {
 		SpecularGlossiness
 	};
 
+	// glTF's alphaMode. It decides which queue the mesh is drawn in and how the
+	// fragment shader treats alpha: OPAQUE ignores it, MASK discards below a cutoff,
+	// BLEND sorts back-to-front and blends.
+	enum class AlphaMode {
+		Opaque,
+		Mask,
+		Blend
+	};
+
 	struct MaterialFeatures {
 	    bool hasDiffuse   { false };
 	    bool hasNormals   { false };
@@ -38,6 +47,10 @@ namespace Leadwort::Core {
 		float metallicIntensity  { 0.0f };
 
 	    Color color = Color::White();
+
+		AlphaMode alphaMode { AlphaMode::Opaque };
+		float alphaCutoff { 0.5f };
+		bool doubleSided { false };
 	};
 
 	class Model {
