@@ -1,8 +1,13 @@
 #include <Leadwort/components/public/Camera.h>
 #include <Leadwort/core/public/Entity.h>
 #include <Leadwort/rendering/public/CoordinateSystem.h>
+#include <Leadwort/systems/public/CameraSystem.h>
 
 namespace Leadwort::Components {
+
+	void Camera::OnRemoved() {
+		Systems::CameraSystem::Get().Clear();
+	}
 
 	Vec3 Camera::WorldToCameraSpace(const Vec3& worldPosition) const noexcept {
 		return (GetViewMatrix() * worldPosition.ToVec4(1.0f)).ToVec3();

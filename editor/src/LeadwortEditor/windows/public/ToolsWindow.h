@@ -67,11 +67,40 @@ namespace Editor::Core {
             }
         }
 
-        static void DrawEntitiesMenu() {
-            if (ImGui::BeginMenu("Entities")) {
-                ImGui::TextDisabled("Nothing here yet");
-                ImGui::EndMenu();
+        void DrawEntitiesMenu() const {
+            if (!ImGui::BeginMenu("Entities")) {
+                return;
             }
+
+            auto* scene { m_EditorContext.OpenedScene };
+            const auto* selectedID { std::get_if<Leadwort::EntityID>(&m_EditorContext.Selection) };
+
+            const bool hasScene { scene != nullptr };
+            // The root is the scene's own anchor: it is neither a valid parent to pick from
+            // the hierarchy nor something the user may delete.
+            const bool hasSelection { hasScene && selectedID != nullptr
+                                   && *selectedID != Leadwort::Core::Entity::ROOT_ENTITY_ID
+                                   && scene->GetEntity(*selectedID) != nullptr };
+
+            if (ImGui::MenuItem("Create Empty", nullptr, false, hasScene)) {
+                m_EditorContext.SelectEntity(scene->CreateEntity()->GetID());
+            }
+
+            if (ImGui::MenuItem("Create Empty Child", nullptr, false, hasSelection)) {
+                const auto* parent { scene->GetEntity(*selectedID) };
+                m_EditorContext.SelectEntity(parent->CreateChild(Leadwort::Core::Entity::DEFAULT_NAME)->GetID());
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Delete Selected", nullptr, false, hasSelection)) {
+                // Deleting takes the whole subtree with it, so whatever was selected is gone
+                // either way.
+                scene->DestroyEntity(*selectedID);
+                m_EditorContext.ClearSelection();
+            }
+
+            ImGui::EndMenu();
         }
 
         // Filtro reutilizable: solo .json

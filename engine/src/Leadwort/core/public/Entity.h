@@ -98,6 +98,14 @@ namespace Leadwort::Core {
 	        return m_Components.contains(std::type_index(typeid(TComponent)));
 	    }
 
+	    // Mirrors exactly what AddComponent asserts on. Menus driven by user input — the
+	    // inspector's Add Component list — need to hide an entry rather than trip the assert.
+	    template <Components::IsComponent TComponent>
+	    [[nodiscard]] bool CanAddComponent() const {
+	        return !m_Components.contains(std::type_index(typeid(TComponent)))
+	            && CanRegisterParents<TComponent>();
+	    }
+
 	    [[nodiscard]] std::vector<Components::Component*> GetAllComponents() const {
 	        std::vector<Components::Component*> result{};
 	        result.reserve(m_OwnedComponents.size());
@@ -128,6 +136,18 @@ namespace Leadwort::Core {
 		std::string_view GetTypeName() const override { return "Entity"; }
 
 	private:
+	    template <typename TComponent>
+	    [[nodiscard]] bool CanRegisterParents() const {
+	        using Base = BaseOf_t<TComponent>;
+
+	        if constexpr (!std::is_same_v<Base, void> && !std::is_same_v<Base, Components::Component>) {
+	            return !m_Components.contains(std::type_index(typeid(Base))) && CanRegisterParents<Base>();
+	        }
+	        else {
+	            return true;
+	        }
+	    }
+
 	    template <Components::IsComponent TComponent>
 	    void RegisterParents(Components::Component* component) {
 	        using Base = BaseOf_t<TComponent>;
@@ -140,11 +160,13 @@ namespace Leadwort::Core {
 	        }
 	    }
 
-	    template <Components::IsComponent TComponent>
+	    // Mirrors RegisterParents: a component with no Base registered no extra keys, so
+	    // there is nothing to walk back up.
+	    template <typename TComponent>
 	    void UnregisterParents(Components::Component* component) {
-	        using Base = TComponent::Base;
+	        using Base = BaseOf_t<TComponent>;
 
-	        if constexpr (!std::is_same_v<Base, Components::Component>) {
+	        if constexpr (!std::is_same_v<Base, void> && !std::is_same_v<Base, Components::Component>) {
 	            m_Components.erase(typeid(Base));
 	            UnregisterParents<Base>(component);
 	        }

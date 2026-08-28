@@ -107,8 +107,15 @@ namespace Leadwort::Core {
 
 	    BehaviourSystem::Get().Update();
 
-		RenderSystem::Get().Render(*CameraSystem::Get().GetMainCamera(), m_GameRenderGraph);
-		RenderSystem::Get().Render(*CameraSystem::Get().GetSceneCamera(), m_SceneRenderGraph);
+		// A scene can legitimately be left without one of these — the user just deleted the
+		// entity that carried it — and a missing camera means nothing to draw, not a crash.
+		if (auto* gameCamera = CameraSystem::Get().GetMainCamera()) {
+			RenderSystem::Get().Render(*gameCamera, m_GameRenderGraph);
+		}
+
+		if (auto* sceneCamera = CameraSystem::Get().GetSceneCamera()) {
+			RenderSystem::Get().Render(*sceneCamera, m_SceneRenderGraph);
+		}
 
 		RenderSystem::Get().ClearScreen();
 	}

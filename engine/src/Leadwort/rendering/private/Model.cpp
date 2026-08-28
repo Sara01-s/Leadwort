@@ -62,7 +62,27 @@ namespace Leadwort::Core {
 	// Instantiation
 	// ---------------------------------------------------------------------------
 
+	// Push a node's local matrix onto a transform. The decomposition is only valid for a
+	// TRS matrix, which is what glTF nodes are (shear cannot be expressed there).
+	static void ApplyLocalMatrix(Components::Transform& transform, const Mat4& matrix) {
+		transform.SetLocalPosition(matrix.GetTranslation());
+		transform.SetLocalRotation(matrix.GetRotation());
+		transform.SetLocalScale(matrix.GetScale());
+	}
+
 	void Model::Instantiate(Entity& parentEntity) {
+		// Assimp only synthesises an identity root when the file has several root nodes.
+		// A single-root export — one Blender object, or one parent holding the rest — puts
+		// that object's own transform on mRootNode, and ignoring it would drop the model at
+		// the target's origin instead of where Blender had it. Compose rather than
+		// overwrite, so the transform the caller already gave the target survives.
+		const Mat4 rootMatrix { AssimpToMat4(m_AiScene->mRootNode->mTransformation) };
+
+		if (rootMatrix != Mat4::Identity()) {
+			auto& transform { parentEntity.GetTransform() };
+			ApplyLocalMatrix(transform, transform.GetLocalMatrix() * rootMatrix);
+		}
+
 	    AttachNodeToEntity(m_AiScene->mRootNode, parentEntity);
 	}
 
@@ -86,6 +106,9 @@ namespace Leadwort::Core {
 				setupRenderer(renderer);
 			}
 			else {
+				// A glTF mesh with several primitives (one per material slot) arrives as
+				// several aiMeshes on the same node, so each gets its own entity. They carry
+				// no transform of their own: they sit exactly on the node that owns them.
 				const std::string childName { std::string(node->mName.C_Str()) + "_mesh_" + std::to_string(i) };
 				entity.CreateChild(childName, [&](Entity& child) {
 				   auto* renderer { child.AddComponent<Components::MeshRenderer>() };
@@ -98,11 +121,7 @@ namespace Leadwort::Core {
 			const aiNode* childNode { node->mChildren[i] };
 
 			entity.CreateChild(childNode->mName.C_Str(), [&](Entity& child) {
-			   const Mat4 childMatrix { AssimpToMat4(childNode->mTransformation) };
-
-			   child.GetTransform().SetLocalPosition(childMatrix.GetTranslation());
-			   child.GetTransform().SetLocalRotation(childMatrix.GetRotation());
-			   child.GetTransform().SetLocalScale(childMatrix.GetScale());
+			   ApplyLocalMatrix(child.GetTransform(), AssimpToMat4(childNode->mTransformation));
 
 			   AttachNodeToEntity(childNode, child);
 			});

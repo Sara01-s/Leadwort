@@ -12,6 +12,14 @@ namespace Leadwort::Core {
 	{}
 
 	Entity::~Entity() {
+		// Components hand themselves to engine systems in OnAdded — a Behaviour to the
+		// BehaviourSystem, and a Light on to the LightingSystem through OnDisable. Freeing
+		// them without the matching OnRemoved leaves those systems iterating dangling
+		// pointers on the next frame.
+		for (const auto& component : m_OwnedComponents) {
+			component->OnRemoved();
+		}
+
 		m_Components.clear();
 	}
 
@@ -29,7 +37,12 @@ namespace Leadwort::Core {
 
 	Entity* Entity::CreateChild(const std::string& childName) const {
 		Entity* child = scene->CreateEntity(childName);
-		GetTransform().AddChild(child->GetTransform());
+
+		// A brand-new entity sits at the world origin with no parent, so AddChild would
+		// dutifully "preserve" that world transform and bake inverse(parentWorld) into the
+		// child's local one, pinning every child at the origin instead of at its parent.
+		// A newly created child belongs in its parent's space.
+		child->GetTransform().SetParentPreserveLocal(&GetTransform());
 
 		return child;
 	}

@@ -26,6 +26,10 @@ namespace Leadwort::Core {
 
 		Entity* CreateEntity(const std::string& name = Entity::DEFAULT_NAME);
 
+		// Destroys the entity and everything parented under it. Silently ignores an id
+		// that is gone already, so a stale editor selection is harmless.
+		void DestroyEntity(EntityID entityID);
+
 		[[nodiscard]] int GenerateNextEntityID() noexcept;
 
 		void InitComponents() const noexcept;

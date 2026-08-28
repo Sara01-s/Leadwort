@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-struct Vec2;
-struct Vec4;
-
 namespace Leadwort {
 
 	struct Color {

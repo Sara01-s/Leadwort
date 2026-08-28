@@ -176,7 +176,11 @@ namespace Editor::Windows {
 				return;
 			}
 
-			const auto& entity { scene->GetEntity(entityID) };
+			const auto* entity { scene->GetEntity(entityID) };
+
+			if (!entity) {
+				return;
+			}
 
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::Enable(true);

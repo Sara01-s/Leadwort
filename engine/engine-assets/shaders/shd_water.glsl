@@ -58,7 +58,7 @@ vec3 WaveFBM(vec2 p) {
 		float wave = a * exp(WAVE_MAX_PEAK * sin(x) - WAVE_PEAK_OFFSET);
 
 		// dWave/dx via chain rule: d/dx[a * exp(k*sin(x) - c)] = wave * k * cos(x)
-		float dw = WAVE_MAX_PEAK * wave * cos(x);
+		float dw = WAVE_MAX_PEAK * wave * cos(x) * f;
 
 		h += wave;
 		grad += d * dw;
@@ -75,7 +75,7 @@ vec3 WaveFBM(vec2 p) {
 	}
 
 	vec3 result = vec3(h, grad.x, grad.y) / max(amplitudeSum, 0.0001);
-	result.x *= WAVE_HEIGHT;
+	result *= WAVE_HEIGHT;
 
 	return result;
 }
@@ -117,28 +117,38 @@ layout(std140, binding = 2) uniform TimeData {
 
 layout(binding = 13) uniform samplerCube _IBLPrefilter;
 
+const float PI = 3.14159265358979323846;
+
 const vec3  SUN_DIRECTION        = vec3(0.3, -0.15, 0.9);
 const vec3  SUN_COLOR            = vec3(1.0, 0.95, 0.85);
 
-const vec3  DEEP_COLOR    		 = vec3(0.02, 0.03, 0.04);
-const vec3  SHALLOW_COLOR  		 = vec3(0.15, 0.17, 0.19);
+// Blinn-Phong reflectance terms
+const vec3  AMBIENT_COLOR        = vec3(0.02, 0.2, 0.3);
+const vec3  DIFFUSE_REFLECTANCE  = vec3(0.12, 0.1, 0.2);
+const vec3  SPECULAR_REFLECTANCE = vec3(1.0, 1.0, 0.95);
+const float SHININESS            = 200.0;
 
-const vec3  SPECULAR_COLOR       = vec3(1.0, 1.0, 0.95);
+// Per-term normal shaping: flattens/sharpens the normal for each lighting term
+const float NORMAL_STRENGTH          = 1.0;
+const float FRESNEL_NORMAL_STRENGTH  = 1.0;
+const float SPECULAR_NORMAL_STRENGTH = 1.0;
 
+// Schlick fresnel: R scales every reflected term
+const vec3  FRESNEL_COLOR        = vec3(0.35, 0.50, 0.60);
 const float FRESNEL_BIAS         = 0.05;
 const float FRESNEL_STRENGTH     = 1.0;
-const float FRESNEL_POWER        = 3.0;
+const float FRESNEL_SHININESS    = 5.0;
+const bool  USE_ENVIRONMENT_MAP  = true;
+
+const float SUN_DISC_EXPONENT    = 500.0;
+const float SUN_DISC_INTENSITY   = 1.0;
 
 const vec3  TIP_COLOR            = vec3(0.9, 0.95, 1.0);
-const float FOAM_THRESHOLD       = 1.5;
-const float FOAM_SOFTNESS        = 0.15;
+const float TIP_ATTENUATION      = 4.0;
 
-const vec3  FOG_COLOR            = vec3(0.55, 0.65, 0.75);
+const vec3  FOG_COLOR            = vec3(0.5, 0.7, 0.9);
 const float FOG_DENSITY          = 0.008;
 const float FOG_OFFSET           = 20.0;
-
-const float SUN_DISC_EXPONENT    = 3500.0;
-const float SUN_DISC_INTENSITY   = 8.0;
 
 const int   FRAG_WAVE_COUNT      = 40;
 const float FRAG_SEED            = 0.0;
@@ -150,8 +160,9 @@ const float FRAG_AMPLITUDE_MULT  = 0.82;
 const float FRAG_SPEED           = 2.0;
 const float FRAG_SPEED_RAMP      = 1.07;
 const float FRAG_DRAG            = 1.0;
+const float FRAG_HEIGHT          = 1.0;
 const float FRAG_MAX_PEAK        = 1.0;
-const float FRAG_PEAK_OFFSET     = 0.5;
+const float FRAG_PEAK_OFFSET     = 0.9;
 
 in vec2 v_uv;
 in vec3 v_worldPos;
@@ -173,7 +184,7 @@ vec3 FragmentWaveFBM(vec2 p) {
 
 		float x = dot(d, p) * f + _Time.x * speed;
 		float wave = a * exp(FRAG_MAX_PEAK * sin(x) - FRAG_PEAK_OFFSET);
-		float dw = FRAG_MAX_PEAK * wave * cos(x);
+		float dw = FRAG_MAX_PEAK * wave * cos(x) * f;
 
 		h += wave;
 		grad += d * dw;
@@ -187,7 +198,10 @@ vec3 FragmentWaveFBM(vec2 p) {
 		seed  += FRAG_SEED_ITER;
 	}
 
-	return vec3(h, grad.x, grad.y) / max(amplitudeSum, 0.0001);
+	vec3 result = vec3(h, grad.x, grad.y) / max(amplitudeSum, 0.0001);
+	result.x *= FRAG_HEIGHT;
+
+	return result;
 }
 
 void main() {
@@ -195,40 +209,65 @@ void main() {
 	vec3 fineNormal = normalize(vec3(-fineFbm.y, 1.0, -fineFbm.z));
 
 	vec3 normal = normalize(v_normal + fineNormal - vec3(0.0, 1.0, 0.0));
+	normal.xz *= NORMAL_STRENGTH;
+	normal = normalize(normal);
 
 	vec3 lightDir = normalize(-SUN_DIRECTION);
 	vec3 viewDir = normalize(_CameraPosition.xyz - v_worldPos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 
-	float ndotl = max(dot(normal, lightDir), 0.0);
+	float ndotl = max(dot(lightDir, normal), 0.0);
 
-	vec3 baseColor = mix(DEEP_COLOR, SHALLOW_COLOR, ndotl * 0.5 + 0.5);
+	// Lambert diffuse
+	vec3 diffuse = SUN_COLOR * ndotl * (DIFFUSE_REFLECTANCE / PI);
 
-	float specWide  = pow(max(dot(normal, halfwayDir), 0.0), 60.0);
-	float specTight = pow(max(dot(normal, halfwayDir), 0.0), 800.0);
-	vec3 specular = SUN_COLOR * SPECULAR_COLOR * (specWide * 0.6 + specTight * 3.0);
+	// Schlick fresnel on its own shaped normal
+	vec3 fresnelNormal = normal;
+	fresnelNormal.xz *= FRESNEL_NORMAL_STRENGTH;
+	fresnelNormal = normalize(fresnelNormal);
 
-	vec3 reflectedDir = reflect(-viewDir, normal);
-	float sunDisc = pow(max(dot(reflectedDir, lightDir), 0.0), SUN_DISC_EXPONENT);
-	vec3 sun = SUN_COLOR * sunDisc * SUN_DISC_INTENSITY;
+	float base = 1.0 - max(dot(viewDir, fresnelNormal), 0.0);
+	float exponential = pow(base, FRESNEL_SHININESS);
+	float R = exponential + FRESNEL_BIAS * (1.0 - exponential);
+	R *= FRESNEL_STRENGTH;
 
-	float fresnelBase = 1.0 - max(dot(viewDir, normal), 0.0);
-	float fresnel = FRESNEL_BIAS + (1.0 - FRESNEL_BIAS) * pow(fresnelBase, FRESNEL_POWER);
-	fresnel *= FRESNEL_STRENGTH;
+	vec3 fresnel = FRESNEL_COLOR * R;
 
-	vec3 skyColor = textureLod(_IBLPrefilter, reflectedDir, 0.0).rgb;
-	vec3 reflection = mix(baseColor, skyColor, clamp(fresnel, 0.0, 1.0));
+	if (USE_ENVIRONMENT_MAP) {
+		// Sky reflection and sun disc are both reflected light, so both scale by R
+		vec3 reflectedDir = reflect(-viewDir, normal);
+		vec3 skyColor = textureLod(_IBLPrefilter, reflectedDir, 0.0).rgb;
+		float sunDisc = pow(max(dot(reflectedDir, lightDir), 0.0), SUN_DISC_EXPONENT);
+		vec3 sun = SUN_COLOR * sunDisc * SUN_DISC_INTENSITY;
 
-	float foamAmount = smoothstep(FOAM_THRESHOLD, FOAM_THRESHOLD + FOAM_SOFTNESS, v_height);
-	vec3 foam = TIP_COLOR * foamAmount;
+		fresnel = skyColor * R;
+		fresnel += sun * R;
+	}
 
-	vec3 colorBeforeFog = reflection + specular + sun + foam;
+	// Blinn-Phong specular, gated by ndotl and by its own Schlick term
+	vec3 specNormal = normal;
+	specNormal.xz *= SPECULAR_NORMAL_STRENGTH;
+	specNormal = normalize(specNormal);
+
+	float spec = pow(max(dot(specNormal, halfwayDir), 0.0), SHININESS) * ndotl;
+	vec3 specular = SUN_COLOR * SPECULAR_REFLECTANCE * spec;
+
+	base = 1.0 - max(dot(viewDir, halfwayDir), 0.0);
+	exponential = pow(base, 5.0);
+	R = exponential + FRESNEL_BIAS * (1.0 - exponential);
+
+	specular *= R;
+
+	vec3 tip = TIP_COLOR * pow(max(fineFbm.x, 0.0), TIP_ATTENUATION);
+
+	vec3 colorBeforeFog = AMBIENT_COLOR + diffuse + specular + fresnel + tip;
 
 	float viewDistance = length(_CameraPosition.xyz - v_worldPos);
 	float fogFactor = FOG_DENSITY * max(0.0, viewDistance - FOG_OFFSET);
 	fogFactor = exp2(-fogFactor * fogFactor);
 
 	vec3 finalColor = mix(FOG_COLOR, colorBeforeFog, clamp(fogFactor, 0.0, 1.0));
+	fragColor = vec4(pow(finalColor, vec3(1.0/2.2)), 1.0) * _Color;
 
 	fragColor = vec4(finalColor, 1.0) * _Color;
 }

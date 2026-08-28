@@ -1,4 +1,5 @@
 #pragma once
+#include "Leadwort/components/ComponentRegistry.h"
 #include "LeadwortEditor/core/public/FieldDrawerRegistry.h"
 #include "LeadwortEditor/core/public/IEditorWindow.h"
 #include "LeadwortEditor/data/EditorContext.h"
@@ -66,7 +67,7 @@ namespace Editor::Windows {
 	            return;
 	        }
 
-	        const auto* entity { m_EditorContext.OpenedScene->GetEntity(entityID) };
+	        auto* entity { m_EditorContext.OpenedScene->GetEntity(entityID) };
 	        if (!entity) {
 	            ImGui::TextDisabled("No entity selected");
 	            return;
@@ -97,7 +98,46 @@ namespace Editor::Windows {
 
 	            ImGui::PopID();
 	        }
+
+	        ImGui::Separator();
+	        DrawAddComponent(*entity);
 	    }
+
+		static void DrawAddComponent(Leadwort::Core::Entity& entity) {
+			auto& registry { Leadwort::Components::ComponentRegistry::Get() };
+
+			if (ImGui::Button("Add Component", ImVec2(-FLT_MIN, 0.0f))) {
+				ImGui::OpenPopup("##AddComponent");
+			}
+
+			if (!ImGui::BeginPopup("##AddComponent")) {
+				return;
+			}
+
+			bool anyAvailable { false };
+
+			for (const auto& typeName : registry.GetRegisteredTypeNames()) {
+				// Filters out what the entity already carries — Transform always, which is
+				// why it never shows up here — instead of letting AddComponent assert.
+				if (!registry.CanAddComponent(typeName, entity)) {
+					continue;
+				}
+
+				anyAvailable = true;
+
+				if (ImGui::MenuItem(typeName.c_str())) {
+					registry.CreateComponent(typeName, entity);
+					ImGui::CloseCurrentPopup();
+					break;
+				}
+			}
+
+			if (!anyAvailable) {
+				ImGui::TextDisabled("No components left to add");
+			}
+
+			ImGui::EndPopup();
+		}
 
 		void DrawAssetInspector(const EditorSelection& asset) {
 			ImGui::Text("%s", asset.path.filename().string().c_str());

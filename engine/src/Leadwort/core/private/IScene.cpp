@@ -3,7 +3,6 @@
 #include <Leadwort/asset-management/public/AssetDatabase.h>
 #include <Leadwort/components/public/Transform.h>
 #include <Leadwort/rendering/public/Model.h>
-#include <stdexcept>
 #include <unordered_set>
 #include <vector>
 
@@ -131,6 +130,40 @@ namespace Leadwort::Core {
 		return rawPtr;
     }
 
+    void IScene::DestroyEntity(const EntityID entityID) {
+		// The root is the scene's own anchor, not something the user owns.
+		if (entityID == m_RootEntity->GetID()) {
+			return;
+		}
+
+		const auto it { m_EntityMap.find(entityID) };
+
+		if (it == m_EntityMap.end()) {
+			return;
+		}
+
+		Entity* entity { it->second.get() };
+
+		// Children hold a raw pointer back to this transform, so they go first. The list is
+		// copied because detaching each child mutates the one the transform owns.
+		const std::vector<Components::Transform*> children { entity->GetTransform().GetChildren() };
+
+		for (const Components::Transform* child : children) {
+			DestroyEntity(child->GetEntity().GetID());
+		}
+
+		entity->GetTransform().SetParent(nullptr);
+
+		// Only drop the named ref if it still points here: a later entity may have taken
+		// the name over.
+		if (const auto namedIt { m_NamedRefs.find(entity->name) };
+			namedIt != m_NamedRefs.end() && namedIt->second == entity) {
+			m_NamedRefs.erase(namedIt);
+		}
+
+		m_EntityMap.erase(it);
+    }
+
     Entity* IScene::AddEntity(
        const std::string& name,
        const std::function<void(Entity*)>& configure
@@ -147,11 +180,9 @@ namespace Leadwort::Core {
     Entity* IScene::GetEntity(const EntityID entityID) const {
 		const auto it { m_EntityMap.find(entityID) };
 
-		if (it == m_EntityMap.end()) {
-		  throw std::runtime_error("Entity with id " + std::to_string(entityID) + " not found");
-		}
-
-		return it->second.get();
+		// Null rather than throw: the editor can hold on to the id of an entity the user
+		// has just deleted, and a missing entity is a normal state there, not an error.
+		return it == m_EntityMap.end() ? nullptr : it->second.get();
     }
 
 } // namespace Leadwort::Core

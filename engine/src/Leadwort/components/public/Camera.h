@@ -80,6 +80,10 @@ namespace Leadwort::Components {
 			}
 		}
 
+		// CameraSystem caches the main and scene cameras by raw pointer, so a destroyed
+		// camera has to invalidate that cache or the next frame renders through freed memory.
+		void OnRemoved() override;
+
 		[[nodiscard]] Vec3 WorldToCameraSpace(const Vec3& worldPosition) const noexcept;
 
 		[[nodiscard]] bool ShouldRender(const Core::Entity& entity) const noexcept;
