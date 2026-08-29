@@ -32,6 +32,24 @@ namespace Leadwort::Components::Behaviours {
 			LW_FIELD(Float, OuterCutoff, "Outer Cutoff")
 		)
 
+        void Serialize(Json& out) const override {
+          out["type"] = static_cast<int>(Type);
+          out["intensity"] = Intensity;
+          out["color"] = Color;
+          out["attenuation"] = Attenuation;
+          out["innerCutoff"] = InnerCutoff;
+          out["outerCutoff"] = OuterCutoff;
+       }
+
+        void Deserialize(const Json& in) override {
+          Type = static_cast<LightType>(in.value("type", static_cast<int>(Type)));
+          Intensity = in.value("intensity", Intensity);
+          Color = in.value("color", Color);
+          Attenuation = in.value("attenuation", Attenuation);
+          InnerCutoff = in.value("innerCutoff", InnerCutoff);
+          OuterCutoff = in.value("outerCutoff", OuterCutoff);
+       }
+
 	public:
 		[[nodiscard]]
 		std::string_view GetTypeAsString() const noexcept {
