@@ -99,12 +99,28 @@ namespace Leadwort::Components {
 		return m_Dirty;
 	}
 
-	void Transform::SetLocalFromWorld(const Vec3 translation, const Vec3 rotation, const Vec3 scale) {
-		m_LocalPosition = translation;
-		m_LocalRotation = Quat::FromEuler(rotation.x, rotation.y, rotation.z);
+	void Transform::SetLocalMatrix(const Mat4& localMatrix) {
+		Vec3 position{}, scale{};
+		Quat rotation{};
+
+		if (!localMatrix.Decompose(position, rotation, scale)) {
+			LW_ERROR("Transform::SetLocalMatrix: matrix has a degenerate axis, transform left untouched");
+			return;
+		}
+
+		AssertValidVec3(position, "Transform::SetLocalMatrix produced a NaN position");
+		AssertValidQuat(rotation, "Transform::SetLocalMatrix produced a NaN rotation");
+		AssertValidVec3(scale, "Transform::SetLocalMatrix produced a NaN scale");
+
+		m_LocalPosition = position;
+		m_LocalRotation = rotation;
 		m_LocalScale = scale;
 
 		MarkDirty();
+	}
+
+	void Transform::SetWorldMatrix(const Mat4& worldMatrix) {
+		SetLocalMatrix(m_Parent ? Inverse(m_Parent->GetWorldMatrix()) * worldMatrix : worldMatrix);
 	}
 
 	void Transform::MarkDirty() const {

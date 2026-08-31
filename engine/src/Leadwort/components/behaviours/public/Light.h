@@ -149,6 +149,12 @@ namespace Leadwort::Components::Behaviours {
 	            }
 	        }
 
+	        // Tag every line with the light's own color so the editor draws each light's
+	        // gizmo in that color instead of the viewport's generic gizmo color.
+	        for (auto& line : lines) {
+	            line.color = Color;
+	        }
+
 	        return lines;
 	    }
 

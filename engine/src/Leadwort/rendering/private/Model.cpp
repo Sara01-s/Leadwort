@@ -65,9 +65,7 @@ namespace Leadwort::Core {
 	// Push a node's local matrix onto a transform. The decomposition is only valid for a
 	// TRS matrix, which is what glTF nodes are (shear cannot be expressed there).
 	static void ApplyLocalMatrix(Components::Transform& transform, const Mat4& matrix) {
-		transform.SetLocalPosition(matrix.GetTranslation());
-		transform.SetLocalRotation(matrix.GetRotation());
-		transform.SetLocalScale(matrix.GetScale());
+		transform.SetLocalMatrix(matrix);
 	}
 
 	void Model::Instantiate(Entity& parentEntity) {

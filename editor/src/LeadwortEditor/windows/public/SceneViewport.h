@@ -3,6 +3,7 @@
 #include "LeadwortEditor/data/EditorContext.h"
 #include "SceneTools.h"
 #include "imgui.h"
+#include <Leadwort/rendering/public/CoordinateSystem.h>
 #include <Leadwort/rendering/public/ScenePicker.h>
 #include <Leadwort/systems/public/CameraSystem.h>
 #include <Leadwort/systems/public/Input.h>
@@ -107,6 +108,16 @@ namespace Editor::Windows {
 		}
 
 	private:
+		static ImU32 ToImU32(const Leadwort::Color& color) {
+			const Leadwort::Color c { color.Clamped() };
+			return IM_COL32(
+				static_cast<int>(c.r * 255.0f + 0.5f),
+				static_cast<int>(c.g * 255.0f + 0.5f),
+				static_cast<int>(c.b * 255.0f + 0.5f),
+				static_cast<int>(c.a * 255.0f + 0.5f)
+			);
+		}
+
 		static ImVec2 ClipToScreen(
 			const Leadwort::Vec4& clip,
 			const ImVec2& viewportPos,
@@ -122,10 +133,6 @@ namespace Editor::Windows {
 			};
 		}
 
-		// Projects a world-space segment to screen space, clipping it against the
-		// camera near plane so segments with an endpoint behind the camera are still
-		// drawn (up to the near plane) instead of being discarded wholesale. Returns
-		// false only when the whole segment is behind the near plane.
 		static bool ClipSegmentToScreen(
 			const Leadwort::Vec3& p0,
 			const Leadwort::Vec3& p1,
@@ -186,23 +193,23 @@ namespace Editor::Windows {
 			ImGuizmo::Enable(true);
 
 			auto& transform { entity->GetTransform() };
-			Mat4 transformMatrix { transform.GetWorldMatrix() };
 
-			Mat4 viewMatrix { sceneCamera->GetViewMatrix() };
-			Mat4 projectionMatrix { sceneCamera->GetProjectionMatrix() };
+			Mat4 gizmoMatrix { transform.GetWorldMatrix() };
+			Mat4 viewMatrix { Rendering::CoordinateSystem::GizmoViewMatrix(sceneCamera->GetViewMatrix()) };
+			Mat4 projectionMatrix { Rendering::CoordinateSystem::GizmoProjectionMatrix(sceneCamera->GetProjectionMatrix()) };
 
-			ImGuizmo::Manipulate(
-				viewMatrix.ToPtr(),
-				projectionMatrix.ToPtr(),
-				m_EditorContext.GizmoOperation,
-				m_EditorContext.GizmoMode,
-				transformMatrix.ToPtr()
-			);
+			const bool manipulated {
+				ImGuizmo::Manipulate(
+					viewMatrix.ToPtr(),
+					projectionMatrix.ToPtr(),
+					m_EditorContext.GizmoOperation,
+					m_EditorContext.GizmoMode,
+					gizmoMatrix.ToPtr()
+				)
+			};
 
-			if (ImGuizmo::IsUsing()) {
-				Vec3 translation{}, rotation{}, scale{};
-				ImGuizmo::DecomposeMatrixToComponents(transformMatrix.ToPtr(), translation.ToPtr(), rotation.ToPtr(), scale.ToPtr());
-				transform.SetLocalFromWorld(translation, rotation, scale);
+			if (manipulated) {
+				transform.SetWorldMatrix(gizmoMatrix);
 			}
 		}
 
@@ -243,9 +250,9 @@ namespace Editor::Windows {
 			const Mat4 viewProjection { sceneCamera->GetProjectionMatrix() * sceneCamera->GetViewMatrix() };
 
 			ImDrawList* drawList { ImGui::GetWindowDrawList() };
-			constexpr ImU32 gizmoColor { IM_COL32(255, 220, 80, 255) };
+			constexpr ImU32 defaultGizmoColor { IM_COL32(255, 220, 80, 255) };
 
-			for (const auto& [entityID, entity] : scene->GetEntityMap()) {
+			for (const auto& entity: scene->GetEntityMap() | std::views::values) {
 				if (!entity) {
 					continue;
 				}
@@ -255,7 +262,8 @@ namespace Editor::Windows {
 						ImVec2 screenStart{}, screenEnd{};
 
 						if (ClipSegmentToScreen(line.start, line.end, viewProjection, viewportPos, viewportSize, screenStart, screenEnd)) {
-							drawList->AddLine(screenStart, screenEnd, gizmoColor, 1.5f);
+							const ImU32 lineColor { line.color ? ToImU32(*line.color) : defaultGizmoColor };
+							drawList->AddLine(screenStart, screenEnd, lineColor, 1.5f);
 						}
 					}
 				}

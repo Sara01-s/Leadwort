@@ -17,11 +17,11 @@ namespace Editor::Windows {
 				HandleShortcuts();
 			}
 
-			ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + kMargin, viewportPos.y + kMargin));
+			ImGui::SetCursorScreenPos(ImVec2(viewportPos.x + Margin, viewportPos.y + Margin));
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 6.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, kBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_ChildBg, BackgroundColor);
 
 			constexpr ImGuiChildFlags childFlags {
 				ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY
@@ -33,7 +33,7 @@ namespace Editor::Windows {
 
 			m_Hovered = false;
 
-			if (ImGui::BeginChild("##scene_tools", ImVec2(kWidth, 0.0f), childFlags, windowFlags)) {
+			if (ImGui::BeginChild("##scene_tools", ImVec2(Width, 0.0f), childFlags, windowFlags)) {
 				DrawOperationTabs();
 				ImGui::Separator();
 				DrawModeSelector();
@@ -116,10 +116,10 @@ namespace Editor::Windows {
 		}
 
 	private:
-		static constexpr float kMargin { 10.0f };
-		static constexpr float kWidth { 232.0f * 1.5f };
+		static constexpr float Margin { 10.0f };
+		static constexpr float Width { 232.0f * 1.5f };
 
-		static constexpr ImVec4 kBackgroundColor { 0.10f, 0.10f, 0.11f, 0.88f };
+		static constexpr ImVec4 BackgroundColor { 0.10f, 0.10f, 0.11f, 0.88f };
 
 	private:
 		EditorContext& m_EditorContext;

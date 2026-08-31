@@ -70,7 +70,12 @@ namespace Leadwort::Components {
 		void Deserialize(const Json& in) final override;
 
 		void OnFieldsChanged() override { MarkDirty(); }
-		void SetLocalFromWorld(Vec3 translation, Vec3 rotation, Vec3 scale);
+
+		// Overwrite the whole transform from a matrix. The world overload re-expresses the
+		// matrix in the parent's space first, so a parented entity keeps its parent.
+		// Both are no-ops on a matrix that cannot be decomposed (see Mat4::Decompose).
+		void SetLocalMatrix(const Mat4& localMatrix);
+		void SetWorldMatrix(const Mat4& worldMatrix);
 
 	private:
 		void MarkDirty() const;

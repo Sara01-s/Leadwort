@@ -8,7 +8,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <sstream>
 #include <string>
 
@@ -59,12 +58,41 @@ namespace Leadwort {
 	    }
 
 	    [[nodiscard]] Quat GetRotation() const {
-	        glm::vec3 pos, scale, skew;
-	        glm::vec4 perspective;
-	        glm::quat rot;
-	        glm::decompose(m_Data, scale, rot, pos, skew, perspective);
+	        Vec3 translation{}, scale{};
+	        Quat rotation{};
 
-	        return Quat(rot);
+	        return Decompose(translation, rotation, scale) ? rotation : Quat::Identity();
+	    }
+
+	    // Splits an affine TRS matrix back into its three parts. Returns false — leaving
+	    // the outputs untouched — when a basis vector has collapsed to zero length, since
+	    // no rotation can be recovered from a degenerate axis.
+	    //
+	    // A mirrored basis (negative determinant) has no pure-rotation equivalent either,
+	    // so the mirror is folded into the X scale and the remaining basis is orthonormal.
+	    [[nodiscard]] bool Decompose(Vec3& outTranslation, Quat& outRotation, Vec3& outScale) const {
+	        constexpr float minAxisLength { 1e-6f };
+
+	        glm::mat3 basis { m_Data };
+	        glm::vec3 scale { glm::length(basis[0]), glm::length(basis[1]), glm::length(basis[2]) };
+
+	        if (scale.x < minAxisLength || scale.y < minAxisLength || scale.z < minAxisLength) {
+	            return false;
+	        }
+
+	        if (glm::determinant(basis) < 0.0f) {
+	            scale.x = -scale.x;
+	        }
+
+	        basis[0] /= scale.x;
+	        basis[1] /= scale.y;
+	        basis[2] /= scale.z;
+
+	        outTranslation = Vec3(m_Data[3]);
+	        outRotation    = Quat(glm::normalize(glm::quat_cast(basis)));
+	        outScale       = Vec3(scale);
+
+	        return true;
 	    }
 
 	    [[nodiscard]] Vec3 GetScale() const {

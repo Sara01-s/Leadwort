@@ -44,13 +44,13 @@ namespace Editor::Windows {
 
 	private:
 	    struct FolderNode {
-	        std::map<std::string, FolderNode> subfolders{};
-	        std::vector<std::filesystem::path> files{};
+	        std::map<std::string, FolderNode> SubFolders{};
+	        std::vector<std::filesystem::path> Files{};
 	    };
 
 	    struct CachedTree {
-	        FolderNode root{};
-	        std::filesystem::file_time_type lastScan{};
+	        FolderNode Root{};
+	        std::filesystem::file_time_type LastScan{};
 	    };
 
 	    std::unordered_map<std::string, CachedTree> m_TreeCache;
@@ -62,7 +62,7 @@ namespace Editor::Windows {
 	            root = BuildTree(rootPath);
 	        }
 
-	        if (root.subfolders.empty() && root.files.empty()) {
+	        if (root.SubFolders.empty() && root.Files.empty()) {
 	            root = BuildTree(rootPath);
 	        }
 
@@ -90,10 +90,10 @@ namespace Editor::Windows {
 	            FolderNode* current { &root };
 
 	            for (auto it = relative.begin(); it != std::prev(relative.end()); ++it) {
-	                current = &current->subfolders[it->string()];
+	                current = &current->SubFolders[it->string()];
 	            }
 
-	            current->files.push_back(relative);
+	            current->Files.push_back(relative);
 	        }
 
 	        return root;
@@ -107,13 +107,13 @@ namespace Editor::Windows {
 	        if (isRoot || ImGui::TreeNodeEx(label.c_str(), flags)) {
 				ImGui::Indent(10.0f);
 
-	            for (const auto& [name, child] : node.subfolders) {
+	            for (const auto& [name, child] : node.SubFolders) {
 	                ImGui::PushID(name.c_str());
 	                DrawNode(child, name);
 	                ImGui::PopID();
 	            }
 
-	            for (const auto& filePath : node.files) {
+	            for (const auto& filePath : node.Files) {
 	                ImGui::PushID(filePath.string().c_str());
 	                DrawFileEntry(filePath);
 	                ImGui::PopID();

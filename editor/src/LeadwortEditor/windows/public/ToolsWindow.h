@@ -103,7 +103,6 @@ namespace Editor::Core {
             ImGui::EndMenu();
         }
 
-        // Filtro reutilizable: solo .json
         static constexpr nfdu8filteritem_t kSceneFilter[1] { { "Scene (JSON)", "json" } };
 
         void OpenSceneDialog() {
@@ -117,10 +116,9 @@ namespace Editor::Core {
             else if (result == NFD_ERROR) {
                 LW_ERROR("ToolsWindow: NFD OpenDialog error: ", NFD::GetError());
             }
-            // NFD_CANCEL: el usuario cerró el diálogo sin elegir nada, no hacemos nada
         }
 
-        void SaveSceneAsDialog() {
+        void SaveSceneAsDialog() const {
             NFD::UniquePathU8 outPath{};
 
             const nfdresult_t result { NFD::SaveDialog(outPath, kSceneFilter, 1, nullptr, "scene.json") };

@@ -12,16 +12,9 @@ namespace Leadwort::Scenes {
 	class DefaultScene final : public Core::IScene {
 	public:
 	    void Create() override {
-	        // Default Cube
-			Core::Entity* cube { CreateEntity("Default Cube") };
-	        {
-	            auto* mr { cube->AddComponent<Components::MeshRenderer>() };
-				mr->mesh = Utils::PrimitiveMeshes::Get().Cube();
-	        }
-
 			Core::Entity* water { CreateEntity("Water") };
-	    	water->GetTransform().SetLocalScale(Vec3(100.0f, 1.0f, 100.0f));
-	    	water->GetTransform().SetLocalPosition(Vec3(0.0f, -3.0f, 0.0f));
+	    	water->GetTransform().SetLocalScale(Vec3(1000.0f, 1.0f, 1000.0f));
+	    	water->GetTransform().SetLocalPosition(Vec3(0.0f, -2.8f, 0.0f));
 			auto* mr { water->AddComponent<Components::MeshRenderer>() };
 			const auto waterShader { AssetManagement::EngineAssets::GetShader("shaders/shd_water.glsl") };
 			const auto waterMaterial { AssetManagement::EngineAssets::CreateMaterial(waterShader) };
@@ -51,7 +44,6 @@ namespace Leadwort::Scenes {
 				Core::Entity* e { CreateEntity("Scene Camera") };
 	            e->tag = Core::Tags::SCENE_CAMERA;
 	            e->GetTransform().SetWorldPosition(Vec3(5.0f, 2.5f, -5.0f));
-	            e->GetTransform().LookAt(cube->GetTransform());
 
 	            e->AddComponent<Components::Behaviours::FirstPersonController>();
 				auto* a { e->AddComponent<Components::Camera>() };

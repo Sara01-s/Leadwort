@@ -183,9 +183,9 @@ namespace Editor::Windows {
 			ImGui::TextDisabled("|");
 			ImGui::SameLine();
 
-			DrawLegendSwatch(kColorRead, "Read");
-			DrawLegendSwatch(kColorWrite, "Write");
-			DrawLegendSwatch(kColorDepth, "Depth / Stencil");
+			DrawLegendSwatch(ColorRead, "Read");
+			DrawLegendSwatch(ColorWrite, "Write");
+			DrawLegendSwatch(ColorDepth, "Depth / Stencil");
 
 			ImGui::NewLine();
 		}
@@ -227,7 +227,7 @@ namespace Editor::Windows {
 			const float rowHeight { ImGui::GetTextLineHeight() + 12.0f };
 
 			const float availableHeight { ImGui::GetContentRegionAvail().y };
-			const float tableHeight { std::max(availableHeight - kDetailsHeight, headerHeight + rowHeight * 2.0f) };
+			const float tableHeight { std::max(availableHeight - DetailsHeight, headerHeight + rowHeight * 2.0f) };
 
 			constexpr ImGuiTableFlags tableFlags {
 				ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoPadInnerX
@@ -238,10 +238,10 @@ namespace Editor::Windows {
 				return;
 			}
 
-			ImGui::TableSetupColumn("Resource", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, kResourceColumnWidth);
+			ImGui::TableSetupColumn("Resource", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, ResourceColumnWidth);
 
 			for (const IPass* pass : m_Passes) {
-				ImGui::TableSetupColumn(pass->GetName().data(), ImGuiTableColumnFlags_WidthFixed, kPassColumnWidth);
+				ImGui::TableSetupColumn(pass->GetName().data(), ImGuiTableColumnFlags_WidthFixed, PassColumnWidth);
 			}
 
 			ImGui::TableSetupScrollFreeze(1, 1);
@@ -285,10 +285,10 @@ namespace Editor::Windows {
 			const bool isSelected { passIndex == m_SelectedPass };
 
 			if (isSelected) {
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, kSelectedColumnColor);
+				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, SelectedColumnColor);
 			}
 			else if (passIndex == m_HoveredPass) {
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, kHoveredColumnColor);
+				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, HoveredColumnColor);
 			}
 
 			const ImVec2 cellMin { ImGui::GetCursorScreenPos() };
@@ -327,12 +327,12 @@ namespace Editor::Windows {
 				m_SelectedPass = isSelected ? -1 : passIndex;
 			}
 
-			ImU32 textColor { kPassNameColor };
+			ImU32 textColor { PassNameColor };
 			if (!enabled) {
-				textColor = kDisabledTextColor;
+				textColor = DisabledTextColor;
 			}
 			else if (isSelected) {
-				textColor = kSelectedTextColor;
+				textColor = SelectedTextColor;
 			}
 
 			const ImGuiViewport* viewport { ImGui::GetMainViewport() };
@@ -397,10 +397,10 @@ namespace Editor::Windows {
 			const bool passEnabled { pass->IsEnabled() };
 
 			if (col == m_SelectedPass) {
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, kSelectedColumnColor);
+				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, SelectedColumnColor);
 			}
 			else if (col == m_HoveredPass) {
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, kHoveredColumnColor);
+				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, HoveredColumnColor);
 			}
 
 			const ImGuiStyle& style { ImGui::GetStyle() };
@@ -416,7 +416,7 @@ namespace Editor::Windows {
 				const float lineStart { col == resourceRow.FirstPass ? centerX : cellMin.x - style.CellPadding.x };
 				const float lineEnd { col == resourceRow.LastPass ? centerX : cellMin.x + columnWidth + style.CellPadding.x };
 
-				drawList->AddLine(ImVec2(lineStart, centerY), ImVec2(lineEnd, centerY), kColorLifetime, 2.0f);
+				drawList->AddLine(ImVec2(lineStart, centerY), ImVec2(lineEnd, centerY), ColorLifetime, 2.0f);
 			}
 
 			if (!cell.Used) {
@@ -432,16 +432,16 @@ namespace Editor::Windows {
 			const int alpha { passEnabled ? 255 : 70 };
 
 			if (cell.Read && cell.Write) {
-				drawList->AddRectFilled(blockMin, ImVec2(centerX, blockMax.y), WithAlpha(kColorRead, alpha), 3.0f, ImDrawFlags_RoundCornersLeft);
-				drawList->AddRectFilled(ImVec2(centerX, blockMin.y), blockMax, WithAlpha(kColorWrite, alpha), 3.0f, ImDrawFlags_RoundCornersRight);
+				drawList->AddRectFilled(blockMin, ImVec2(centerX, blockMax.y), WithAlpha(ColorRead, alpha), 3.0f, ImDrawFlags_RoundCornersLeft);
+				drawList->AddRectFilled(ImVec2(centerX, blockMin.y), blockMax, WithAlpha(ColorWrite, alpha), 3.0f, ImDrawFlags_RoundCornersRight);
 			}
 			else {
-				drawList->AddRectFilled(blockMin, blockMax, WithAlpha(cell.Read ? kColorRead : kColorWrite, alpha), 3.0f);
+				drawList->AddRectFilled(blockMin, blockMax, WithAlpha(cell.Read ? ColorRead : ColorWrite, alpha), 3.0f);
 			}
 
 			// Depth/stencil attachments get an outline so they read apart from color ones.
 			if (cell.Usage == UsageFlags::DepthStencil) {
-				drawList->AddRect(blockMin, blockMax, WithAlpha(kColorDepth, passEnabled ? 220 : 70), 3.0f, 0, 1.6f);
+				drawList->AddRect(blockMin, blockMax, WithAlpha(ColorDepth, passEnabled ? 220 : 70), 3.0f, 0, 1.6f);
 			}
 
 			ImGui::PushID(row);
@@ -579,7 +579,7 @@ namespace Editor::Windows {
 				return IM_COL32(232, 205, 90, 255);
 			}
 
-			return texture.IsDepth() ? kColorDepth : IM_COL32(92, 208, 168, 255);
+			return texture.IsDepth() ? ColorDepth : IM_COL32(92, 208, 168, 255);
 		}
 
 		static const char* AccessName(const Cell& cell) noexcept {
@@ -601,21 +601,21 @@ namespace Editor::Windows {
 		}
 
 	private:
-		static constexpr float kPassColumnWidth { 30.0f };
-		static constexpr float kResourceColumnWidth { 250.0f };
-		static constexpr float kDetailsHeight { 210.0f };
+		static constexpr float PassColumnWidth { 30.0f };
+		static constexpr float ResourceColumnWidth { 250.0f };
+		static constexpr float DetailsHeight { 210.0f };
 
-		static constexpr ImU32 kColorRead { IM_COL32(86, 156, 240, 255) };
-		static constexpr ImU32 kColorWrite { IM_COL32(240, 158, 62, 255) };
-		static constexpr ImU32 kColorDepth { IM_COL32(176, 128, 232, 255) };
-		static constexpr ImU32 kColorLifetime { IM_COL32(255, 255, 255, 46) };
+		static constexpr ImU32 ColorRead { IM_COL32(86, 156, 240, 255) };
+		static constexpr ImU32 ColorWrite { IM_COL32(240, 158, 62, 255) };
+		static constexpr ImU32 ColorDepth { IM_COL32(176, 128, 232, 255) };
+		static constexpr ImU32 ColorLifetime { IM_COL32(255, 255, 255, 46) };
 
-		static constexpr ImU32 kPassNameColor { IM_COL32(215, 215, 215, 255) };
-		static constexpr ImU32 kSelectedTextColor { IM_COL32(255, 255, 255, 255) };
-		static constexpr ImU32 kDisabledTextColor { IM_COL32(140, 140, 140, 255) };
+		static constexpr ImU32 PassNameColor { IM_COL32(215, 215, 215, 255) };
+		static constexpr ImU32 SelectedTextColor { IM_COL32(255, 255, 255, 255) };
+		static constexpr ImU32 DisabledTextColor { IM_COL32(140, 140, 140, 255) };
 
-		static constexpr ImU32 kSelectedColumnColor { IM_COL32(80, 150, 230, 48) };
-		static constexpr ImU32 kHoveredColumnColor { IM_COL32(255, 255, 255, 14) };
+		static constexpr ImU32 SelectedColumnColor { IM_COL32(80, 150, 230, 48) };
+		static constexpr ImU32 HoveredColumnColor { IM_COL32(255, 255, 255, 14) };
 
 		static constexpr ImVec4 kWarningColor { 1.0f, 0.45f, 0.35f, 1.0f };
 
